@@ -1,0 +1,2 @@
+,naive,strip_range_train,distance_range_train,range_moved,reg_stratified,species_sep,antibiotic_sep,exp_describtion,species,antibiotic
+0,False,False,True,5,True,True,True,distanced_range5_strat,abaumannii,tobramycin
