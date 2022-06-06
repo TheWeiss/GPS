@@ -32,7 +32,7 @@ class MICDataSet(ABC):
         if self.pre_params is None:
             pre_params_name = 'base_line'
         else:
-            pre_params_name = str(' '.join([str(key) + '_' + str(value) for key, value in dic.items()]))
+            pre_params_name = str(' '.join([str(key) + '_' + str(value) for key, value in self.pre_param.items()]))
         self.saved_files_path = saved_files_path + pre_params_name + '/' + name
         if not os.path.exists(self.saved_files_path):
             os.makedirs(self.saved_files_path)
@@ -47,7 +47,7 @@ class MICDataSet(ABC):
             genotypic = pd.DataFrame({})
             error_id = []
             for SRR_dir in tqdm(os.listdir(self.path_dict['geno'])):
-                srr_features = p_utils.get_isolate_features(path+'/'+SRR_dir)
+                srr_features = p_utils.get_isolate_features(self.path_dict['geno']+'/'+SRR_dir)
                 if type(srr_features) is not str:
                     genotypic = pd.concat([genotypic, srr_features], axis=0)
                 else:
@@ -59,30 +59,24 @@ class MICDataSet(ABC):
     
     def _load_pheno(self):
         try:
-            all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
-            return all_ASR
+            self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
         except:
-            all_ASR = pd.DataFrame({})
+            self.all_ASR = pd.DataFrame({})
             error_id = []
-            for file_format, resources_dict in resources_path.items():
-                if file_format in ['VAMP', 'PATAKI']:
-                    for sam_dir in tqdm(os.listdir(resources_dict['pheno'])):
-                        sam_phen = self._load_all_phen_data(resources_dict['pheno']+'/'+sam_dir)
-                        if type(sam_phen) is not str:
-                            all_ASR = pd.concat([all_ASR, sam_phen], axis=0)
-                        else:
-                            # print(sam_dir)
-                            error_id += [sam_dir]
+            for sam_dir in tqdm(os.listdir(self.saved_files_path['pheno'])):
+                sam_phen = self._load_all_phen_data(self.saved_files_path['pheno']+'/'+sam_dir)
+                if type(sam_phen) is not str:
+                    self.all_ASR = pd.concat([self.all_ASR, sam_phen], axis=0)
                 else:
-                    sam_phen = self._load_all_phen_data(path)
-                    all_ASR = pd.concat([all_ASR, sam_phen], axis=0)
+                    error_id += [sam_dir]
             if len(error_id) == 0:
                 error_id = None
-            all_ASR = self.align_ASR(all_ASR)
-            all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
-        self.all_ASR  = all_ASR
+            self.align_ASR()
+            self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
+            self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
+            self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
     
-    def _load_all_phen_data(
+    def _load_all_phen_data(self,
         path, 
         file_sep=',',
         file_columns=None,
@@ -107,13 +101,16 @@ class MICDataSet(ABC):
         phen_df['antibiotic_name'] = phen_df['antibiotic_name'].replace(' ', '_', regex=True)
         phen_df['antibiotic_name'] = phen_df['antibiotic_name'].replace('-', '_', regex=True)
         
-        phen_df = MICDataSet._parse_measure_dash_per_file(phen_df)
+        phen_df = self._parse_measure_dash_per_file(phen_df)
         
         phen_df['DB'] = self.name
 
         return phen_df
-    
-    @staticmethod
+
+    @abstractmethod
+    def align_ASR(self):
+        pass
+
     @abstractmethod
     def _parse_measure_dash_per_file(self):
         pass
@@ -126,7 +123,7 @@ class MICDataSet(ABC):
         return self.geno
     
     def get_pheno(self):
-        return self.pheno
+        return self.all_ASR
     
 
 class PATAKICDataSet(MICDataSet):
@@ -141,15 +138,17 @@ class PATAKICDataSet(MICDataSet):
                 file_columns=None,
                 bio_id_sep='_',
             )
-        
-    @staticmethod
-    def _parse_measure_dash_per_file(phen_df):
+
+    def _parse_measure_dash_per_file(self, phen_df):
         if phen_df['measurement'].dtype == object:
             phen_df['measurement_has_/'] = phen_df['measurement'].apply(lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x)))>0)
             phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet.get_mes2)
             phen_df['measurement'] = phen_df['measurement'].apply(lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
         return phen_df
-    
+
+    def align_ASR(self):
+        pass
+
     @staticmethod
     def get_mes2(x):
         if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
