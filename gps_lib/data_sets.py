@@ -74,7 +74,6 @@ class MICDataSet(ABC):
             
     
     def _load_all_phan_data(self):
-        print(self.path_dict['pheno'])
         self.all_ASR = pd.DataFrame({})
         error_id = []
         for sam_dir in tqdm(os.listdir(self.path_dict['pheno'])):
@@ -202,11 +201,11 @@ class PATAKICDataSet(MICDataSet):
     def generate_data_set(self):
         print('hello')
 
-        
-class PADataSet(MICDataSet):
+
+class VAMPDataSet(MICDataSet):
     
     def __init__(self, path_dict, pre_params = None):
-        super().__init__('PA', path_dict, pre_params)
+        super().__init__('VAMP', path_dict, pre_params)
         
 
     def _load_all_phen_data_per_file(self, path):
@@ -276,33 +275,26 @@ class PADataSet(MICDataSet):
     
     def generate_data_set(self):
         print('hello')
-
-
-class VAMPDataSet(MICDataSet):
+        
+        
+class PADataSet(MICDataSet):
     
     def __init__(self, path_dict, pre_params = None):
-        super().__init__('VAMP', path_dict, pre_params)
+        super().__init__('PA', path_dict, pre_params)
         
 
-    def _load_all_phen_data_per_file(self, path):
-        return super()._load_all_phen_data_per_file(
-                path=path,
-                file_sep=',',
-                file_columns=[
-                    'antibiotic_name', 
-                    'resistance_phenotype', 
-                    'measurement_sign', 
-                    'measurement', 
-                    'units', 
-                    'measurement_type',
-                    'platform', 
-                    'platform1', 
-                    'platform2', 
-                    'test_standard',
-                    'biosample_id'
-                ],
-                bio_id_sep='.',
-            )
+    def _load_all_phan_data(self):
+        print(self.path_dict['pheno'])
+        self.all_ASR = pd.DataFrame({})
+        error_id = []
+        for sam_dir in tqdm(os.listdir(self.path_dict['pheno'])):
+            sam_phen = self._load_all_phen_data_per_file(self.path_dict['pheno']+'/'+sam_dir)
+            if type(sam_phen) is not str:
+                self.all_ASR = pd.concat([self.all_ASR, sam_phen], axis=0)
+            else:
+                error_id += [sam_dir]
+        if len(error_id) == 0:
+            error_id = None
 
     def _parse_measure_dash_per_file(self, phen_df):
         if phen_df['measurement'].dtype == object:
