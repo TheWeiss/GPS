@@ -156,6 +156,7 @@ class MICDataSet(ABC):
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
+        self.all_ASR.drop(['level_2'], axis=1, inplace=True)
 
     @abstractmethod
     def _align_ASR(self):
