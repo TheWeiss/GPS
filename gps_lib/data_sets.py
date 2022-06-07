@@ -143,7 +143,7 @@ class MICDataSet(ABC):
             return df
         self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(choose_one_run_id)
 
-        self.all_ASR['species_fam'].replace(self.species_dict)
+        self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
 
     def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
