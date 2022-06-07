@@ -61,13 +61,11 @@ class MICDataSet(ABC):
         try:
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
         except:
+
             self._load_all_phan_data()
-                
-            self.align_ASR()
-            self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
-            self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
-            self.merge_all_meta()
-            
+            self._align_ASR()
+            self._fix_general_values()
+            self._merge_all_meta()
             self.all_ASR = self.all_ASR.drop_duplicates(keep='first')
             
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
@@ -104,12 +102,6 @@ class MICDataSet(ABC):
         if 'species' not in phen_df.columns:
             phen_df['species'] = np.nan
 
-        phen_df['measurement_sign'].fillna('=', inplace=True)
-        phen_df['measurement_sign'].replace(inplace=True, to_replace='==', value='=')
-
-        phen_df['antibiotic_name'] = phen_df['antibiotic_name'].str.lower()
-        phen_df['antibiotic_name'] = phen_df['antibiotic_name'].replace(' ', '_', regex=True)
-        phen_df['antibiotic_name'] = phen_df['antibiotic_name'].replace('-', '_', regex=True)
         
         phen_df = self._parse_measure_dash_per_file(phen_df)
         
@@ -117,12 +109,23 @@ class MICDataSet(ABC):
 
         return phen_df
 
+    def _fix_general_values(self):
+        self.all_ASR['sign'].fillna('=', inplace=True)
+        self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
+
+        self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].str.lower()
+        self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace(' ', '_', regex=True)
+        self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace('-', '_', regex=True)
+
+        self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
+        self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
+
     @abstractmethod
-    def align_ASR(self):
+    def _align_ASR(self):
         pass
     
     @abstractmethod
-    def merge_all_meta(self):
+    def _merge_all_meta(self):
         pass
 
     @abstractmethod
@@ -157,11 +160,11 @@ class PATAKICDataSet(MICDataSet):
     def _parse_measure_dash_per_file(self, phen_df):
         if phen_df['measurement'].dtype == object:
             phen_df['measurement_has_/'] = phen_df['measurement'].apply(lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x)))>0)
-            phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet.get_mes2)
+            phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet._get_mes2)
             phen_df['measurement'] = phen_df['measurement'].apply(lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
         return phen_df
 
-    def align_ASR(self):
+    def _align_ASR(self):
         self.all_ASR['platform'].fillna(self.all_ASR['platform '], inplace=True)
         self.all_ASR.drop(['platform ', 'biosample_id', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14',
                'Unnamed: 15', 'Unnamed: 16', 'Unnamed: 17', 'Unnamed: 18',
@@ -183,7 +186,7 @@ class PATAKICDataSet(MICDataSet):
             'measurement2',
         ]
     
-    def merge_all_meta(self):
+    def _merge_all_meta(self):
         run2bio = pd.read_excel(self.path_dict['run2bio'])
         run2bio.columns = ['run_id', 'biosample_id']
         filtered_data = pd.read_excel(self.path_dict['filter_list'])
@@ -193,7 +196,7 @@ class PATAKICDataSet(MICDataSet):
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
 
     @staticmethod
-    def get_mes2(x):
+    def _get_mes2(x):
         if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
             return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
         return np.nan
@@ -231,11 +234,11 @@ class VAMPDataSet(MICDataSet):
     def _parse_measure_dash_per_file(self, phen_df):
         if phen_df['measurement'].dtype == object:
             phen_df['measurement_has_/'] = phen_df['measurement'].apply(lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x)))>0)
-            phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet.get_mes2)
+            phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet._get_mes2)
             phen_df['measurement'] = phen_df['measurement'].apply(lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
         return phen_df
 
-    def align_ASR(self):
+    def _align_ASR(self):
         self.all_ASR.drop(['species'], axis=1, inplace=True)
         # self.all_ASR['platform'].fillna(self.all_ASR['platform '], inplace=True)
         # self.all_ASR.drop(['platform ', 'biosample_id', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14',
@@ -258,7 +261,7 @@ class VAMPDataSet(MICDataSet):
         #     'measurement2',
         # ]
     
-    def merge_all_meta(self):
+    def _merge_all_meta(self):
         run2bio = pd.read_csv(self.path_dict['run2bio'])
         run2bio.columns = ['run_id', 'biosample_id']
         filtered_data = pd.read_excel(self.path_dict['filter_list'])
@@ -268,7 +271,7 @@ class VAMPDataSet(MICDataSet):
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
 
     @staticmethod
-    def get_mes2(x):
+    def _get_mes2(x):
         if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
             return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
         return np.nan
@@ -306,7 +309,7 @@ class PADataSet(MICDataSet):
         pass
 
 
-    def align_ASR(self):
+    def _align_ASR(self):
         self.all_ASR.rename(columns={
             'level_1': 'antibiotic_name',
             'measurement_sign': 'sign',
@@ -317,7 +320,7 @@ class PADataSet(MICDataSet):
         self.all_ASR['measurement_type'] = 'MIC'
 
     
-    def merge_all_meta(self):
+    def _merge_all_meta(self):
         run2bio = pd.read_excel(self.path_dict['run2bio'])
         run2bio = run2bio[['Run', 'Platform', 'Model', 'BioSample', 'ScientificName', 'SampleName']]
         run2bio.rename(columns={
@@ -332,13 +335,90 @@ class PADataSet(MICDataSet):
 
         self.all_ASR = run2bio.merge(right=self.all_ASR, how='inner', on='Isolate')
 
+    
+    def generate_data_set(self):
+        print('hello')
+
+
+class PATRICDataSet(MICDataSet):
+
+    def __init__(self, path_dict, pre_params=None):
+        super().__init__('PATRIC', path_dict, pre_params)
+
+    def _load_all_phan_data(self):
+        self.all_ASR = pd.read_excel(self.path_dict['pheno'])
+        self.all_ASR['genome_id'] = self.all_ASR['genome_id'].astype(str)
+        self.all_ASR['DB'] = self.name
+
+    def _parse_measure_dash_per_file(self):
+        self.all_ASR['measurement'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, '1'), axis=1)
+        self.all_ASR['measurement2'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, '2'), axis=1)
+        self.all_ASR['measurement_has_/'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, 'has'), axis=1)
+
+    def _align_ASR(self):
+        self.all_ASR.rename(columns={
+            'antibiotic': 'antibiotic_name',
+            'measurement_sign': 'sign'
+        }, inplace=True)
+
+
+    def _merge_all_meta(self):
+        run2bio = pd.read_excel(self.path_dict['run2bio'])
+        run2bio['PATRIC_ID'] = run2bio['PATRIC_ID'].astype(str)
+        run2bio = run2bio[['PATRIC_ID', 'sample_accession', 'Species']]
+        run2bio.columns = ['genome_id', 'biosample_id', 'species_fam']
+        run2bio['genome_id'] = run2bio['genome_id'].astype(str)
+        self.all_ASR = self.all_ASR.merge(right=run2bio, how='inner', on='genome_id')
+
 
     @staticmethod
-    def get_mes2(x):
-        if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
-            return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
-        return np.nan
-    
+    def _fix_PATRIC_MIC_value(row, ans_type='1', log2=True, choose_first_dash=True):
+        sign = row['measurement_sign']
+        value = row['measurement_value']
+        values_float = []
+        values_str = []
+        # try:
+        if sign == '==' or sign == '':
+            sign = '='
+
+        if type(value) == str:
+            if choose_first_dash:
+                values_float.append(float(value.split('/')[0]))
+            else:
+                values_float.append(float(value.split('/')[0]))
+                values_float.append(float(value.split('/')[1]))
+        elif type(value) == datetime:
+            if value.date().year == 2022:
+                values_float.append(value.date().month)
+                values_float.append(value.date().day)
+            else:
+                values_float.append(value.date().month)
+                values_float.append(int(str(value.date().year)[2:]))
+        else:
+            values_float.append(value)
+
+        for val in values_float:
+
+            if log2:
+                if val == 0:
+                    sign = '<'
+                    values_str.append('-7')
+                else:
+                    values_str.append(str(np.log2(val)))
+            else:
+                values_str.append(str(val))
+        if ans_type == '1':
+            return values_str[0]
+        elif ans_type == '2':
+            if len(values_str) == 1:
+                return np.nan
+            else:
+                values_str[0]
+        elif ans_type == 'has':
+            return len(values_str) > 1
+        else:
+            return '{} {}'.format(sign, values_str[0])
+
     def generate_data_set(self):
         print('hello')
 #         run2biosam = pd.read_excel(self.path_dict['run2bio'])
