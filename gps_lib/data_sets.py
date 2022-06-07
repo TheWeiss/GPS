@@ -122,6 +122,17 @@ class MICDataSet(ABC):
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
 
+        def fix_ambiguse_sign(df):
+            if '=' in df['sign'].values:
+                df['sign'] = '='
+            return df['sign']
+
+        multi_sign = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(
+            fix_ambiguse_sign)
+        multi_sign = multi_sign.reset_index().drop('level_3', axis=1)
+        self.all_ASR.drop('sign', axis=1, inplace=True)
+        self.all_ASR = self.all_ASR.merge(right=multi_sign, on=['biosample_id', 'antibiotic_name', 'measurement'])
+
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].str.lower()
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace(' ', '_', regex=True)
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace('-', '_', regex=True)
