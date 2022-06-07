@@ -400,10 +400,29 @@ class PATRICDataSet(MICDataSet):
     def __init__(self, path_dict, pre_params=None):
         super().__init__('PATRIC', path_dict, pre_params)
 
+    def _load_pheno(self):
+        try:
+            self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
+        except:
+
+            self._load_all_phan_data()
+            self._align_ASR()
+            self._merge_all_meta()
+            self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
+            self._fix_general_values()
+            # self.all_ASR = self.all_ASR.drop_duplicates(
+            #     subset=list(set(self.all_ASR.columns) - set(['platform', 'platform1', 'platform2'])),
+            #     keep='first'
+            # )
+            # self._calculate_multi_mic_aid()
+            
+            self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)    
+    
     def _load_all_phan_data(self):
         self.all_ASR = pd.read_excel(self.path_dict['pheno'])
         self.all_ASR['genome_id'] = self.all_ASR['genome_id'].astype(str)
         self.all_ASR['DB'] = self.name
+        self._parse_measure_dash_per_file()
 
     def _parse_measure_dash_per_file(self):
         self.all_ASR['measurement'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, '1'), axis=1)
@@ -411,17 +430,29 @@ class PATRICDataSet(MICDataSet):
         self.all_ASR['measurement_has_/'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, 'has'), axis=1)
 
     def _align_ASR(self):
+        self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'measurement_value', 'source'], axis=1, inplace=True)
         self.all_ASR.rename(columns={
             'antibiotic': 'antibiotic_name',
-            'measurement_sign': 'sign'
+            'measurement_sign': 'sign',
+            'measurement_unit': 'units',
+            'laboratory_typing_method': 'measurement_type',
+            'laboratory_typing_method_version': 'measurement_type1',
+            'laboratory_typing_method': 'measurement_type',
+            'testing_standard': 'test_standard',
+            'testing_standard_year': 'standard_year',
+            'laboratory_typing_platform': 'platform',
+            'vendor': 'platform1',
+            'species': 'species_fam',
         }, inplace=True)
+        self.all_ASR['test_standard'].replace('missing', np.nan, inplace=True)
 
 
     def _merge_all_meta(self):
         run2bio = pd.read_excel(self.path_dict['run2bio'])
         run2bio['PATRIC_ID'] = run2bio['PATRIC_ID'].astype(str)
-        run2bio = run2bio[['PATRIC_ID', 'sample_accession', 'Species']]
-        run2bio.columns = ['genome_id', 'biosample_id', 'species_fam']
+        run2bio = run2bio[['run_accession', 'PATRIC_ID', 'sample_accession', 'Species']]
+        run2bio.columns = ['run_id', 'genome_id', 'biosample_id', 'species_fam']
+        run2bio.drop(['species_fam'], axis=1, inplace=True)
         run2bio['genome_id'] = run2bio['genome_id'].astype(str)
         self.all_ASR = self.all_ASR.merge(right=run2bio, how='inner', on='genome_id')
 
@@ -463,12 +494,12 @@ class PATRICDataSet(MICDataSet):
             else:
                 values_str.append(str(val))
         if ans_type == '1':
-            return values_str[0]
+            return float(values_str[0])
         elif ans_type == '2':
             if len(values_str) == 1:
                 return np.nan
             else:
-                values_str[0]
+                return float(values_str[0])
         elif ans_type == 'has':
             return len(values_str) > 1
         else:
