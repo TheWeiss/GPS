@@ -121,7 +121,7 @@ class MICDataSet(ABC):
         self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
         self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
 
-        self.all_ASR['measurement'].apply(np.log2, inplace=True)
+        self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(np.log2)
         self.all_ASR['measurement'].fillna(-9, inplace=True)
 
     def _calculate_multi_mic_aid(self):
