@@ -65,7 +65,7 @@ class MICDataSet(ABC):
             self._load_all_phan_data()
             self._align_ASR()
             self._merge_all_meta()
-            self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')['run_id'].describe()
+            self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
             self.all_ASR = self.all_ASR.drop_duplicates(keep='first')
             self._calculate_multi_mic_aid()
