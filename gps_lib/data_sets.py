@@ -250,7 +250,7 @@ class PATAKICDataSet(MICDataSet):
         run2bio.columns = ['run_id', 'biosample_id']
         filtered_data = pd.read_excel(self.path_dict['filter_list'])
         filtered_data.columns = ['species_fam', 'run_id']
-        filtered_data.drop(['species_fam'], axis=1)
+        filtered_data.drop(['species_fam'], axis=1, inplace=True)
 
         filtered_data = filtered_data.merge(right=run2bio, how='inner', on='run_id')
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
