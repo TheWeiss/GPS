@@ -65,6 +65,7 @@ class MICDataSet(ABC):
             self._load_all_phan_data()
             self._align_ASR()
             self._merge_all_meta()
+            self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')['run_id'].describe()
             self._fix_general_values()
             self.all_ASR = self.all_ASR.drop_duplicates(keep='first')
             self._calculate_multi_mic_aid()
@@ -129,6 +130,11 @@ class MICDataSet(ABC):
             self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'])[
                 'resistance_phenotype'].transform(
                 'first')
+
+        def choose_one_run_id(df):
+            df['run_id'] = df.iloc[0]['run_id']
+            return df
+        self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(choose_one_run_id)
 
     def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
