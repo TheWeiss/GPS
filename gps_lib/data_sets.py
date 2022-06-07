@@ -266,26 +266,9 @@ class VAMPDataSet(MICDataSet):
 
     def _align_ASR(self):
         self.all_ASR.drop(['species'], axis=1, inplace=True)
-        # self.all_ASR['platform'].fillna(self.all_ASR['platform '], inplace=True)
-        # self.all_ASR.drop(['platform ', 'biosample_id', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14',
-        #        'Unnamed: 15', 'Unnamed: 16', 'Unnamed: 17', 'Unnamed: 18',
-        #        'Unnamed: 19', 'Unnamed: 20', 'Unnamed: 21'], axis=1, inplace=True)    
-        # self.all_ASR.columns = [
-        #     'biosample_id', 
-        #     'species',
-        #     'antibiotic_name',
-        #     'test_standard',
-        #     'standard_year',
-        #     'measurement_type',
-        #     'measurement',
-        #     'units',
-        #     'sign',
-        #     'resistance_phenotype',
-        #     'platform',
-        #     'DB',
-        #     'measurement_has_/',
-        #     'measurement2',
-        # ]
+        self.all_ASR.rename(columns={
+            'measurement_sign': 'sign',
+        }, inplace=True)
     
     def _merge_all_meta(self):
         run2bio = pd.read_csv(self.path_dict['run2bio'])
