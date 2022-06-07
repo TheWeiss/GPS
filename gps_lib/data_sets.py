@@ -236,7 +236,7 @@ class VAMPDataSet(MICDataSet):
         return phen_df
 
     def align_ASR(self):
-        pass
+        self.all_ASR.drop(['species'], axis=1, inplace=True)
         # self.all_ASR['platform'].fillna(self.all_ASR['platform '], inplace=True)
         # self.all_ASR.drop(['platform ', 'biosample_id', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14',
         #        'Unnamed: 15', 'Unnamed: 16', 'Unnamed: 17', 'Unnamed: 18',
@@ -323,8 +323,11 @@ class PADataSet(MICDataSet):
         run2bio.rename(columns={
             'Run': 'run_id',
             'BioSample': 'biosample_id',
-            'ScientificName': 'species',
-            'SampleName': 'Isolate'
+            'ScientificName': 'species_fam',
+            'SampleName': 'Isolate',
+            'Platform': 'platform',
+            'Model': 'platform1',
+            
         }, inplace=True)
 
         self.all_ASR = run2bio.merge(right=self.all_ASR, how='inner', on='Isolate')
