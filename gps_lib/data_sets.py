@@ -124,6 +124,12 @@ class MICDataSet(ABC):
         self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(np.log2)
         self.all_ASR['measurement'].fillna(-9, inplace=True)
 
+        self.all_ASR['resistance_phenotype'].replace('not-defined', np.nan, inplace=True)
+        self.all_ASR['resistance_phenotype'] = \
+            self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'])[
+                'resistance_phenotype'].transform(
+                'first')
+
     def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
             if len(df) > 1:
