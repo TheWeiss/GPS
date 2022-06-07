@@ -67,7 +67,10 @@ class MICDataSet(ABC):
             self._merge_all_meta()
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
-            self.all_ASR = self.all_ASR.drop_duplicates(keep='first')
+            self.all_ASR = self.all_ASR.drop_duplicates(
+                subset=list(set(self.all_ASR.columns) - set(['platform', 'platform1', 'platform2'])),
+                keep='first'
+            )
             self._calculate_multi_mic_aid()
             
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
