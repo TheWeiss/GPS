@@ -16,16 +16,20 @@ import re
 import h2o
 from tqdm import tqdm
 import pickle
+import json
 import gps_lib.parse_raw_utils as p_utils
 
 from abc import ABC, abstractmethod
  
 class MICDataSet(ABC):
- 
-    def __init__(self, name, path_dict, pre_params = None, saved_files_path = '../pre_proccesing/'):
+
+    def __init__(self, name, path_dict, pre_params=None, saved_files_path='../pre_proccesing/',
+                     species_dict_path="../resources/species_dict.json"):
         super().__init__()
         
         self.name = name
+        with open(species_dict_path) as json_file:
+            self.species_dict = json.load(json_file)
         self.path_dict = path_dict
         self.pre_params = pre_params
         
@@ -139,6 +143,8 @@ class MICDataSet(ABC):
             return df
         self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(choose_one_run_id)
 
+        self.all_ASR['species_fam'].replace(self.species_dict)
+
     def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
             if len(df) > 1:
@@ -218,12 +224,13 @@ class PATAKICDataSet(MICDataSet):
 
     def _align_ASR(self):
         self.all_ASR['platform'].fillna(self.all_ASR['platform '], inplace=True)
+
         self.all_ASR.drop(['platform ', 'biosample_id', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14',
                'Unnamed: 15', 'Unnamed: 16', 'Unnamed: 17', 'Unnamed: 18',
                'Unnamed: 19', 'Unnamed: 20', 'Unnamed: 21'], axis=1, inplace=True)    
         self.all_ASR.columns = [
             'biosample_id', 
-            'species',
+            'species_fam',
             'antibiotic_name',
             'test_standard',
             'standard_year',
@@ -241,8 +248,8 @@ class PATAKICDataSet(MICDataSet):
     def _merge_all_meta(self):
         run2bio = pd.read_excel(self.path_dict['run2bio'])
         run2bio.columns = ['run_id', 'biosample_id']
-        filtered_data = pd.read_excel(self.path_dict['filter_list'])
-        filtered_data.columns = ['species_fam', 'run_id']
+        filtered_data = pd.read_excel(self.path_dict['filter_list']).drop(['species_fam'], axis=1)
+        filtered_data.columns = ['run_id']
 
         filtered_data = filtered_data.merge(right=run2bio, how='inner', on='run_id')
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
