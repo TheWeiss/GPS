@@ -64,9 +64,10 @@ class MICDataSet(ABC):
 
             self._load_all_phan_data()
             self._align_ASR()
-            self._fix_general_values()
             self._merge_all_meta()
+            self._fix_general_values()
             self.all_ASR = self.all_ASR.drop_duplicates(keep='first')
+            self._calculate_multi_mic_aid()
             
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
             
@@ -102,7 +103,7 @@ class MICDataSet(ABC):
         if 'species' not in phen_df.columns:
             phen_df['species'] = np.nan
 
-        
+
         phen_df = self._parse_measure_dash_per_file(phen_df)
         
         phen_df['DB'] = self.name
@@ -120,6 +121,32 @@ class MICDataSet(ABC):
         self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
         self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
 
+        self.all_ASR['measurement'].apply(np.log(2), inplace=True)
+        self.all_ASR['measurement'].fillna(-9, inplace=True)
+
+    def _calculate_multi_mic_aid(self):
+        def is_multi_mic(df):
+            if len(df) > 1:
+                return True
+            return False
+        multi_mic = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(is_multi_mic)
+        multi_mic.name = 'is_multi_mic'
+        multi_mic = multi_mic.reset_index()
+        self.all_ASR = multi_mic.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
+
+        self.all_ASR['exact_value'] = self.all_ASR['sign'] == '='
+
+        def choose_multi_mic(df):
+            df['is_max_mic'] = False
+            df['is_min_mic'] = False
+            df.sort_values(by='measurement', ascending=False, inplace=True)
+            df.loc[df.head(1).index, 'is_max_mic'] = True
+            df.loc[df.tail(1).index, 'is_min_mic'] = True
+            return df
+
+        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(choose_multi_mic)
+        self.all_ASR = self.all_ASR.drop(['biosample_id', 'antibiotic_name'], axis=1).reset_index()
+
     @abstractmethod
     def _align_ASR(self):
         pass
@@ -131,10 +158,9 @@ class MICDataSet(ABC):
     @abstractmethod
     def _parse_measure_dash_per_file(self):
         pass
-    
-    # @abstractmethod
-    # def generate_dataset(self):
-    #     pass
+
+    def generate_dataset(self):
+        pass
     
     def get_geno(self):
         return self.geno
@@ -234,7 +260,7 @@ class VAMPDataSet(MICDataSet):
     def _parse_measure_dash_per_file(self, phen_df):
         if phen_df['measurement'].dtype == object:
             phen_df['measurement_has_/'] = phen_df['measurement'].apply(lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x)))>0)
-            phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet._get_mes2)
+            phen_df['measurement2'] = phen_df['measurement'].apply(VAMPDataSet._get_mes2)
             phen_df['measurement'] = phen_df['measurement'].apply(lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
         return phen_df
 
