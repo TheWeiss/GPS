@@ -177,18 +177,19 @@ class MICDataSet(ABC):
             return df
 
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(choose_multi_mic)
-        self.all_ASR = self.all_ASR.drop(['biosample_id', 'antibiotic_name'], axis=1).reset_index()
+        if 'biosample_id' in self.all_ASR.index.names:
+            self.all_ASR = self.all_ASR.drop(['biosample_id', 'antibiotic_name'], axis=1).reset_index()
+            self.all_ASR.drop(['level_2'], axis=1, inplace=True)
 
         def how_bad(df):
             return df['measurement'].max() - df['measurement'].min()
-
         how_bad_multi = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(how_bad)
         how_bad_multi.name = 'multi_dilution_distance'
         how_bad_multi = how_bad_multi.reset_index()
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
-        self.all_ASR.drop(['level_2'], axis=1, inplace=True)
+
 
     @abstractmethod
     def _align_ASR(self):
