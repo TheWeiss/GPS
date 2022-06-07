@@ -423,7 +423,29 @@ def fix_PATRIC_MIC_value(row, ans_type='1', log2=True, choose_first_dash=True):
     # else:
         # return '{} {}'.format(sign, values_str[0])
 
-
+    def save_species_dict(path="../resources/species_dict.json"):
+        species_dict = {
+            'escherichia coli': 'Escherichia coli',
+            'Salmonella enterica subsp. enterica serovar Typhimurium': 'Salmonella enterica',
+            'senterica': 'Salmonella enterica',
+            'abaumannii': 'Acinetobacter baumannii',
+            'ecoli': 'Escherichia coli',
+            'spneumoniae': 'Streptococcus pneumoniae',
+            'kpneumoniae': 'Klebsiella pneumoniae',
+            'paeruginosa': 'Pseudomonas aeuruginosa',
+            'saureus': 'Staphylococcus aureus',
+            'ecloacae': 'Enterobacter sp.',
+            'Enterobacter hormaechei': 'Enterobacter sp.',
+            'Enterobacter cloacae': 'Enterobacter sp.',
+            'Enterobacter roggerkampi': 'Enterobacter sp.',
+            'Enterobacter asburiae': 'Enterobacter sp.',
+            'Enterobacter chengduensi': 'Enterobacter sp.',
+            'Enterobacter bugandensis': 'Enterobacter sp.',
+            'Enterobacter sichuanensis': 'Enterobacter sp.',
+            'Enterobacter kobei': 'Enterobacter sp.',
+        }
+        with open(path, "w") as fp:
+            json.dump(species_dict,fp) 
 
 
 def main():
