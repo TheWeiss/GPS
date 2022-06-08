@@ -64,7 +64,6 @@ class MICDataSet(ABC):
                 error_id += [srr_features]
         if len(error_id) == 0:
             error_id = None
-        genotypic = genotypic.fillna(0)
         self.geno = genotypic
     
     def _load_pheno(self):
@@ -210,6 +209,8 @@ class MICDataSet(ABC):
         multi_mic = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(is_multi_mic)
         multi_mic.name = 'is_multi_mic'
         multi_mic = multi_mic.reset_index()
+        if 'is_multi_mic' in self.all_ASR.columns:
+            self.all_ASR.drop('is_multi_mic', axis=1, inplace=True)
         self.all_ASR = multi_mic.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['exact_value'] = self.all_ASR['sign'] == '='
@@ -232,6 +233,8 @@ class MICDataSet(ABC):
         how_bad_multi = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(how_bad)
         how_bad_multi.name = 'multi_dilution_distance'
         how_bad_multi = how_bad_multi.reset_index()
+        if 'multi_dilution_distance' in self.all_ASR.columns:
+            self.all_ASR.drop('multi_dilution_distance', axis=1, inplace=True)
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
@@ -605,7 +608,6 @@ class CollectionDataSet(MICDataSet):
             else:
                 self.geno = pd.concat([self.geno, db.geno], axis=0)
         self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
-        self.geno.fillna(0, inplace=True)
 
 
     def _load_all_phan_data(self):
