@@ -235,12 +235,9 @@ class MICDataSet(ABC):
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
-        
     
     def _test_phen(self):
         assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
-        
-
 
     @abstractmethod
     def _align_ASR(self):
@@ -250,9 +247,20 @@ class MICDataSet(ABC):
     def _merge_all_meta(self):
         pass
 
-    @abstractmethod
-    def _parse_measure_dash_per_file(self):
-        pass
+    def _parse_measure_dash_per_file(self, phen_df):
+        if phen_df['measurement'].dtype == object:
+            phen_df['measurement_has_/'] = phen_df['measurement'].apply(
+                lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x))) > 0)
+            phen_df['measurement2'] = phen_df['measurement'].apply(MICDataSet._get_mes2)
+            phen_df['measurement'] = phen_df['measurement'].apply(
+                lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
+        return phen_df
+
+    @staticmethod
+    def _get_mes2(x):
+        if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
+            return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
+        return np.nan
 
     def generate_dataset(self):
         pass
@@ -346,7 +354,6 @@ class PATAKICDataSet(MICDataSet):
     
     def __init__(self, path_dict, pre_params = None):
         super().__init__('PATAKI', path_dict, pre_params)
-        
 
     def _load_all_phen_data_per_file(self, path):
         return super()._load_all_phen_data_per_file(
@@ -355,13 +362,6 @@ class PATAKICDataSet(MICDataSet):
                 file_columns=None,
                 bio_id_sep='_',
             )
-
-    def _parse_measure_dash_per_file(self, phen_df):
-        if phen_df['measurement'].dtype == object:
-            phen_df['measurement_has_/'] = phen_df['measurement'].apply(lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x)))>0)
-            phen_df['measurement2'] = phen_df['measurement'].apply(PATAKICDataSet._get_mes2)
-            phen_df['measurement'] = phen_df['measurement'].apply(lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
-        return phen_df
 
     def _align_ASR(self):
         self.all_ASR['platform'].fillna(self.all_ASR['platform '], inplace=True)
@@ -396,11 +396,6 @@ class PATAKICDataSet(MICDataSet):
         filtered_data = filtered_data.merge(right=run2bio, how='inner', on='run_id')
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
 
-    @staticmethod
-    def _get_mes2(x):
-        if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
-            return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
-        return np.nan
 
 
 class VAMPDataSet(MICDataSet):
@@ -429,13 +424,6 @@ class VAMPDataSet(MICDataSet):
                 bio_id_sep='.',
             )
 
-    def _parse_measure_dash_per_file(self, phen_df):
-        if phen_df['measurement'].dtype == object:
-            phen_df['measurement_has_/'] = phen_df['measurement'].apply(lambda x: len(re.findall("/(\\d+\.?\\d*)", str(x)))>0)
-            phen_df['measurement2'] = phen_df['measurement'].apply(VAMPDataSet._get_mes2)
-            phen_df['measurement'] = phen_df['measurement'].apply(lambda x: float(re.findall("(\\d+\.?\\d*)", str(x))[0]))
-        return phen_df
-
     def _align_ASR(self):
         self.all_ASR.drop(['species'], axis=1, inplace=True)
         self.all_ASR.rename(columns={
@@ -451,15 +439,6 @@ class VAMPDataSet(MICDataSet):
 
         filtered_data = filtered_data.merge(right=run2bio, how='inner', on='run_id')
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
-
-    @staticmethod
-    def _get_mes2(x):
-        if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
-            return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
-        return np.nan
-    
-    def generate_data_set(self):
-        print('hello')
         
         
 class PADataSet(MICDataSet):
@@ -485,11 +464,6 @@ class PADataSet(MICDataSet):
         self.all_ASR['measurement'] = self.all_ASR['measurement'].astype(float)
         self.all_ASR.reset_index(inplace=True)
         self.all_ASR['DB'] = self.name
-
-
-    def _parse_measure_dash_per_file(self):
-        pass
-
 
     def _align_ASR(self):
         self.all_ASR.rename(columns={
@@ -517,10 +491,6 @@ class PADataSet(MICDataSet):
         }, inplace=True)
 
         self.all_ASR = run2bio.merge(right=self.all_ASR, how='inner', on='Isolate')
-
-    
-    def generate_data_set(self):
-        print('hello')
 
 
 class PATRICDataSet(MICDataSet):
@@ -584,7 +554,6 @@ class PATRICDataSet(MICDataSet):
         run2bio['genome_id'] = run2bio['genome_id'].astype(str)
         self.all_ASR = self.all_ASR.merge(right=run2bio, how='inner', on='genome_id')
 
-
     @staticmethod
     def _fix_PATRIC_MIC_value(row, ans_type='1', log2=False, choose_first_dash=True):
         value = row['measurement_value']
@@ -618,9 +587,6 @@ class PATRICDataSet(MICDataSet):
                 return float(values_str[0])
         elif ans_type == 'has':
             return len(values_str) > 1
-
-    def generate_data_set(self):
-        print('hello')
 
     
 class CollectionDataSet(MICDataSet):
@@ -660,9 +626,9 @@ class CollectionDataSet(MICDataSet):
 
     def _align_ASR(self):
         pass
+
     def _merge_all_meta(self):
         pass
 
     def _test_phen(self):
         print('TODO')
-
