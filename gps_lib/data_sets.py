@@ -121,10 +121,14 @@ class MICDataSet(ABC):
     def _fix_general_values(self):
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
-
+        
         def fix_ambiguse_sign(df):
             if '=' in df['sign'].values:
                 df['sign'] = '='
+            elif ('>=' in df['sign'].values) and ('>' in df['sign'].values):
+                df['sign'] = '>'
+            elif ('<=' in df['sign'].values) and ('<' in df['sign'].values):
+                df['sign'] = '<='
             return df['sign']
 
         multi_sign = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(
@@ -141,9 +145,43 @@ class MICDataSet(ABC):
         self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
 
         self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(np.log2)
-        self.all_ASR['measurement'].fillna(-9, inplace=True)
+        self.all_ASR = self.all_ASR.dropna(subset=['measurement'])
+        self.all_ASR['measurement'] = self.all_ASR['measurement'].replace({-np.inf: -9})
+        
+        self.all_ASR['test_standard'].replace({'missing': None, np.nan: None}, inplace=True)
+        self.all_ASR['test_standard'] = self.all_ASR['test_standard'].str.lower()
+        self.all_ASR['test_standard'] = self.all_ASR['test_standard'].replace(' ', '_', regex=True)
+        self.all_ASR['test_standard'] = self.all_ASR['test_standard'].replace('-', '_', regex=True)
+        
+        self.all_ASR['standard_year'].replace({'not_determined': None, 'M100-S24': None, 'as described in 2013/652/EU': '2013'}, inplace=True)
+        self.all_ASR['standard_year'] = self.all_ASR['standard_year'].astype(float)
+        def fix_ambiguse_standard(df):
+            if len(df) > 1:
+                if 'clsi' in df['test_standard'].values:
+                    i = df[df['test_standard']=='clsi'].head(1).index
+                    year = df.loc[i, 'standard_year']
+                    df['test_standard'] = 'clsi'
+                    df['standard_year'] = year
 
-        self.all_ASR['resistance_phenotype'].replace('not-defined', np.nan, inplace=True)
+                if df[['test_standard', 'standard_year']].isna().all(axis=1).any():
+                    if ~df[['test_standard', 'standard_year']].isna().all(axis=1).all():
+                        print(df)
+                        i = df[~df['test_standard'].isna()].head(1).index
+                        print(df.loc[i, 'standard_year'])
+                        year = df.loc[i, 'standard_year'].iloc[0]
+                        standard = df.loc[i, 'test_standard'].iloc[0]
+                        df['test_standard'] = standard
+                        df['standard_year'] = year
+            return df
+        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(fix_ambiguse_standard)
+        
+
+        self.all_ASR['resistance_phenotype'].replace(
+            {'non_susceptible': 'intermediate', 
+             'Not defined': None, 
+             'Susceptible-dose dependent': 'susceptible',
+             'not-defined': None
+        }, inplace=True)
         self.all_ASR['resistance_phenotype'] = \
             self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'])[
                 'resistance_phenotype'].transform(
@@ -315,6 +353,7 @@ class VAMPDataSet(MICDataSet):
         self.all_ASR.rename(columns={
             'measurement_sign': 'sign',
         }, inplace=True)
+        self.all_ASR['standard_year'] = np.nan
     
     def _merge_all_meta(self):
         run2bio = pd.read_csv(self.path_dict['run2bio'])
@@ -373,7 +412,8 @@ class PADataSet(MICDataSet):
         self.all_ASR['measurement_has_/'] = False
         self.all_ASR['measurement2'] = np.nan
         self.all_ASR['measurement_type'] = 'MIC'
-
+        self.all_ASR['test_standard'] = 'clsi'
+        self.all_ASR['standard_year'] = 2018
     
     def _merge_all_meta(self):
         run2bio = pd.read_excel(self.path_dict['run2bio'])
@@ -410,11 +450,11 @@ class PATRICDataSet(MICDataSet):
             self._merge_all_meta()
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
-            # self.all_ASR = self.all_ASR.drop_duplicates(
-            #     subset=list(set(self.all_ASR.columns) - set(['platform', 'platform1', 'platform2'])),
-            #     keep='first'
-            # )
-            # self._calculate_multi_mic_aid()
+            self.all_ASR = self.all_ASR.drop_duplicates(
+                subset=list(set(self.all_ASR.columns) - set(['measurement_type', 'measurement_type1', 'platform', 'platform1', 'platform2', 'standard_year'])),
+                keep='first'
+            )
+            self._calculate_multi_mic_aid()
             
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)    
     
@@ -430,7 +470,8 @@ class PATRICDataSet(MICDataSet):
         self.all_ASR['measurement_has_/'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, 'has'), axis=1)
 
     def _align_ASR(self):
-        self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'measurement_value', 'source'], axis=1, inplace=True)
+        # self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'measurement_value', 'source'], axis=1, inplace=True)
+        self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'source'], axis=1, inplace=True)
         self.all_ASR.rename(columns={
             'antibiotic': 'antibiotic_name',
             'measurement_sign': 'sign',
@@ -443,8 +484,8 @@ class PATRICDataSet(MICDataSet):
             'laboratory_typing_platform': 'platform',
             'vendor': 'platform1',
             'species': 'species_fam',
+            'resistant_phenotype': 'resistance_phenotype'
         }, inplace=True)
-        self.all_ASR['test_standard'].replace('missing', np.nan, inplace=True)
 
 
     def _merge_all_meta(self):
@@ -458,14 +499,10 @@ class PATRICDataSet(MICDataSet):
 
 
     @staticmethod
-    def _fix_PATRIC_MIC_value(row, ans_type='1', log2=True, choose_first_dash=True):
-        sign = row['measurement_sign']
+    def _fix_PATRIC_MIC_value(row, ans_type='1', log2=False, choose_first_dash=True):
         value = row['measurement_value']
         values_float = []
         values_str = []
-        # try:
-        if sign == '==' or sign == '':
-            sign = '='
 
         if type(value) == str:
             if choose_first_dash:
@@ -484,15 +521,7 @@ class PATRICDataSet(MICDataSet):
             values_float.append(value)
 
         for val in values_float:
-
-            if log2:
-                if val == 0:
-                    sign = '<'
-                    values_str.append('-7')
-                else:
-                    values_str.append(str(np.log2(val)))
-            else:
-                values_str.append(str(val))
+            values_str.append(str(val))
         if ans_type == '1':
             return float(values_str[0])
         elif ans_type == '2':
