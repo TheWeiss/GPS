@@ -250,9 +250,9 @@ class MICDataSet(ABC):
             return df
 
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(prefer_multi).drop(
-            ['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index().drop(['level_3', 0], axis=1)
+            ['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index()
         if 'level_3' in list(self.all_ASR.columns.values):
-            self.all_ASR.drop('level_3', axis=1, inplace=True)
+            self.all_ASR.drop(['level_3'], axis=1, inplace=True)
         if 0 in list(self.all_ASR.columns.values):
             self.all_ASR.drop('0', axis=1, inplace=True)
 
