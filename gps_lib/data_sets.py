@@ -86,6 +86,10 @@ class MICDataSet(ABC):
                 keep='first',
             )
             self._calculate_multi_mic_aid()
+            print('status after changes:')
+            print('size of duplicates: ',
+                  len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0]))
+            print(self.all_ASR.columns)
             
             self._test_phen()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
@@ -130,6 +134,7 @@ class MICDataSet(ABC):
         return phen_df
 
     def _fix_general_values(self):
+        print(self.all_ASR.columns)
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
 
@@ -233,6 +238,10 @@ class MICDataSet(ABC):
                         df['standard_year'] = year
             return df
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(fix_ambiguse_standard)
+
+        print('status before changes:')
+        print('size of duplicates: ', len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0]))
+        print(self.all_ASR.columns)
         def is_unique(s):
             a = s.to_numpy()
             return (a[0] == a).all()
@@ -255,6 +264,8 @@ class MICDataSet(ABC):
             self.all_ASR.drop(['level_3'], axis=1, inplace=True)
         if 0 in list(self.all_ASR.columns.values):
             self.all_ASR.drop('0', axis=1, inplace=True)
+        print('status after changes but before multi_min:')
+        print(self.all_ASR.columns)
 
     def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
