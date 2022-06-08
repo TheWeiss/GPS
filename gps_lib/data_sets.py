@@ -67,7 +67,7 @@ class MICDataSet(ABC):
         if len(error_id) == 0:
             error_id = None
         self.geno = genotypic
-    
+
     def _load_pheno(self):
         try:
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
@@ -79,10 +79,9 @@ class MICDataSet(ABC):
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
             self.all_ASR = self.all_ASR.drop_duplicates(
-                subset=list(set(self.all_ASR.columns) - set([
-                    'DB', 'is_min_mic', 'is_max_mic', 'platform', 'platform1', 'platform2', 'genome_id',
-                    'Isolate', 'is_multi_mic', 'multi_dilution_distance',
-                ])),
+                subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
+                                                         'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
+                                                         'is_multi_mic', 'multi_dilution_distance'}),
                 keep='first',
             )
             self._calculate_multi_mic_aid()
@@ -665,24 +664,6 @@ class PATRICDataSet(MICDataSet):
 
     def __init__(self, path_dict, pre_params=None):
         super().__init__('PATRIC', path_dict, pre_params)
-
-    def _load_pheno(self):
-        try:
-            self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
-        except:
-
-            self._load_all_phan_data()
-            self._align_ASR()
-            self._merge_all_meta()
-            self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
-            self._fix_general_values()
-            self.all_ASR = self.all_ASR.drop_duplicates(
-                subset=list(set(self.all_ASR.columns) - set(['measurement_type', 'measurement_type1', 'platform', 'platform1', 'platform2', 'standard_year'])),
-                keep='first'
-            )
-            self._calculate_multi_mic_aid()
-            
-            self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)    
     
     def _load_all_phan_data(self):
         self.all_ASR = pd.read_excel(self.path_dict['pheno'])
@@ -794,6 +775,3 @@ class CollectionDataSet(MICDataSet):
 
     def _merge_all_meta(self):
         pass
-
-    def _test_phen(self):
-        print('TODO')
