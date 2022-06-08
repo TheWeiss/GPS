@@ -307,7 +307,8 @@ class MICDataSet(ABC):
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
     
     def _test_phen(self):
-        assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
+        # assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
+        pass
 
     @abstractmethod
     def _align_ASR(self):
