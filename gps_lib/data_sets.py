@@ -198,7 +198,31 @@ class MICDataSet(ABC):
                 'resistance_phenotype'].transform(
                 'first')
 
+
+        self.all_ASR['platform'].replace({
+            'manually': 'Manual',
+            'missing': None,
+            '-': None,
+        }, inplace=True)
+        self.all_ASR['platform'] = self.all_ASR['platform'].str.lower()
+        self.all_ASR['platform1'].replace({
+            'biomerieux': 'Biomérieux',
+            'BiomŽrieux': 'Biomérieux',
+        }, inplace=True)
+        self.all_ASR['platform1'] = self.all_ASR['platform1'].str.lower()
+        self.all_ASR['platform2'].replace({
+            'missing': None,
+        })
+        self.all_ASR['platform2'] = self.all_ASR['platform2'].str.lower()
         self.all_ASR['measurement_type'] = self.all_ASR['measurement_type'].str.lower()
+        self.all_ASR['measurement_type'].replace({
+            'broth_microdilution': 'mic',
+            'microbroth dilution': 'mic',
+            'mic broth microdilution': 'mic',
+            'disk diffusion': 'disk_diffusion',
+            'agar dilution': 'agar_dilution',
+            'disc-diffusion': 'disk_diffusion',
+        }, inplace=True)
 
         def choose_one_run_id(df):
             df['run_id'] = df.iloc[0]['run_id']
@@ -544,8 +568,7 @@ class PATRICDataSet(MICDataSet):
             'measurement_sign': 'sign',
             'measurement_unit': 'units',
             'laboratory_typing_method': 'measurement_type',
-            'laboratory_typing_method_version': 'measurement_type1',
-            'laboratory_typing_method': 'measurement_type',
+            'laboratory_typing_method_version': 'platform2',
             'testing_standard': 'test_standard',
             'testing_standard_year': 'standard_year',
             'laboratory_typing_platform': 'platform',
