@@ -400,7 +400,7 @@ class MICDataSet(ABC):
             if type(spec) == int:
                 species_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['species_fam'].iloc[0]).value_counts().drop(
-                    ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0).index.values
+                    ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0, errors='ignore').index.values
                 species = species_list[spec]
             else:
                 species = spec
