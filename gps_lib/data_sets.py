@@ -233,6 +233,7 @@ class MICDataSet(ABC):
         how_bad_multi = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(how_bad)
         how_bad_multi.name = 'multi_dilution_distance'
         how_bad_multi = how_bad_multi.reset_index()
+
         if 'multi_dilution_distance' in self.all_ASR.columns:
             self.all_ASR.drop('multi_dilution_distance', axis=1, inplace=True)
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
