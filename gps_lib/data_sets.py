@@ -174,9 +174,7 @@ class MICDataSet(ABC):
 
                 if df[['test_standard', 'standard_year']].isna().all(axis=1).any():
                     if ~df[['test_standard', 'standard_year']].isna().all(axis=1).all():
-                        print(df)
                         i = df[~df['test_standard'].isna()].head(1).index
-                        print(df.loc[i, 'standard_year'])
                         year = df.loc[i, 'standard_year'].iloc[0]
                         standard = df.loc[i, 'test_standard'].iloc[0]
                         df['test_standard'] = standard
@@ -204,10 +202,7 @@ class MICDataSet(ABC):
             '-': None,
         }, inplace=True)
         self.all_ASR['platform'] = self.all_ASR['platform'].str.lower()
-        print(self.all_ASR.columns)
         if 'platform1' in self.all_ASR.columns:
-            print(self.all_ASR.columns)
-            print(self.all_ASR['platform1'])
             self.all_ASR['platform1'].replace({
                 'biomerieux': 'Biomérieux',
                 'BiomŽrieux': 'Biomérieux',
@@ -300,9 +295,6 @@ class MICDataSet(ABC):
         if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
             return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
         return np.nan
-
-    def generate_dataset(self):
-        pass
     
     def get_geno(self):
         return self.geno
@@ -310,35 +302,45 @@ class MICDataSet(ABC):
     def get_pheno(self):
         return self.all_ASR
 
-    def generate_data_set(self, ds_param, anti_i=0, species_j=0, antibiotic_name=None, species_name=None):
+    def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
         if ds_param is None:
-            ds_param_name = 'sep_species_sep_anti'
-        else:
-            ds_param_name = str(' '.join([str(key) + '_' + str(value) for key, value in ds_param.items()]))
-        ds_param_files_path = self.saved_files_path + '/' + ds_param_name
+            ds_param = {'species_sep': True, 'antibiotic_sep': True}
+            if antibiotic is None:
+                antibiotic = 0
+            if species is None:
+                species = 0
+
+        ds_param_name = str(' '.join([str(key) + '_' + str(value) for key, value in ds_param.items()]))
+        ds_param = MICDataSet._add_default_ds_param(ds_param)
+        filtered, antibiotic_name, species_name = self._filter_data(ds_param, antibiotic, species)
+        ds_param_files_path = self.saved_files_path + '/' + ds_param_name + '/' + species_name + '/' + antibiotic_name
         if not os.path.exists(ds_param_files_path):
             os.makedirs(ds_param_files_path)
 
         try:
-            ds = pd.read_csv(ds_param_files_path + '/ds.csv')
-            with open(ds_param_files_path + '/features.csv') as json_file:
-                features = json.load(json_file)
-            with open(ds_param_files_path + '/labels.csv') as json_file:
-                labels = json.load(json_file)
-            return ds, features, labels
+            train = pd.read_csv(ds_param_files_path + '/train.csv')
+            test = pd.read_csv(ds_param_files_path + '/test.csv')
+            range = pd.read_csv(ds_param_files_path + '/range.csv')
+            with open(ds_param_files_path + '/col_names.json') as json_file:
+                col_names = json.load(json_file)
+            return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name
         except:
-            ds_param = MICDataSet._add_default_ds_param(ds_param)
-            filtered_train = self._filter_data(ds_param)
-            self.split_train_valid_test(filtered_train)
-            self.merge_geno2pheno()
+            train_label, test_label, range_label, cv = self._split_train_valid_test(filtered)
+            train, test, range, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
+            train.to_csv(ds_param_files_path + '/train.csv')
+            test.to_csv(ds_param_files_path + '/test.csv')
+            range.to_csv(ds_param_files_path + '/range.csv')
+            with open(ds_param_files_path + '/col_names.csv', "w") as fp:
+                json.dump(col_names, fp)
+            pd.DataFrame(ds_param, index=[0]).to_csv(ds_param_files_path + '/ds_param.csv')
+            return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name
+
 
     @staticmethod
     def _add_default_ds_param(ds_param):
         default_values = {
             'species_sep': True,
             'antibiotic_sep': True,
-            'species': 0,
-            'antibiotic': 0,
             'handle_range': 'remove',  # remove/strip/move
             'handle_multi_mic': 'remove',  # remove/max/min/rand
             'ignore_small_dilu': True,  # remove/max/min/rand
@@ -353,47 +355,131 @@ class MICDataSet(ABC):
             full_ds_param[key] = ds_param.get(key, value)
         return full_ds_param
 
-    def _filter_data(self, ds_param):
-        filtered_train = self.all_ASR.copy()
-        filtered_out = []
-        if ds_param['handle_multi_mic'] == 'remove':
-            if ds_param['ignore_small_dilu']:
-                filtered_train = filtered_train[~filtered_train['multi_too_different']]
-                filtered_out = list(
-                    filtered_out + filtered_train[filtered_train['multi_too_different']]['run_id'].values)
-                filtered_train = filtered_train[filtered_train['is_max_mic']]
-            else:
-                filtered_train = filtered_train[~filtered_train['is_multi_mic']]
-                filtered_out = list(
-                    filtered_out + filtered_train[filtered_train['is_multi_mic']]['run_id'].values)
-
-        if ds_param['handle_range'] == 'remove':
-            filtered_train = filtered_train[filtered_train['exact_value']]
-
+    def _filter_data(self, ds_param, anti, spec):
+        species = ''
+        antibiotic = ''
+        filtered = self.all_ASR.copy()
+        filtered.set_index('run_id', inplace=True)
         if ds_param['species_sep']:
-            if type(ds_param['species']) == int:
-                species_list = filtered_train.groupby(by='biosample_id').apply(
+            if type(spec) == int:
+                species_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['species_fam'].iloc[0]).value_counts().drop(
                     ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0).index.values
-                species = species_list[ds_param['species']]
+                species = species_list[spec]
             else:
-                species = ds_param['species']
-            filtered_train = filtered_train[filtered_train['species_fam'] == species]
+                species = spec
+            filtered = filtered[filtered['species_fam'] == species]
+        else:
+            species = 'all_species'
+
         if ds_param['antibiotic_sep']:
-            if type(ds_param['antibiotic']) == int:
-                antibiotic_list = filtered_train.groupby(by='biosample_id').apply(
+            if type(anti) == int:
+                antibiotic_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
-                antibiotic = antibiotic_list[ds_param['antibiotic']]
+                antibiotic = antibiotic_list[anti]
             else:
-                antibiotic = ds_param['antibiotic']
-            filtered_train = filtered_train[filtered_train['antibiotic_name'] == antibiotic]
-        return filtered_train
+                antibiotic = anti
+            filtered = filtered[filtered['antibiotic_name'] == antibiotic]
+        else:
+            antibiotic = 'all_antibiotic'
 
-    def _split_train_valid_test(self):
-        pass
+        if ds_param['handle_multi_mic'] == 'remove':
+            if ds_param['ignore_small_dilu']:
+                filtered = filtered[~filtered['multi_too_different']]
+                filtered = filtered[filtered['is_max_mic']]
+            else:
+                filtered = filtered[~filtered['is_multi_mic']]
 
-    def _merge_geno2pheno(self):
-        pass
+        return filtered, antibiotic, species
+
+    def _split_train_valid_test(self, ds_param, filtered):
+
+        range_label = filtered[~filtered['exact_value']][['measurement', 'sign']]
+        exact_label = filtered[filtered['exact_value']][['measurement', 'sign']]
+
+        exact_y = exact_label['measurement'].copy()
+        if ds_param['task'] == 'regression':
+            exact_y = exact_label['measurement'].copy()
+        elif ds_param['task'] == 'classification':
+            exact_y = exact_label.apply(lambda row: str(' '.join([row['measurement'], row['sign']])))
+            exact_y.name='measurement'
+
+        range_y = pd.DataFrame({})
+        if ds_param['handle_range'] != 'remove':
+            if ds_param['task'] == 'regression':
+                if ds_param['handle_range'] == 'strip':
+                    range_y = range_label['measurement'].copy()
+                elif ds_param['handle_range'] == 'move':
+                    range_y = range_label['measurement'].copy().mask(
+                        range_label['sign'].apply(lambda x: '>' in x),
+                        range_label['measurement'] + ds_param['move_range_by'])
+                    range_y = range_y.mask(
+                        range_label['sign'].apply(lambda x: '<' in x),
+                        range_y - ds_param['move_range_by'])
+            else:
+                raise Exception('regression not in the naive approach is not implemented yet.')
+            range_y.name = 'measurement'
+
+        range_train_ids = []
+        range_test_ids = []
+        if ds_param['reg_stratified']:
+            exact_train_ids, exact_test_ids = MICDataSet._strat_id(exact_y, ds_param['random_seed'])
+            if ds_param['handle_range'] != 'remove':
+                range_train_ids, range_test_ids = MICDataSet._strat_id(range_y, ds_param['random_seed'])
+        else:
+            exact_train_ids, exact_test_ids = train_test_split(
+                list(exact_y.index), test_size=0.2, random_state=ds_param['random_seed'])
+            if ds_param['handle_range'] != 'remove':
+                range_train_ids, range_test_ids = train_test_split(
+                    list(range_y.index), test_size=0.2, random_state=ds_param['random_seed'])
+        exact_y_train = exact_y.loc[exact_train_ids,]
+        range_y_train = range_y.loc[range_train_ids,]
+        train_label = pd.concat([exact_y.loc[exact_train_ids,], range_y.loc[range_train_ids,]])
+        test_label = pd.concat([exact_y.loc[exact_test_ids,], range_y.loc[range_test_ids,]])
+
+        # generate cv from train that is stratified
+        cv = []
+        if ds_param['stratified_cv_num']>1:
+            train_ref = train_label.reset_index()
+            for i in np.arange(ds_param['stratified_cv_num']):
+                exact_cv_train_ids, exact_cv_test_ids = MICDataSet._strat_id(
+                    exact_y_train, ds_param['random_seed'], seed_add=i)
+                range_cv_train_ids, range_cv_test_ids = [], []
+                if ds_param['handle_range'] != 'remove':
+                    range_cv_train_ids, range_cv_test_ids = MICDataSet._strat_id(
+                        range_y_train, ds_param['random_seed'], seed_add=i)
+                cv_train_ids = exact_cv_train_ids + range_cv_train_ids
+                cv_test_ids = exact_cv_test_ids + range_cv_test_ids
+                cv.append((list(train_ref[train_ref['index'].isin(cv_train_ids)].index),
+                           list(train_ref[train_ref['index'].isin(cv_test_ids)].index)))
+
+        return train_label, test_label, range_label, cv
+
+
+    @staticmethod
+    def _strat_id(y, random_seed=42, seed_add=0):
+        train_ids = []
+        test_ids = []
+        for y_val in y.unique().values:
+            sub_value_id = list(y[y == y_val].index)
+            if len(sub_value_id) > 1:
+                train_id, test_id = train_test_split(sub_value_id, test_size=0.2, random_state=random_seed+seed_add)
+                train_ids = train_ids + train_id
+                test_ids = test_ids + test_id
+            else:
+                train_ids = train_ids + sub_value_id
+        return train_ids, test_ids
+
+    def _merge_geno2pheno(self, train_label, test_label, range_label):
+        train_data = self.geno.set_index('run_id').fillna(0).merge(right=train_label, left_index=True, right_index=True)
+        test_data = self.geno.set_index('run_id').fillna(0).merge(right=test_label, left_index=True, right_index=True)
+        range_data = self.geno.set_index('run_id').fillna(0).merge(right=range_label, left_index=True, right_index=True)
+
+        col_names = {}
+        col_names['features'] = list(self.geno.set_index('run_id').columns.values)
+        col_names['id'] = 'run_id'
+        col_names['label'] = 'measurement'
+        return train_data, test_data, range_data, col_names
     
 
 class PATAKICDataSet(MICDataSet):
