@@ -658,5 +658,11 @@ class CollectionDataSet(MICDataSet):
             return df
         self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(fill_run_id)
 
+    def _align_ASR(self):
+        pass
+    def _merge_all_meta(self):
+        pass
 
+    def _test_phen(self):
+        print('TODO')
 
