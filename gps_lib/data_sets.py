@@ -79,8 +79,8 @@ class MICDataSet(ABC):
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
             self.all_ASR = self.all_ASR.drop_duplicates(
-                subset=list(set(self.all_ASR.columns) - set(['platform', 'platform1', 'platform2'])),
-                keep='first'
+                subset=list(set(self.all_ASR.columns) - set(['DB', 'is_min_mic', 'is_max_mic', 'platform', 'platform1', 'platform2', 'genome_id', 'Isolate'])),
+                keep='first',
             )
             self._calculate_multi_mic_aid()
             
@@ -186,7 +186,7 @@ class MICDataSet(ABC):
 
         self.all_ASR['resistance_phenotype'].replace(
             {'non_susceptible': 'I',
-             'Not defined': None, 
+             'Not defined': None,
              'Susceptible-dose dependent': 'S',
              'not defined': None,
              'resistant': 'R',
