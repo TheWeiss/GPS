@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 class MICDataSet(ABC):
 
     def __init__(self, name, path_dict, pre_params=None, saved_files_path='../pre_proccesing/',
-                     species_dict_path="../resources/species_dict.json"):
+                 species_dict_path="../resources/species_dict.json"):
         super().__init__()
         
         self.name = name
@@ -43,22 +43,28 @@ class MICDataSet(ABC):
             
         self._load_geno()
         self._load_pheno()
-    
+
     def _load_geno(self):
         try:
             genotypic = pd.read_csv(self.saved_files_path + '/geno.csv')
+            self.geno = genotypic
         except:
-            genotypic = pd.DataFrame({})
-            error_id = []
-            for SRR_dir in tqdm(os.listdir(self.path_dict['geno'])):
-                srr_features = p_utils.get_isolate_features(self.path_dict['geno']+'/'+SRR_dir)
-                if type(srr_features) is not str:
-                    genotypic = pd.concat([genotypic, srr_features], axis=0)
-                else:
-                    error_id += [srr_features]
-            if len(error_id) == 0:
-                error_id = None
-            genotypic.to_csv(self.saved_files_path + '/geno.csv', index=False)
+            self._load_all_geno_data()
+            self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
+
+
+    def _load_all_geno_data(self):
+        genotypic = pd.DataFrame({})
+        error_id = []
+        for SRR_dir in tqdm(os.listdir(self.path_dict['geno'])):
+            srr_features = p_utils.get_isolate_features(self.path_dict['geno'] + '/' + SRR_dir)
+            if type(srr_features) is not str:
+                genotypic = pd.concat([genotypic, srr_features], axis=0)
+            else:
+                error_id += [srr_features]
+        if len(error_id) == 0:
+            error_id = None
+        genotypic = genotypic.fillna(0)
         self.geno = genotypic
     
     def _load_pheno(self):
@@ -265,18 +271,12 @@ class MICDataSet(ABC):
         ds_param_files_path = self.saved_files_path + '/' + ds_param_name
         if not os.path.exists(ds_param_files_path):
             os.makedirs(ds_param_files_path)
-        species_list = self.all_ASR.groupby(by='biosample_id').apply(
-            lambda x: x['species_fam'].iloc[0]
-            ).value_counts().drop(
-            ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0
-        ).index.values
-
 
         try:
-            ds = pd.read_csv(ds_files_path + '/ds.csv')
-            with open(ds_files_path + '/features.csv') as json_file:
+            ds = pd.read_csv(ds_param_files_path + '/ds.csv')
+            with open(ds_param_files_path + '/features.csv') as json_file:
                 features = json.load(json_file)
-            with open(ds_files_path + '/labels.csv') as json_file:
+            with open(ds_param_files_path + '/labels.csv') as json_file:
                 labels = json.load(json_file)
             return ds, features, labels
         except:
@@ -618,32 +618,45 @@ class PATRICDataSet(MICDataSet):
                 return float(values_str[0])
         elif ans_type == 'has':
             return len(values_str) > 1
-        else:
-            return '{} {}'.format(sign, values_str[0])
 
     def generate_data_set(self):
         print('hello')
-#         run2biosam = pd.read_excel(self.path_dict['run2bio'])
-#         run2biosam.columns = ['run_id', 'biosample_id']
-#         run2biosam = run2biosam.drop_duplicates(subset='biosample_id', keep='first')
-#         filtered_data = pd.read_excel(self.path_dict['filter_list'])
-#         filtered_data.columns = ['species_fam', 'run_id']
+
     
-#         pheno = self.pheno.drop(['species_fam'], axis=1)
-#         labels = list(set(pheno.columns)-set(['biosample_id', 'genome_id']))
-        
-#         filtered_data = filtered_data.merge(right=run2biosam, how='inner', on='run_id')
-#         filtered_data = filtered_data.merge(right=pheno, how='inner', on='biosample_id')
-#         filtered_data = filtered_data.merge(right=geno, how='inner', on='run_id')
-#         filtered_data['DB'] = self.name
-    
-#         features = list(set(geno.columns)-set(['run_id']))
-#         return filtered_data, labels, features
-    
-# class CollectionDataSet(MICDataSet):
-    
-#     def __init__(self, dbs_list):
-#         self.name = '_'.join([db.name for db in dbs_list])
-#         self.path_dict = path_dict
-#         self.dbs_list = dbs_list
+class CollectionDataSet(MICDataSet):
+
+    def __init__(self, dbs_list: list):
+        name = '_'.join([db.name for db in dbs_list])
+        path_dict = {db.name: db.path_dict for db in dbs_list}
+        self.dbs_list = dbs_list
+        super().__init__(name, path_dict)
+
+    def _load_all_geno_data(self):
+        self.geno = None
+        for db in self.dbs_list:
+            if self.geno is None:
+                self.geno = db.geno
+            else:
+                self.geno = pd.concat([self.geno, db.geno], axis=0)
+        self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
+        self.geno.fillna(0, inplace=True)
+
+
+    def _load_all_phan_data(self):
+        self.all_ASR = None
+        for db in self.dbs_list:
+            if self.all_ASR is None:
+                self.all_ASR = db.all_ASR
+            else:
+                self.all_ASR = pd.concat([self.all_ASR, db.all_ASR], axis=0)
+
+        def fill_run_id(df):
+            if len(df) > 1:
+                if len(df['run_id'].unique()) > 1:
+                    run_id = df.iloc[0]['run_id']
+                    df['run_id'] = run_id
+            return df
+        self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(fill_run_id)
+
+
 
