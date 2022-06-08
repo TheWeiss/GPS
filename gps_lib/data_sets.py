@@ -234,7 +234,7 @@ class MICDataSet(ABC):
             return df
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(fix_ambiguse_standard)
         def is_unique(s):
-            a = s.to_numpy()  # s.values (pandas<0.24)
+            a = s.to_numpy()
             return (a[0] == a).all()
         def prefer_multi(df):
             if len(df) > 1:
@@ -244,8 +244,8 @@ class MICDataSet(ABC):
                 elif 'clsi' in list(df['test_standard'].unique()):
                     if is_unique(df['test_standard']):
                         if not df['standard_year'].isna().all():
-                            # df = df.dropna(subset=['standard_year'])
-                            df = df[~df['standard_year/'].isna()]
+                            df = df.dropna(subset=['standard_year'])
+                            # df = df[~df['standard_year'].isna()]
                             print(df[['test_standard', 'standard_year']])
                             return df.iloc[0]
             return df
