@@ -77,6 +77,7 @@ class MICDataSet(ABC):
             )
             self._calculate_multi_mic_aid()
             
+            self._test_phen()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
             
     
@@ -140,6 +141,7 @@ class MICDataSet(ABC):
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].str.lower()
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace(' ', '_', regex=True)
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace('-', '_', regex=True)
+        self.all_ASR['antibiotic_name'].replace(to_replace='trimethoprim_sulphamethoxazole', value='trimethoprim_sulfamethoxazole', inplace=True)
 
         self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
         self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
@@ -227,6 +229,11 @@ class MICDataSet(ABC):
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
+        
+    
+    def _test_phen(self):
+        assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
+        
 
 
     @abstractmethod
