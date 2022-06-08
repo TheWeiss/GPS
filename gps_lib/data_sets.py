@@ -246,13 +246,15 @@ class MICDataSet(ABC):
                         if not df['standard_year'].isna().all():
                             df = df.dropna(subset=['standard_year'])
                             # df = df[~df['standard_year'].isna()]
-                            print(df[['test_standard', 'standard_year']])
                             return df.iloc[0]
             return df
 
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(prefer_multi).drop(
-            ['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index()
-
+            ['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index().drop(['level_3', 0], axis=1)
+        if 'level_3' in list(self.all_ASR.columns.values):
+            self.all_ASR.drop('level_3', axis=1, inplace=True)
+        if 0 in list(self.all_ASR.columns.values):
+            self.all_ASR.drop('0', axis=1, inplace=True)
 
     def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
