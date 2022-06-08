@@ -50,7 +50,9 @@ class MICDataSet(ABC):
             self.geno = genotypic
         except:
             self._load_all_geno_data()
+            self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
+
 
 
     def _load_all_geno_data(self):
@@ -181,18 +183,22 @@ class MICDataSet(ABC):
                         df['standard_year'] = year
             return df
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(fix_ambiguse_standard)
-        
 
         self.all_ASR['resistance_phenotype'].replace(
-            {'non_susceptible': 'intermediate', 
+            {'non_susceptible': 'I',
              'Not defined': None, 
-             'Susceptible-dose dependent': 'susceptible',
-             'not-defined': None
+             'Susceptible-dose dependent': 'S',
+             'not defined': None,
+             'resistant': 'R',
+             'intermediate': 'I',
+             'Susceptible': 'S',
         }, inplace=True)
         self.all_ASR['resistance_phenotype'] = \
             self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'])[
                 'resistance_phenotype'].transform(
                 'first')
+
+        self.all_ASR['measurement_type'] = self.all_ASR['measurement_type'].str.lower()
 
         def choose_one_run_id(df):
             df['run_id'] = df.iloc[0]['run_id']
@@ -294,7 +300,7 @@ class MICDataSet(ABC):
         except:
             ds_param = MICDataSet._add_default_ds_param(ds_param)
             filtered_train = self._filter_data(ds_param)
-            self.split_train_valid_test()
+            self.split_train_valid_test(filtered_train)
             self.merge_geno2pheno()
 
     @staticmethod
@@ -608,7 +614,6 @@ class CollectionDataSet(MICDataSet):
                 self.geno = db.geno
             else:
                 self.geno = pd.concat([self.geno, db.geno], axis=0)
-        self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
 
 
     def _load_all_phan_data(self):
