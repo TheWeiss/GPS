@@ -198,31 +198,33 @@ class MICDataSet(ABC):
                 'resistance_phenotype'].transform(
                 'first')
 
-
         self.all_ASR['platform'].replace({
             'manually': 'Manual',
             'missing': None,
             '-': None,
         }, inplace=True)
         self.all_ASR['platform'] = self.all_ASR['platform'].str.lower()
-        self.all_ASR['platform1'].replace({
-            'biomerieux': 'Biomérieux',
-            'BiomŽrieux': 'Biomérieux',
-        }, inplace=True)
-        self.all_ASR['platform1'] = self.all_ASR['platform1'].str.lower()
-        self.all_ASR['platform2'].replace({
-            'missing': None,
-        })
-        self.all_ASR['platform2'] = self.all_ASR['platform2'].str.lower()
-        self.all_ASR['measurement_type'] = self.all_ASR['measurement_type'].str.lower()
-        self.all_ASR['measurement_type'].replace({
-            'broth_microdilution': 'mic',
-            'microbroth dilution': 'mic',
-            'mic broth microdilution': 'mic',
-            'disk diffusion': 'disk_diffusion',
-            'agar dilution': 'agar_dilution',
-            'disc-diffusion': 'disk_diffusion',
-        }, inplace=True)
+        if 'platform1' in self.all_ASR.columns:
+            self.all_ASR['platform1'].replace({
+                'biomerieux': 'Biomérieux',
+                'BiomŽrieux': 'Biomérieux',
+            }, inplace=True)
+            self.all_ASR['platform1'] = self.all_ASR['platform1'].str.lower()
+        if 'platform2' in self.all_ASR.columns:
+            self.all_ASR['platform2'].replace({
+                'missing': None,
+            })
+            self.all_ASR['platform2'] = self.all_ASR['platform2'].str.lower()
+        if 'measurement_type' in self.all_ASR.columns:
+            self.all_ASR['measurement_type'] = self.all_ASR['measurement_type'].str.lower()
+            self.all_ASR['measurement_type'].replace({
+                'broth_microdilution': 'mic',
+                'microbroth dilution': 'mic',
+                'mic broth microdilution': 'mic',
+                'disk diffusion': 'disk_diffusion',
+                'agar dilution': 'agar_dilution',
+                'disc-diffusion': 'disk_diffusion',
+            }, inplace=True)
 
         def choose_one_run_id(df):
             df['run_id'] = df.iloc[0]['run_id']
