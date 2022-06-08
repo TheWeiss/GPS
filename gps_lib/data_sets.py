@@ -134,6 +134,8 @@ class MICDataSet(ABC):
 
     def _fix_general_values(self):
         print(self.all_ASR.columns)
+        self.all_ASR.drop(
+            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance'], axis=1, errors='ignore')
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
 
@@ -239,7 +241,6 @@ class MICDataSet(ABC):
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(fix_ambiguse_standard)
 
         print('status before changes:')
-        print('size of duplicates: ', len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0]))
         print(self.all_ASR.columns)
         def is_unique(s):
             a = s.to_numpy()
