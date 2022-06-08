@@ -386,6 +386,7 @@ class MICDataSet(ABC):
             'move_range_by': 5,
             'reg_stratified': True,
             'stratified_cv_num': 3,
+            'random_seed': 42,
         }
         full_ds_param = {}
         for key, value in default_values.items():
