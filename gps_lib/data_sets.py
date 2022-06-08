@@ -249,6 +249,90 @@ class MICDataSet(ABC):
     
     def get_pheno(self):
         return self.all_ASR
+
+    def generate_data_set(self, ds_param, anti_i=0, species_j=0, antibiotic_name=None, species_name=None):
+        if ds_param is None:
+            ds_param_name = 'sep_species_sep_anti'
+        else:
+            ds_param_name = str(' '.join([str(key) + '_' + str(value) for key, value in ds_param.items()]))
+        ds_param_files_path = self.saved_files_path + '/' + ds_param_name
+        if not os.path.exists(ds_param_files_path):
+            os.makedirs(ds_param_files_path)
+        species_list = self.all_ASR.groupby(by='biosample_id').apply(
+            lambda x: x['species_fam'].iloc[0]
+            ).value_counts().drop(
+            ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0
+        ).index.values
+
+
+        try:
+            ds = pd.read_csv(ds_files_path + '/ds.csv')
+            with open(ds_files_path + '/features.csv') as json_file:
+                features = json.load(json_file)
+            with open(ds_files_path + '/labels.csv') as json_file:
+                labels = json.load(json_file)
+            return ds, features, labels
+        except:
+            ds_param = MICDataSet._add_default_ds_param(ds_param)
+            filtered_train = self._filter_data(ds_param)
+            self.split_train_valid_test()
+            self.merge_geno2pheno()
+
+    @staticmethod
+    def _add_default_ds_param(ds_param):
+        default_values = {
+            'species_sep': True,
+            'antibiotic_sep': True,
+            'species': 0,
+            'antibiotic': 0,
+            'handle_range': 'remove',  # remove/strip/move
+            'handle_multi_mic': 'remove',  # remove/max/min/rand
+            'ignore_small_dilu': True,  # remove/max/min/rand
+            'task': 'regression',  # regression/classification/SIR
+            'log2': True,
+            'move_range_by': 5,
+            'reg_stratified': True,
+            'stratified_cv_num': 3,
+        }
+        full_ds_param = {}
+        for key, value in default_values.items():
+            full_ds_param[key] = ds_param.get(key, value)
+        return full_ds_param
+
+    def _filter_data(self, ds_param):
+        filtered_train = self.all_ASR.copy()
+        if ds_param['handle_range'] == 'remove':
+            filtered_train = filtered_train[filtered_train['exact_value']]
+        if ds_param['handle_multi_mic'] == 'remove':
+            if ds_param['ignore_small_dilu']:
+                filtered_train = filtered_train[~filtered_train['multi_too_different']]
+                filtered_train = filtered_train[filtered_train['is_max_mic']]
+            else:
+                filtered_train = filtered_train[~filtered_train['is_multi_mic']]
+        if ds_param['species_sep']:
+            if type(ds_param['species']) == int:
+                species_list = filtered_train.groupby(by='biosample_id').apply(
+                    lambda x: x['species_fam'].iloc[0]).value_counts().drop(
+                    ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0).index.values
+                species = species_list[ds_param['species']]
+            else:
+                species = ds_param['species']
+            filtered_train = filtered_train[filtered_train['species_fam'] == species]
+        if ds_param['antibiotic_sep']:
+            if type(ds_param['antibiotic']) == int:
+                antibiotic_list = filtered_train.groupby(by='biosample_id').apply(
+                    lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
+                antibiotic = antibiotic_list[ds_param['antibiotic']]
+            else:
+                antibiotic = ds_param['antibiotic']
+            filtered_train = filtered_train[filtered_train['antibiotic_name'] == antibiotic]
+        return filtered_train
+
+    def _split_train_valid_test(self):
+        pass
+
+    def _merge_geno2pheno(self):
+        pass
     
 
 class PATAKICDataSet(MICDataSet):
@@ -310,9 +394,6 @@ class PATAKICDataSet(MICDataSet):
         if len(re.findall("/(\\d+\.?\\d*)", str(x)))>0:
             return float(re.findall("/(\\d+\.?\\d*)", str(x))[0])
         return np.nan
-    
-    def generate_data_set(self):
-        print('hello')
 
 
 class VAMPDataSet(MICDataSet):
@@ -470,8 +551,7 @@ class PATRICDataSet(MICDataSet):
         self.all_ASR['measurement_has_/'] = self.all_ASR.apply(lambda row: PATRICDataSet._fix_PATRIC_MIC_value(row, 'has'), axis=1)
 
     def _align_ASR(self):
-        # self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'measurement_value', 'source'], axis=1, inplace=True)
-        self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'source'], axis=1, inplace=True)
+        self.all_ASR.drop(['genus', 'genome_name', 'taxon_id', 'measurement_value', 'source'], axis=1, inplace=True)
         self.all_ASR.rename(columns={
             'antibiotic': 'antibiotic_name',
             'measurement_sign': 'sign',
