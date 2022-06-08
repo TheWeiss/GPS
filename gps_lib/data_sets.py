@@ -263,7 +263,7 @@ class MICDataSet(ABC):
         if 'level_3' in list(self.all_ASR.columns.values):
             self.all_ASR.drop(['level_3'], axis=1, inplace=True)
         if 0 in list(self.all_ASR.columns.values):
-            self.all_ASR.drop('0', axis=1, inplace=True)
+            self.all_ASR.drop(0, axis=1, inplace=True)
         print('status after changes but before multi_min:')
         print(self.all_ASR.columns)
 
