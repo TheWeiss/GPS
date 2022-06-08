@@ -204,7 +204,10 @@ class MICDataSet(ABC):
             '-': None,
         }, inplace=True)
         self.all_ASR['platform'] = self.all_ASR['platform'].str.lower()
+        print(self.all_ASR.columns)
         if 'platform1' in self.all_ASR.columns:
+            print(self.all_ASR.columns)
+            print(self.all_ASR['platform1'])
             self.all_ASR['platform1'].replace({
                 'biomerieux': 'Biomérieux',
                 'BiomŽrieux': 'Biomérieux',
@@ -352,14 +355,21 @@ class MICDataSet(ABC):
 
     def _filter_data(self, ds_param):
         filtered_train = self.all_ASR.copy()
-        if ds_param['handle_range'] == 'remove':
-            filtered_train = filtered_train[filtered_train['exact_value']]
+        filtered_out = []
         if ds_param['handle_multi_mic'] == 'remove':
             if ds_param['ignore_small_dilu']:
                 filtered_train = filtered_train[~filtered_train['multi_too_different']]
+                filtered_out = list(
+                    filtered_out + filtered_train[filtered_train['multi_too_different']]['run_id'].values)
                 filtered_train = filtered_train[filtered_train['is_max_mic']]
             else:
                 filtered_train = filtered_train[~filtered_train['is_multi_mic']]
+                filtered_out = list(
+                    filtered_out + filtered_train[filtered_train['is_multi_mic']]['run_id'].values)
+
+        if ds_param['handle_range'] == 'remove':
+            filtered_train = filtered_train[filtered_train['exact_value']]
+
         if ds_param['species_sep']:
             if type(ds_param['species']) == int:
                 species_list = filtered_train.groupby(by='biosample_id').apply(
