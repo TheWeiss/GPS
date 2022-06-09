@@ -493,6 +493,10 @@ class MICDataSet(ABC):
 
     @staticmethod
     def _strat_id(y, random_seed=42, seed_add=0):
+        print(y)
+        print(type(y))
+        print(y.unique())
+        print(type(y.unique()))
         train_ids = []
         test_ids = []
         for y_val in y.unique().values:
