@@ -298,7 +298,8 @@ class MICDataSet(ABC):
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
     
     def _test_phen(self):
-        assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
+        pass
+        # assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
 
     @abstractmethod
     def _align_ASR(self):
@@ -743,6 +744,7 @@ class CollectionDataSet(MICDataSet):
         path_dict = {db.name: db.path_dict for db in dbs_list}
         self.dbs_list = dbs_list
         super().__init__(name, path_dict)
+
 
     def _load_all_geno_data(self):
         self.geno = None
