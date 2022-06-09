@@ -256,7 +256,8 @@ class MICDataSet(ABC):
 
     def _calculate_multi_mic_aid(self):
         self.all_ASR.drop(
-            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'], axis=1, errors='ignore')
+            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'],
+            axis=1, errors='ignore', inplace=True)
         self.all_ASR = self.all_ASR.drop_duplicates(
             subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
                                                      'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
