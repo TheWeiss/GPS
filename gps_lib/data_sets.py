@@ -492,7 +492,7 @@ class MICDataSet(ABC):
         print(type(y.unique()))
         train_ids = []
         test_ids = []
-        for y_val in y.unique().values:
+        for y_val in y.unique():
             sub_value_id = list(y[y == y_val])
             if len(sub_value_id) > 1:
                 train_id, test_id = train_test_split(sub_value_id, test_size=0.2, random_state=random_seed+seed_add)
