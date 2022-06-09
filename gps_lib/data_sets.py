@@ -253,7 +253,6 @@ class MICDataSet(ABC):
             self.all_ASR.drop(['level_3'], axis=1, inplace=True)
         if 0 in list(self.all_ASR.columns.values):
             self.all_ASR.drop(0, axis=1, inplace=True)
-        print(self.all_ASR.index)
 
     def _calculate_multi_mic_aid(self):
         self.all_ASR.drop(
@@ -265,8 +264,6 @@ class MICDataSet(ABC):
                                                      'is_multi_mic', 'multi_dilution_distance'}),
             keep='first',
         )
-        print(self.all_ASR.head())
-        print(self.all_ASR.index)
         def is_multi_mic(df):
             if len(df) > 1:
                 return True
