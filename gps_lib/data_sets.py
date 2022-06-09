@@ -264,6 +264,7 @@ class MICDataSet(ABC):
                                                      'is_multi_mic', 'multi_dilution_distance'}),
             keep='first',
         )
+        print(self.all_ASR.head())
         def is_multi_mic(df):
             if len(df) > 1:
                 return True
