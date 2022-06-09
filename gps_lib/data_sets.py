@@ -78,19 +78,8 @@ class MICDataSet(ABC):
             self._merge_all_meta()
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
-            self.all_ASR = self.all_ASR.drop_duplicates(
-                subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
-                                                         'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
-                                                         'is_multi_mic', 'multi_dilution_distance'}),
-                keep='first',
-            )
             self._calculate_multi_mic_aid()
-            self.all_ASR = self.all_ASR.drop_duplicates(
-                subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
-                                                         'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
-                                                         'is_multi_mic', 'multi_dilution_distance'}),
-                keep='first',
-            )
+            self._calculate_multi_mic_aid()
             
             self._test_phen()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
@@ -265,6 +254,14 @@ class MICDataSet(ABC):
             self.all_ASR.drop(0, axis=1, inplace=True)
 
     def _calculate_multi_mic_aid(self):
+        self.all_ASR.drop(
+            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance'], axis=1, errors='ignore')
+        self.all_ASR = self.all_ASR.drop_duplicates(
+            subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
+                                                     'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
+                                                     'is_multi_mic', 'multi_dilution_distance'}),
+            keep='first',
+        )
         def is_multi_mic(df):
             if len(df) > 1:
                 return True
