@@ -460,6 +460,8 @@ class MICDataSet(ABC):
             if ds_param['handle_range'] != 'remove':
                 range_train_ids, range_test_ids = train_test_split(
                     list(range_y.index), test_size=0.2, random_state=ds_param['random_seed'])
+        print(exact_train_ids)
+        print(exact_y)
         exact_y_train = exact_y.loc[exact_train_ids,]
         range_y_train = range_y.loc[range_train_ids,]
         train_label = pd.concat([exact_y.loc[exact_train_ids,], range_y.loc[range_train_ids,]])
