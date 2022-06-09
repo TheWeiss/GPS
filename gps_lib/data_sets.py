@@ -295,7 +295,6 @@ class MICDataSet(ABC):
         how_bad_multi = how_bad_multi.reset_index()
 
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
-        print(self.all_ASR.columns.values)
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
     
     def _test_phen(self):
