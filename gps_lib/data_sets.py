@@ -246,7 +246,7 @@ class MICDataSet(ABC):
                             return df.iloc[0]
             return df
 
-        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(prefer_multi)\
+        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(prefer_multi)
         if 'biosample_id' in self.all_ASR.index.names:
             self.all_ASR.drop(['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index()
         if 'level_3' in list(self.all_ASR.columns.values):
