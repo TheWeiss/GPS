@@ -248,7 +248,7 @@ class MICDataSet(ABC):
 
         self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(prefer_multi)
         if 'biosample_id' in self.all_ASR.index.names:
-            self.all_ASR.drop(['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index()
+            self.all_ASR = self.all_ASR.drop(['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index()
         if 'level_3' in list(self.all_ASR.columns.values):
             self.all_ASR.drop(['level_3'], axis=1, inplace=True)
         if 0 in list(self.all_ASR.columns.values):
