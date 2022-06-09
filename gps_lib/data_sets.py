@@ -125,7 +125,7 @@ class MICDataSet(ABC):
 
     def _fix_general_values(self):
         self.all_ASR.drop(
-            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance'], axis=1, errors='ignore')
+            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'], axis=1, errors='ignore')
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
 
@@ -255,7 +255,7 @@ class MICDataSet(ABC):
 
     def _calculate_multi_mic_aid(self):
         self.all_ASR.drop(
-            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance'], axis=1, errors='ignore')
+            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'], axis=1, errors='ignore')
         self.all_ASR = self.all_ASR.drop_duplicates(
             subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
                                                      'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
@@ -269,8 +269,6 @@ class MICDataSet(ABC):
         multi_mic = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name']).apply(is_multi_mic)
         multi_mic.name = 'is_multi_mic'
         multi_mic = multi_mic.reset_index()
-        if 'is_multi_mic' in self.all_ASR.columns:
-            self.all_ASR.drop('is_multi_mic', axis=1, inplace=True)
         self.all_ASR = multi_mic.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['exact_value'] = self.all_ASR['sign'] == '='
@@ -294,8 +292,6 @@ class MICDataSet(ABC):
         how_bad_multi.name = 'multi_dilution_distance'
         how_bad_multi = how_bad_multi.reset_index()
 
-        if 'multi_dilution_distance' in self.all_ASR.columns:
-            self.all_ASR.drop('multi_dilution_distance', axis=1, inplace=True)
         self.all_ASR = how_bad_multi.merge(self.all_ASR, on=['biosample_id', 'antibiotic_name'])
 
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
