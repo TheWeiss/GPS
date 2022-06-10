@@ -463,6 +463,7 @@ class MICDataSet(ABC):
             species = 'all_species'
 
         if ds_param['antibiotic_sep']:
+            print(type(anti))
             if type(anti) == float:
                 anti = int(anti)
             if type(anti) == int:
