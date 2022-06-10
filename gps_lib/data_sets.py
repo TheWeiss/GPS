@@ -77,7 +77,7 @@ class MICDataSet(ABC):
             self._align_ASR()
             self._merge_all_meta()
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
-            # self._fix_general_values()
+            self._fix_general_values()
             # self._calculate_multi_mic_aid()
             # self._calculate_multi_mic_aid()
             
@@ -125,35 +125,39 @@ class MICDataSet(ABC):
 
     def _fix_general_values(self):
         self.all_ASR.drop(
-            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'], axis=1, errors='ignore')
+            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'], axis=1,
+            errors='ignore', inplace=True)
+        self.all_ASR['measurement_has_/'].fillna(False, inplace=True)  #
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
 
         def choose_one_run_id(df):
-            df['run_id'] = df.iloc[0]['run_id']
+            if len(df['run_id'].unique()) > 1:
+                df['run_id'] = df.iloc[0]['run_id']
             return df
-        self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(choose_one_run_id)
 
-        self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
-        
+        self.all_ASR = self.all_ASR.groupby(by='biosample_id', as_index=False).apply(choose_one_run_id)
+        self.all_ASR['species_fam'].replace(vamp.species_dict, inplace=True)
+
         def fix_ambiguse_sign(df):
-            if '=' in df['sign'].values:
-                df['sign'] = '='
-            elif ('>=' in df['sign'].values) and ('>' in df['sign'].values):
-                df['sign'] = '>'
-            elif ('<=' in df['sign'].values) and ('<' in df['sign'].values):
-                df['sign'] = '<='
-            return df['sign']
-        multi_sign = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(
+            if len(df) > 1:
+                if '=' in df['sign'].values:
+                    df['sign'] = '='
+                elif ('>=' in df['sign'].values) and ('>' in df['sign'].values):
+                    df['sign'] = '>'
+                elif ('<=' in df['sign'].values) and ('<' in df['sign'].values):
+                    df['sign'] = '<='
+            return df
+
+        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'],
+                                            as_index=False).apply(
             fix_ambiguse_sign)
-        multi_sign = multi_sign.reset_index().drop('level_3', axis=1)
-        self.all_ASR.drop('sign', axis=1, inplace=True)
-        self.all_ASR = self.all_ASR.merge(right=multi_sign, on=['biosample_id', 'antibiotic_name', 'measurement'])
 
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].str.lower()
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace(' ', '_', regex=True)
         self.all_ASR['antibiotic_name'] = self.all_ASR['antibiotic_name'].replace('-', '_', regex=True)
-        self.all_ASR['antibiotic_name'].replace(to_replace='trimethoprim_sulphamethoxazole', value='trimethoprim_sulfamethoxazole', inplace=True)
+        self.all_ASR['antibiotic_name'].replace(to_replace='trimethoprim_sulphamethoxazole',
+                                                value='trimethoprim_sulfamethoxazole', inplace=True)
 
         self.all_ASR['units'].replace(to_replace='mg/l', value='mg/L', inplace=True)
         self.all_ASR['measurement_has_/'].fillna(False, inplace=True)
@@ -161,13 +165,14 @@ class MICDataSet(ABC):
         self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(np.log2)
         self.all_ASR = self.all_ASR.dropna(subset=['measurement'])
         self.all_ASR['measurement'] = self.all_ASR['measurement'].replace({-np.inf: -9})
-        
+
         self.all_ASR['test_standard'].replace({'missing': None, np.nan: None}, inplace=True)
         self.all_ASR['test_standard'] = self.all_ASR['test_standard'].str.lower()
         self.all_ASR['test_standard'] = self.all_ASR['test_standard'].replace(' ', '_', regex=True)
         self.all_ASR['test_standard'] = self.all_ASR['test_standard'].replace('-', '_', regex=True)
-        
-        self.all_ASR['standard_year'].replace({'not_determined': None, 'M100-S24': None, 'as described in 2013/652/EU': '2013'}, inplace=True)
+
+        self.all_ASR['standard_year'].replace(
+            {'not_determined': None, 'M100-S24': None, 'as described in 2013/652/EU': '2013'}, inplace=True)
         self.all_ASR['standard_year'] = self.all_ASR['standard_year'].astype(float)
 
         self.all_ASR['platform'].replace({
@@ -185,7 +190,7 @@ class MICDataSet(ABC):
         if 'platform2' in self.all_ASR.columns:
             self.all_ASR['platform2'].replace({
                 'missing': None,
-            })
+            }, inplace=True)
             self.all_ASR['platform2'] = self.all_ASR['platform2'].str.lower()
         if 'measurement_type' in self.all_ASR.columns:
             self.all_ASR['measurement_type'] = self.all_ASR['measurement_type'].str.lower()
@@ -200,12 +205,15 @@ class MICDataSet(ABC):
 
         self.all_ASR['resistance_phenotype'].replace(
             {'non_susceptible': 'I',
+             'nonsusceptible': 'I',
              'Not defined': None,
              'Susceptible-dose dependent': 'S',
+             'susceptible-dose dependent': 'S',
              'not defined': None,
              'resistant': 'R',
              'intermediate': 'I',
              'Susceptible': 'S',
+             'susceptible': 'S',
              }, inplace=True)
         self.all_ASR['resistance_phenotype'] = \
             self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'])[
@@ -215,55 +223,75 @@ class MICDataSet(ABC):
         def fix_ambiguse_standard(df):
             if len(df) > 1:
                 if 'clsi' in df['test_standard'].values:
-                    i = df[df['test_standard']=='clsi'].head(1).index
-                    year = df.loc[i, 'standard_year']
-                    df['test_standard'] = 'clsi'
-                    df['standard_year'] = year
+                    if len(df[df['test_standard'] == 'clsi'][~df['standard_year'].isna()]) > 0:
+                        i = df[df['test_standard'] == 'clsi'][~df['standard_year'].isna()].head(1).index
+                    else:
+                        i = df[df['test_standard'] == 'clsi'].head(1).index
+                    df['test_standard'] = df['test_standard'].fillna(df.loc[i, 'test_standard'])
+                    df['standard_year'] = df['standard_year'].fillna(df.loc[i, 'standard_year'])
 
                 if df[['test_standard', 'standard_year']].isna().all(axis=1).any():
                     if ~df[['test_standard', 'standard_year']].isna().all(axis=1).all():
                         i = df[~df['test_standard'].isna()].head(1).index
-                        year = df.loc[i, 'standard_year'].iloc[0]
-                        standard = df.loc[i, 'test_standard'].iloc[0]
-                        df['test_standard'] = standard
-                        df['standard_year'] = year
+                        df['test_standard'] = df['test_standard'].fillna(df.loc[i, 'test_standard'])
+                        df['standard_year'] = df['standard_year'].fillna(df.loc[i, 'standard_year'])
             return df
-        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(fix_ambiguse_standard)
+
+        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'],
+                                            as_index=False).apply(fix_ambiguse_standard)
+
+        self.all_ASR.drop_duplicates(
+            subset=list(set(self.all_ASR.columns) - {'DB', 'genome_id', 'Isolate'}),
+            keep='first', inplace=True,
+        )
 
         def is_unique(s):
             a = s.to_numpy()
             return (a[0] == a).all()
+
         def prefer_multi(df):
+            i = None
             if len(df) > 1:
                 if df['measurement_has_/'].any(axis=0):
-                    df = df[df['measurement_has_/']]
-                    return df.iloc[0]
-                elif 'clsi' in list(df['test_standard'].unique()):
+                    i = df[df['measurement_has_/']].head(1).index
+                elif 'clsi' in df['test_standard'].values:
                     if is_unique(df['test_standard']):
                         if not df['standard_year'].isna().all():
-                            df = df.dropna(subset=['standard_year'])
-                            # df = df[~df['standard_year'].isna()]
-                            return df.iloc[0]
+                            i = df[~df['standard_year'].isna()].head(1).index
+                        else:
+                            if len(df[~df['platform'].isna()][~df['platform1'].isna()][~df['platform2'].isna()]) > 0:
+                                i = df[~df['platform'].isna()][~df['platform1'].isna()][~df['platform2'].isna()].head(
+                                    1).index
+                            elif len(df[~df['platform'].isna()][~df['platform1'].isna()]) > 0:
+                                i = df[~df['platform'].isna()][~df['platform1'].isna()].head(1).index
+                            elif len(df[~df['platform'].isna()]) > 0:
+                                i = df[~df['platform'].isna()].head(1).index
+                    else:
+                        i = df[df['test_standard'] == 'clsi'].head(1).index
+
+                elif df[['test_standard', 'standard_year']].isna().all(axis=1).all():
+                    if len(df[~df['platform'].isna()][~df['platform1'].isna()][~df['platform2'].isna()]) > 0:
+                        i = df[~df['platform'].isna()][~df['platform1'].isna()][~df['platform2'].isna()].head(1).index
+                    elif len(df[~df['platform'].isna()][~df['platform1'].isna()]) > 0:
+                        i = df[~df['platform'].isna()][~df['platform1'].isna()].head(1).index
+                    elif len(df[~df['platform'].isna()]) > 0:
+                        i = df[~df['platform'].isna()].head(1).index
+            if i is not None:
+                df.iloc[0:len(df)] = df.loc[i]
+                df = df.dropna(axis=0, how='all')
             return df
 
-        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement']).apply(prefer_multi)
-        if 'biosample_id' in self.all_ASR.index.names:
-            self.all_ASR = self.all_ASR.drop(['biosample_id', 'antibiotic_name', 'measurement'], axis=1).reset_index()
-        if 'level_3' in list(self.all_ASR.columns.values):
-            self.all_ASR.drop(['level_3'], axis=1, inplace=True)
-        if 0 in list(self.all_ASR.columns.values):
-            self.all_ASR.drop(0, axis=1, inplace=True)
-
-    def _calculate_multi_mic_aid(self):
-        self.all_ASR.drop(
-            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'],
-            axis=1, errors='ignore', inplace=True)
+        self.all_ASR = self.all_ASR.groupby(by=['biosample_id', 'antibiotic_name', 'measurement'],
+                                            as_index=False).apply(prefer_multi)
         self.all_ASR = self.all_ASR.drop_duplicates(
             subset=list(set(self.all_ASR.columns) - {'DB', 'is_min_mic', 'is_max_mic', 'measurement_type',
                                                      'platform', 'platform1', 'platform2', 'genome_id', 'Isolate',
                                                      'is_multi_mic', 'multi_dilution_distance'}),
             keep='first',
         )
+        self.all_ASR.reset_index(drop=True, inplace=True)
+
+    def _calculate_multi_mic_aid(self):
         def is_multi_mic(df):
             if len(df) > 1:
                 return True
