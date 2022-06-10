@@ -801,7 +801,7 @@ class CollectionDataSet(MICDataSet):
             'PA': PADataSet,
         }
         for name, path_dict in all_path_dict.items():
-            dbs_list.append(name2class[name]().__init__(path_dict, pre_params))
+            dbs_list.append(name2class[name](path_dict, pre_params))
         self.__init__(dbs_list)
 
     def _load_all_geno_data(self):
