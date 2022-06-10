@@ -449,30 +449,27 @@ class MICDataSet(ABC):
         filtered = self.all_ASR.copy()
         filtered.set_index('run_id', inplace=True)
         if ds_param['species_sep']:
-            if type(spec) == float:
-                spec = int(spec)
-            if type(spec) == int:
+            if type(spec) == str:
+                species = spec
+            else:
                 species_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['species_fam'].iloc[0]).value_counts().drop(
                     ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0, errors='ignore').index.values
                 species = species_list[spec]
-            else:
-                species = spec
+
             filtered = filtered[filtered['species_fam'] == species]
         else:
             species = 'all_species'
 
         if ds_param['antibiotic_sep']:
-            print(type(anti))
-            if type(anti) == float:
-                anti = int(anti)
-            if type(anti) == int:
+            if type(anti) == str:
+                antibiotic = anti
+            else:
                 antibiotic_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
                 print(antibiotic_list)
                 antibiotic = antibiotic_list[anti]
-            else:
-                antibiotic = anti
+
             filtered = filtered[filtered['antibiotic_name'] == antibiotic]
         else:
             antibiotic = 'all_antibiotic'
