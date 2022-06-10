@@ -443,7 +443,6 @@ class MICDataSet(ABC):
         return full_ds_param
 
     def _filter_data(self, ds_param, anti, spec):
-        print(anti, spec)
         species = ''
         antibiotic = ''
         filtered = self.all_ASR.copy()
@@ -467,14 +466,11 @@ class MICDataSet(ABC):
             else:
                 antibiotic_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
-                print(antibiotic_list)
                 antibiotic = antibiotic_list[anti]
 
             filtered = filtered[filtered['antibiotic_name'] == antibiotic]
         else:
             antibiotic = 'all_antibiotic'
-
-        print(antibiotic, species)
 
         if ds_param['handle_multi_mic'] == 'remove':
             if ds_param['ignore_small_dilu']:
