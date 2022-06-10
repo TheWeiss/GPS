@@ -475,6 +475,8 @@ class MICDataSet(ABC):
         else:
             antibiotic = 'all_antibiotic'
 
+        print(antibiotic, species)
+
         if ds_param['handle_multi_mic'] == 'remove':
             if ds_param['ignore_small_dilu']:
                 filtered = filtered[~filtered['multi_too_different']]
