@@ -786,23 +786,29 @@ class PATRICDataSet(MICDataSet):
     
 class CollectionDataSet(MICDataSet):
 
-    def __init__(self, dbs_list: list, pre_params=None):
+    def __init__(self, all_path_dict: dict=None, dbs_list: list=None, pre_params=None):
+        if dbs_list is not None:
+            self._normal_init(dbs_list, pre_params)
+        elif all_path_dict is not None:
+            dbs_list = []
+            name2class = {
+                'PATAKI': PATAKICDataSet,
+                'VAMP': VAMPDataSet,
+                'PATRIC': PATRICDataSet,
+                'PA': PADataSet,
+            }
+            for name, path_dict in all_path_dict.items():
+                dbs_list.append(name2class[name](path_dict, pre_params))
+            self._normal_init(dbs_list, pre_params)
+        else:
+            raise(Exception('not enough arguments to construct the class'))
+
+
+    def _normal_init(self, dbs_list: list, pre_params=None):
         name = '_'.join([db.name for db in dbs_list])
         path_dict = {db.name: db.path_dict for db in dbs_list}
         self.dbs_list = dbs_list
         super().__init__(name, path_dict, pre_params)
-
-    def __init__(self, all_path_dict: dict, pre_params=None):
-        dbs_list = []
-        name2class = {
-            'PATAKI': PATAKICDataSet,
-            'VAMP': VAMPDataSet,
-            'PATRIC': PATRICDataSet,
-            'PA': PADataSet,
-        }
-        for name, path_dict in all_path_dict.items():
-            dbs_list.append(name2class[name](path_dict, pre_params))
-        self.__init__(dbs_list)
 
     def _load_all_geno_data(self):
         self.geno = None
