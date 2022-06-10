@@ -791,22 +791,22 @@ class PATRICDataSet(MICDataSet):
     
 class CollectionDataSet(MICDataSet):
 
-    def __init__(self, dbs_list: list):
+    def __init__(self, dbs_list: list, pre_params=None):
         name = '_'.join([db.name for db in dbs_list])
         path_dict = {db.name: db.path_dict for db in dbs_list}
         self.dbs_list = dbs_list
-        super().__init__(name, path_dict)
+        super().__init__(name, path_dict, pre_params)
 
-    def __init__(self, all_path_dict: dict):
+    def __init__(self, all_path_dict: dict, pre_params=None):
         dbs_list = []
         name2class = {
-            'pataki': PATAKICDataSet,
-            'vamp': VAMPDataSet,
-            'patric': PATRICDataSet,
-            'pa': PADataSet,
+            'PATAKI': PATAKICDataSet,
+            'VAMP': VAMPDataSet,
+            'PATRIC': PATRICDataSet,
+            'PA': PADataSet,
         }
         for name, path_dict in all_path_dict:
-            dbs_list.append(super().__init__(name, path_dict))
+            dbs_list.append(name2class[name]().__init__(path_dict, pre_params))
         self.__init__(dbs_list)
 
 
