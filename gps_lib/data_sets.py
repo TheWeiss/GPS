@@ -401,7 +401,7 @@ class MICDataSet(ABC):
             with open(ds_param_files_path + '/col_names.csv', "w") as fp:
                 json.dump(col_names, fp)
             pd.DataFrame(ds_param, index=[0]).to_csv(ds_param_files_path + '/ds_param.csv')
-            return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name
+            return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name, train_label, cv
 
 
     @staticmethod
