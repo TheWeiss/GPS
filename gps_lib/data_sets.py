@@ -166,7 +166,11 @@ class MICDataSet(ABC):
         self.all_ASR = self.all_ASR.dropna(subset=['measurement'])
         self.all_ASR['measurement'] = self.all_ASR['measurement'].replace({-np.inf: -9})
 
-        self.all_ASR['test_standard'].replace({'missing': None, np.nan: None}, inplace=True)
+        self.all_ASR['test_standard'].replace({
+            'missing': None,
+            np.nan: None,
+            'eucast_clsi': 'clsi',
+        }, inplace=True)
         self.all_ASR['test_standard'] = self.all_ASR['test_standard'].str.lower()
         self.all_ASR['test_standard'] = self.all_ASR['test_standard'].replace(' ', '_', regex=True)
         self.all_ASR['test_standard'] = self.all_ASR['test_standard'].replace('-', '_', regex=True)
@@ -210,6 +214,7 @@ class MICDataSet(ABC):
              'Susceptible-dose dependent': 'S',
              'susceptible-dose dependent': 'S',
              'not defined': None,
+             'not-defined': None,
              'resistant': 'R',
              'intermediate': 'I',
              'Susceptible': 'S',
@@ -268,6 +273,8 @@ class MICDataSet(ABC):
                                 i = df[~df['platform'].isna()].head(1).index
                     else:
                         i = df[df['test_standard'] == 'clsi'].head(1).index
+                elif not df['test_standard'].isna().all():
+                    i = df[~df['test_standard'].isna()].head(1).index
 
                 elif df[['test_standard', 'standard_year']].isna().all(axis=1).all():
                     if len(df[~df['platform'].isna()][~df['platform1'].isna()][~df['platform2'].isna()]) > 0:
