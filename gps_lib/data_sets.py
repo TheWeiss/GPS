@@ -443,6 +443,7 @@ class MICDataSet(ABC):
         return full_ds_param
 
     def _filter_data(self, ds_param, anti, spec):
+        print(anti, spec)
         species = ''
         antibiotic = ''
         filtered = self.all_ASR.copy()
