@@ -384,8 +384,6 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(self.all_ASR, 'test_standard')
         e_utils.look_at_anti_dist(self.all_ASR, 'units')
 
-
-
     def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
         if ds_param is None:
             ds_param = {'species_sep': True, 'antibiotic_sep': True}
@@ -421,7 +419,6 @@ class MICDataSet(ABC):
                 json.dump(cv, fp)
             pd.DataFrame(ds_param, index=[0]).to_csv(ds_param_files_path + '/ds_param.csv')
         return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name, cv
-
 
     @staticmethod
     def _add_default_ds_param(ds_param):
@@ -542,7 +539,6 @@ class MICDataSet(ABC):
 
         return train_label, test_label, range_label, cv
 
-
     @staticmethod
     def _strat_id(y, random_seed=42, seed_add=0):
         train_ids = []
@@ -614,7 +610,6 @@ class PATAKICDataSet(MICDataSet):
 
         filtered_data = filtered_data.merge(right=run2bio, how='inner', on='run_id')
         self.all_ASR = filtered_data.merge(right=self.all_ASR, how='inner', on='biosample_id')
-
 
 
 class VAMPDataSet(MICDataSet):
@@ -808,8 +803,6 @@ class CollectionDataSet(MICDataSet):
         for name, path_dict in all_path_dict.items():
             dbs_list.append(name2class[name]().__init__(path_dict, pre_params))
         self.__init__(dbs_list)
-
-
 
     def _load_all_geno_data(self):
         self.geno = None
