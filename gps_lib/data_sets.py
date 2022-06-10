@@ -395,7 +395,7 @@ class MICDataSet(ABC):
         ds_param_name = str(' '.join([str(key) + '_' + str(value) for key, value in ds_param.items()]))
         ds_param = MICDataSet._add_default_ds_param(ds_param)
         filtered, antibiotic_name, species_name = self._filter_data(ds_param, antibiotic, species)
-        ds_param_files_path = self.saved_files_path + '/' + ds_param_name + '/' + species_name + '/' + antibiotic_name
+        ds_param_files_path = self.saved_files_path + '/' + ds_param_name + '/' + str(species_name) + '/' + str(antibiotic_name)
         if not os.path.exists(ds_param_files_path):
             os.makedirs(ds_param_files_path)
 
