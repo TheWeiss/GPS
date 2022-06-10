@@ -468,6 +468,7 @@ class MICDataSet(ABC):
             if type(anti) == int:
                 antibiotic_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
+                print(antibiotic_list)
                 antibiotic = antibiotic_list[anti]
             else:
                 antibiotic = anti
