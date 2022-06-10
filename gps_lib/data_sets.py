@@ -124,8 +124,13 @@ class MICDataSet(ABC):
 
     def _fix_general_values(self):
         self.all_ASR.drop(
-            ['is_min_mic', 'is_max_mic', 'is_multi_mic', 'multi_dilution_distance', 'multi_too_different'], axis=1,
-            errors='ignore', inplace=True)
+            ['is_min_mic',
+             'is_max_mic',
+             'is_multi_mic',
+             'multi_dilution_distance',
+             'multi_too_different',
+             'exact_value'
+             ], axis=1, errors='ignore', inplace=True)
         self.all_ASR['measurement_has_/'].fillna(False, inplace=True)  #
         self.all_ASR['sign'].fillna('=', inplace=True)
         self.all_ASR['sign'].replace(inplace=True, to_replace='==', value='=')
