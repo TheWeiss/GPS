@@ -26,6 +26,7 @@ def gene_num_in_isolate_figure(genotype, db_name):
     
 def anti_presence_in_isolates_figure(all_ASR, db_name):
     phenotype = all_ASR['antibiotic_name'].value_counts()
+    plt.figure(figsize=(15,10))
     plt.plot(phenotype.sort_values(ascending=False))
     plt.title('{}: Phenotypic measurement sorted by count from'.format(db_name))
     plt.xlabel('antibiotic')

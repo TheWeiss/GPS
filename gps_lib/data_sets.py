@@ -54,8 +54,6 @@ class MICDataSet(ABC):
             self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
-
-
     def _load_all_geno_data(self):
         genotypic = pd.DataFrame({})
         error_id = []
@@ -83,7 +81,6 @@ class MICDataSet(ABC):
             
             self._test_phen()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
-            
     
     def _load_all_phan_data(self):
         self.all_ASR = pd.DataFrame({})
@@ -96,7 +93,6 @@ class MICDataSet(ABC):
                 error_id += [sam_dir]
         if len(error_id) == 0:
             error_id = None
-    
     
     def _load_all_phen_data_per_file(self,
         path, 
@@ -140,9 +136,10 @@ class MICDataSet(ABC):
             if len(df['run_id'].unique()) > 1:
                 df['run_id'] = df.iloc[0]['run_id']
             return df
-
         self.all_ASR = self.all_ASR.groupby(by='biosample_id', as_index=False).apply(choose_one_run_id)
+
         self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
+        self.all_ASR = self.all_ASR[~self.all_ASR['species_fam'].isin(['Salmonella enterica', 'Streptococcus pneumoniae'])]
 
         def fix_ambiguse_sign(df):
             if len(df) > 1:
@@ -371,13 +368,22 @@ class MICDataSet(ABC):
     def get_pheno(self):
         return self.all_ASR
 
-    def print_geneo_exp(self):
+    def print_geno_exp(self):
         e_utils.gene_presence_in_isolate_figure(self.geno, self.name)
         e_utils.gene_num_in_isolate_figure(self.geno, self.name)
 
     def print_pheno_exp(self):
         e_utils.anti_presence_in_isolates_figure(self.all_ASR, self.name)
-        e_utils.look_at_anti_dist(self.all_ASR, 'species_fam', col_order=None)
+        e_utils.look_at_anti_dist(self.all_ASR, 'DB')
+        e_utils.look_at_anti_dist(self.all_ASR, 'species_fam')
+        e_utils.look_at_anti_dist(self.all_ASR, 'is_exact')
+        e_utils.look_at_anti_dist(self.all_ASR, 'sign', col_order=['<', '<=', '=', '>=', '>'])
+        e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype')
+        e_utils.look_at_anti_dist(self.all_ASR, 'is_multi_mic')
+        e_utils.look_at_anti_dist(self.all_ASR, 'measurement_has_/')
+        e_utils.look_at_anti_dist(self.all_ASR, 'test_standard')
+        e_utils.look_at_anti_dist(self.all_ASR, 'units')
+
 
 
     def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
