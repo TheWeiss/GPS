@@ -50,8 +50,8 @@ def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
     train_filename = '{}/train.csv'.format(ds_param_files_path)
     output = '../experiments/{}/{}/model'.format(exp_name, model_name)
     if os.path.exists('../experiments/{}/{}'.format(exp_name, model_name)):
-        os.system("rm -rf " + '../experiments/{}/{}/model'.format(exp_name, model_name))
-        os.system("rm -rf " + '../experiments/{}/{}'.format(exp_name, model_name))
+        os.system("rm -R " + '../experiments/{}/{}/model'.format(exp_name, model_name))
+        os.system("rm -R " + '../experiments/{}/{}'.format(exp_name, model_name))
 
     # optional parameters
     test_filename = '{}/test.csv'.format(ds_param_files_path)
