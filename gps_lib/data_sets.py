@@ -473,21 +473,20 @@ class MICDataSet(ABC):
             exact_y = exact_label.apply(lambda row: str(' '.join([row['measurement'], row['sign']])))
             exact_y.name='measurement'
 
-        range_y = pd.DataFrame({})
-        if ds_param['handle_range'] != 'remove':
-            if ds_param['task'] == 'regression':
-                if ds_param['handle_range'] == 'strip':
-                    range_y = range_label['measurement'].copy()
-                elif ds_param['handle_range'] == 'move':
-                    range_y = range_label['measurement'].copy().mask(
-                        range_label['sign'].apply(lambda x: '>' in x),
-                        range_label['measurement'] + ds_param['move_range_by'])
-                    range_y = range_y.mask(
-                        range_label['sign'].apply(lambda x: '<' in x),
-                        range_y - ds_param['move_range_by'])
+        if ds_param['task'] == 'regression':
+            if ds_param['handle_range'] == 'strip':
+                range_y = range_label['measurement'].copy()
+            elif ds_param['handle_range'] == 'move':
+                range_y = range_label['measurement'].copy().mask(
+                    range_label['sign'].apply(lambda x: '>' in x),
+                    range_label['measurement'] + ds_param['move_range_by'])
+                range_y = range_y.mask(
+                    range_label['sign'].apply(lambda x: '<' in x),
+                    range_y - ds_param['move_range_by'])
             else:
-                raise Exception('regression not in the naive approach is not implemented yet.')
-            range_y.name = 'measurement'
+                range_y = pd.Series([], name='measurement')
+        else:
+            raise Exception('regression not in the naive approach is not implemented yet.')
 
         range_train_ids = []
         range_test_ids = []
@@ -501,8 +500,6 @@ class MICDataSet(ABC):
             if ds_param['handle_range'] != 'remove':
                 range_train_ids, range_test_ids = train_test_split(
                     list(range_y.index), test_size=0.2, random_state=ds_param['random_seed'])
-        print(exact_train_ids)
-        print(exact_y)
         exact_y_train = exact_y.loc[exact_train_ids,]
         range_y_train = range_y.loc[range_train_ids,]
         train_label = pd.concat([exact_y.loc[exact_train_ids,], range_y.loc[range_train_ids,]])
@@ -529,14 +526,10 @@ class MICDataSet(ABC):
 
     @staticmethod
     def _strat_id(y, random_seed=42, seed_add=0):
-        print(y)
-        print(type(y))
-        print(y.unique())
-        print(type(y.unique()))
         train_ids = []
         test_ids = []
         for y_val in y.unique():
-            sub_value_id = list(y[y == y_val])
+            sub_value_id = list(y[y == y_val].index)
             if len(sub_value_id) > 1:
                 train_id, test_id = train_test_split(sub_value_id, test_size=0.2, random_state=random_seed+seed_add)
                 train_ids = train_ids + train_id
@@ -816,3 +809,11 @@ class CollectionDataSet(MICDataSet):
 
     def _merge_all_meta(self):
         pass
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
