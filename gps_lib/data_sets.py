@@ -539,9 +539,9 @@ class MICDataSet(ABC):
         return train_ids, test_ids
 
     def _merge_geno2pheno(self, train_label, test_label, range_label):
-        train_data = self.geno.set_index('run_id').fillna(0).merge(right=train_label, left_index=True, right_index=True)
-        test_data = self.geno.set_index('run_id').fillna(0).merge(right=test_label, left_index=True, right_index=True)
-        range_data = self.geno.set_index('run_id').fillna(0).merge(right=range_label, left_index=True, right_index=True)
+        train_data = train_label.merge(right=self.geno.set_index('run_id').fillna(0), left_index=True, right_index=True)
+        test_data = test_label.merge(right=self.geno.set_index('run_id').fillna(0), left_index=True, right_index=True)
+        range_data = range_label.merge(right=self.geno.set_index('run_id').fillna(0), left_index=True, right_index=True)
 
         col_names = {}
         col_names['features'] = list(self.geno.set_index('run_id').columns.values)
