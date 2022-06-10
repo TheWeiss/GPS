@@ -77,11 +77,11 @@ class MICDataSet(ABC):
             self._align_ASR()
             self._merge_all_meta()
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
-            self._fix_general_values()
-            self._calculate_multi_mic_aid()
-            self._calculate_multi_mic_aid()
+            # self._fix_general_values()
+            # self._calculate_multi_mic_aid()
+            # self._calculate_multi_mic_aid()
             
-            self._test_phen()
+            # self._test_phen()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
             
     
