@@ -96,7 +96,7 @@ def run_exp(dataset: ds.MICDataSet, ds_param, antibiotic=None, species=None):
         #     'reg_stratified': True,
         #     'stratified_cv_num': 3,
         # }
-    train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name = dataset.generate_dataset(ds_param, antibiotic, species)
+    train, test, range_data, col_names, ds_param_files_path, antibiotic_name, species_name = dataset.generate_dataset(ds_param, antibiotic, species)
     exp_name = '_'.join(ds_param_files_path.split('/')[-3::-1])
 
     os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)

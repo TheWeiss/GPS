@@ -402,23 +402,25 @@ class MICDataSet(ABC):
         try:
             train = pd.read_csv(ds_param_files_path + '/train.csv')
             test = pd.read_csv(ds_param_files_path + '/test.csv')
-            range = pd.read_csv(ds_param_files_path + '/range.csv')
+            range_X = pd.read_csv(ds_param_files_path + '/range_X.csv')
+            range_y = pd.read_csv(ds_param_files_path + '/range_y.csv')
             with open(ds_param_files_path + '/col_names.json') as json_file:
                 col_names = json.load(json_file)
             with open(ds_param_files_path + '/cv.json') as json_file:
                 cv = json.load(json_file)
         except:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
-            train, test, range, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
+            train_data, test_data, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
             train.to_csv(ds_param_files_path + '/train.csv')
             test.to_csv(ds_param_files_path + '/test.csv')
-            range.to_csv(ds_param_files_path + '/range.csv')
+            range_X.to_csv(ds_param_files_path + '/range_X.csv')
+            range_y.to_csv(ds_param_files_path + '/range_y.csv')
             with open(ds_param_files_path + '/col_names.json', "w") as fp:
                 json.dump(col_names, fp)
             with open(ds_param_files_path + '/cv.json', "w") as fp:
                 json.dump(cv, fp)
             pd.DataFrame(ds_param, index=[0]).to_csv(ds_param_files_path + '/ds_param.csv')
-        return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name, cv
+        return train, test, range_data, col_names, ds_param_files_path, antibiotic_name, species_name, cv
 
     @staticmethod
     def _add_default_ds_param(ds_param):
@@ -557,12 +559,14 @@ class MICDataSet(ABC):
         train_data = train_label.to_frame().merge(right=self.geno.set_index('run_id').fillna(0), left_index=True, right_index=True)
         test_data = test_label.to_frame().merge(right=self.geno.set_index('run_id').fillna(0), left_index=True, right_index=True)
         range_data = range_label.merge(right=self.geno.set_index('run_id').fillna(0), left_index=True, right_index=True)
+        range_X = range_data[self.geno.set_index('run_id').columns]
+        range_y = range_data[range_label.columns]
 
         col_names = {}
         col_names['features'] = list(self.geno.set_index('run_id').columns.values)
         col_names['id'] = 'run_id'
         col_names['label'] = 'measurement'
-        return train_data, test_data, range_data, col_names
+        return train_data, test_data, range_X, range_y, col_names
     
 
 class PATAKICDataSet(MICDataSet):
