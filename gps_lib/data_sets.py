@@ -805,7 +805,7 @@ class CollectionDataSet(MICDataSet):
             'PATRIC': PATRICDataSet,
             'PA': PADataSet,
         }
-        for name, path_dict in all_path_dict:
+        for name, path_dict in all_path_dict.items():
             dbs_list.append(name2class[name]().__init__(path_dict, pre_params))
         self.__init__(dbs_list)
 
