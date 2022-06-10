@@ -786,7 +786,7 @@ class PATRICDataSet(MICDataSet):
     
 class CollectionDataSet(MICDataSet):
 
-    def __init__(self, all_path_dict: dict=None, dbs_list: list=None, pre_params=None):
+    def __init__(self, all_path_dict: dict, dbs_list: list=None, pre_params=None):
         if dbs_list is not None:
             self._normal_init(dbs_list, pre_params)
         elif all_path_dict is not None:
