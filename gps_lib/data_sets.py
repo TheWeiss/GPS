@@ -137,7 +137,7 @@ class MICDataSet(ABC):
             return df
 
         self.all_ASR = self.all_ASR.groupby(by='biosample_id', as_index=False).apply(choose_one_run_id)
-        self.all_ASR['species_fam'].replace(vamp.species_dict, inplace=True)
+        self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
 
         def fix_ambiguse_sign(df):
             if len(df) > 1:
