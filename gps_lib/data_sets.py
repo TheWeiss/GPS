@@ -410,7 +410,7 @@ class MICDataSet(ABC):
                 cv = json.load(json_file)
         except:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
-            train_data, test_data, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
+            train, test, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
             train.to_csv(ds_param_files_path + '/train.csv')
             test.to_csv(ds_param_files_path + '/test.csv')
             range_X.to_csv(ds_param_files_path + '/range_X.csv')
