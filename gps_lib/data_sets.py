@@ -391,7 +391,8 @@ class MICDataSet(ABC):
             range = pd.read_csv(ds_param_files_path + '/range.csv')
             with open(ds_param_files_path + '/col_names.json') as json_file:
                 col_names = json.load(json_file)
-            return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name
+            with open(ds_param_files_path + '/cv.json') as json_file:
+                cv = json.load(json_file)
         except:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
             train, test, range, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
@@ -400,8 +401,10 @@ class MICDataSet(ABC):
             range.to_csv(ds_param_files_path + '/range.csv')
             with open(ds_param_files_path + '/col_names.csv', "w") as fp:
                 json.dump(col_names, fp)
+            with open(ds_param_files_path + '/cv.csv', "w") as fp:
+                json.dump(cv, fp)
             pd.DataFrame(ds_param, index=[0]).to_csv(ds_param_files_path + '/ds_param.csv')
-            return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name, train_label, cv
+        return train, test, range, col_names, ds_param_files_path, antibiotic_name, species_name, cv
 
 
     @staticmethod
