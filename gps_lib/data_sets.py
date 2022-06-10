@@ -376,7 +376,7 @@ class MICDataSet(ABC):
         e_utils.anti_presence_in_isolates_figure(self.all_ASR, self.name)
         e_utils.look_at_anti_dist(self.all_ASR, 'DB')
         e_utils.look_at_anti_dist(self.all_ASR, 'species_fam')
-        e_utils.look_at_anti_dist(self.all_ASR, 'is_exact')
+        e_utils.look_at_anti_dist(self.all_ASR, 'exact_value')
         e_utils.look_at_anti_dist(self.all_ASR, 'sign', col_order=['<', '<=', '=', '>=', '>'])
         e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype')
         e_utils.look_at_anti_dist(self.all_ASR, 'is_multi_mic')
