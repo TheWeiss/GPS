@@ -18,6 +18,7 @@ from tqdm import tqdm
 import pickle
 import json
 import gps_lib.parse_raw_utils as p_utils
+import gps_lib.exp_utils as e_utils
 
 from abc import ABC, abstractmethod
  
@@ -369,6 +370,15 @@ class MICDataSet(ABC):
     
     def get_pheno(self):
         return self.all_ASR
+
+    def print_geneo_exp(self):
+        e_utils.gene_presence_in_isolate_figure(self.geno, self.name)
+        e_utils.gene_num_in_isolate_figure(self.geno, self.name)
+
+    def print_pheno_exp(self):
+        e_utils.anti_presence_in_isolates_figure(self.all_ASR, self.name)
+        e_utils.look_at_anti_dist(self.all_ASR, 'species_fam', col_order=None)
+
 
     def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
         if ds_param is None:

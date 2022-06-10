@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import matplotlib
+import pandas as pd
+import numpy as np
 
 ########################################################################################
 ################################## Printing functions ##################################
@@ -7,27 +10,28 @@ import matplotlib.pyplot as plt
 
 def gene_presence_in_isolate_figure(genotype, db_name):
     plt.plot(genotype.describe().iloc[0].iloc[0:-1:2].sort_values(ascending=False).values)
-    plt.title('{}: Gene presence in isolates sorted by count in raw data'.format(db._name))
+    plt.title('{}: Gene presence in isolates sorted by count in raw data'.format(db_name))
     plt.xlabel('Genes')
     plt.ylabel('# of isolates contining this gene')
+    plt.show()
 
 
 def gene_num_in_isolate_figure(genotype, db_name):
     genotype.set_index('run_id').count(axis=1).apply(lambda x: x/2).hist(bins=30)
-    plt.title('{}: Number of gene found in isolates distribution from raw data'.format(db._name))
+    plt.title('{}: Number of gene found in isolates distribution from raw data'.format(db_name))
     plt.xlabel('number of genes found')
     plt.ylabel('# of isolates with this number of genes')
+    plt.show()
 
     
-def anti_presence_in_isolates_figure(phenotype, db_name):
-    if 'species_fam' in phenotype.columns.values:
-        phenotype = phenotype.drop('species_fam', axis=1)
-    plt.plot(phenotype.describe().iloc[0].sort_values(ascending=False).values)
-    plt.title('{}: Phenotypic measurement sorted by count from raw data'.format(db_name))
+def anti_presence_in_isolates_figure(all_ASR, db_name):
+    phenotype = all_ASR['antibiotic_name'].value_counts()
+    plt.plot(phenotype.sort_values(ascending=False))
+    plt.title('{}: Phenotypic measurement sorted by count from'.format(db_name))
     plt.xlabel('antibiotic')
-    plt.ylabel('# of isolates having ASR measurement of this antibiotic')    
+    plt.ylabel('# of isolates having ASR measurement of this antibiotic')
+    plt.show()
 
-    
 '''
 
 '''
@@ -44,6 +48,7 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None):
     plt.ylabel('antibiotics')
     plt.xlabel('# of measurements')
     plt.legend(loc='lower right')
+    plt.show()
 
     
 def print_anti_measure(all_ASR, anti_index):
