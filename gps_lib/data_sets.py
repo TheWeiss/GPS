@@ -78,8 +78,7 @@ class MICDataSet(ABC):
             self._merge_all_meta()
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             self._fix_general_values()
-            # self._calculate_multi_mic_aid()
-            # self._calculate_multi_mic_aid()
+            self._calculate_multi_mic_aid()
             
             # self._test_phen()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
@@ -181,6 +180,8 @@ class MICDataSet(ABC):
 
         self.all_ASR['platform'].replace({
             'manually': 'Manual',
+            'manually ': 'Manual',
+            np.nan: None,
             'missing': None,
             '-': None,
         }, inplace=True)
@@ -333,8 +334,7 @@ class MICDataSet(ABC):
         self.all_ASR['multi_too_different'] = self.all_ASR['multi_dilution_distance'] > 1.5
     
     def _test_phen(self):
-        pass
-        # assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
+        assert(len(self.all_ASR[self.all_ASR['is_multi_mic'] == True][self.all_ASR['multi_dilution_distance'] == 0])==0)
 
     @abstractmethod
     def _align_ASR(self):
