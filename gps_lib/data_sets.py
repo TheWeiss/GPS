@@ -797,6 +797,19 @@ class CollectionDataSet(MICDataSet):
         self.dbs_list = dbs_list
         super().__init__(name, path_dict)
 
+    def __init__(self, all_path_dict: dict):
+        dbs_list = []
+        name2class = {
+            'pataki': PATAKICDataSet,
+            'vamp': VAMPDataSet,
+            'patric': PATRICDataSet,
+            'pa': PADataSet,
+        }
+        for name, path_dict in all_path_dict:
+            dbs_list.append(super().__init__(name, path_dict))
+        self.__init__(dbs_list)
+
+
 
     def _load_all_geno_data(self):
         self.geno = None
