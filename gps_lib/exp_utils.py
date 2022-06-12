@@ -43,7 +43,11 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None):
     col_dist = pd.pivot_table(col_dist, values='count', index=['antibiotic_name'],
                     columns=[col_name], aggfunc=np.sum).fillna(0)
     if col_order is not None:
-        col_dist = col_dist[col_order]
+        filtered_col_order = []
+        for col in col_order:
+            if col in col_dist.columns.values:
+                filtered_col_order.append(col)
+        col_dist = col_dist[filtered_col_order]
     ax = col_dist.loc[order].plot.barh(stacked=True, rot=0, figsize=(20,15))
     plt.title('Distribution of ' + col_name+' for each anti-biotics')
     plt.ylabel('antibiotics')

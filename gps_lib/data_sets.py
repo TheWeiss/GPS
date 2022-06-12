@@ -384,7 +384,7 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(self.all_ASR, 'units')
 
     def print_pheno_exp_for_species(self, species):
-        filtered = self.all_ASR[self.all_ASR['species_fam']==species]
+        filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
         e_utils.anti_presence_in_isolates_figure(filtered, self.name)
         e_utils.look_at_anti_dist(filtered, 'DB')
         e_utils.look_at_anti_dist(filtered, 'exact_value')
