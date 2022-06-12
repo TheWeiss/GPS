@@ -49,7 +49,7 @@ class MICDataSet(ABC):
         try:
             genotypic = pd.read_csv(self.saved_files_path + '/geno.csv')
             self.geno = genotypic
-        except FileNotFoundError:
+        except (FileNotFoundError, EmptyDataError):
             self._load_all_geno_data()
             self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
