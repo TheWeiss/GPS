@@ -870,7 +870,7 @@ class CollectionDataSet(MICDataSet):
         self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(fill_run_id)
 
     def _align_ASR(self):
-        self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(lambda x: np.pow(2, x))
+        self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(lambda x: np.power(2, x))
 
     def _merge_all_meta(self):
         pass
