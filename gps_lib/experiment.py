@@ -174,7 +174,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
                     run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
                 elif model_param['model'] == 'h2o':
                     run_h2o(exp_name, model_param, ds_param_files_path, col_names)
-            except Exception:
+            except Exception as e:
                 with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
                     traceback.print_exc(file=f)
                 print("Unexpected error:", sys.exc_info()[0])
