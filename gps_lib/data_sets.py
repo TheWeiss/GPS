@@ -832,6 +832,7 @@ class CollectionDataSet(MICDataSet):
             }
             for name, path_dict in all_path_dict.items():
                 dbs_list.append(name2class[name](path_dict, pre_params))
+
             self._normal_init(dbs_list, pre_params)
         else:
             raise(Exception('not enough arguments to construct the class'))
@@ -869,7 +870,7 @@ class CollectionDataSet(MICDataSet):
         self.all_ASR = self.all_ASR.groupby(by='biosample_id').apply(fill_run_id)
 
     def _align_ASR(self):
-        pass
+        self.all_ASR['measurement'] = self.all_ASR['measurement'].apply(lambda x: np.pow(2, x))
 
     def _merge_all_meta(self):
         pass
