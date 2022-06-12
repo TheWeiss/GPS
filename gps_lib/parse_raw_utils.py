@@ -169,7 +169,7 @@ def merge_gen2phen(geno, pheno, run2bio_match_path, filter_list_path, db_name):
         run2biosam['genome_id'] = run2biosam['genome_id'].astype(str)
     else:
         run2biosam.columns = ['run_id', 'biosample_id']
-        filtered_data = pd.read_excel(filter_list)
+        filtered_data = pd.read_excel(filter_list_path)
         filtered_data.columns = ['species_fam', 'run_id']
         
     if db_name == 'PATAKI':
@@ -423,6 +423,7 @@ def fix_PATRIC_MIC_value(row, ans_type='1', log2=True, choose_first_dash=True):
     #     return '{} {}/{}'.format(sign, values_str[0], values_str[1])
     # else:
         # return '{} {}'.format(sign, values_str[0])
+
 
 def save_species_dict(path="../resources/species_dict.json"):
     species_dict = {
