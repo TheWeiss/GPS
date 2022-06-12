@@ -87,9 +87,12 @@ def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
         fast=fast,
     )
     axgb.train()
-    PredictAutoXGBCommand('../experiments/{}/{}/model'.format(exp_name, model_name),
+    try:
+        PredictAutoXGBCommand('../experiments/{}/{}/model'.format(exp_name, model_name),
                           '{}/range_X.csv'.format(ds_param_files_path),
                           '../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).execute()
+    except ValueError:
+        pd.DataFrame({}).to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
     os.rename("../experiments/{}/{}/model/oof_predictions.csv".format(exp_name, model_name),
               "../experiments/{}/{}/train_preds.csv".format(exp_name, model_name))
     os.rename("../experiments/{}/{}/model/test_predictions.csv".format(exp_name, model_name),
