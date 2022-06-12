@@ -144,18 +144,18 @@ def walk_level(some_dir, level=1):
         if num_sep + level <= num_sep_this:
             del dirs[:]
 
-def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None, species=None):
+def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None, species=None, exp_prefix = ''):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic)==list:
                 for antibiotic_i in antibiotic:
-                            run_exp(dataset, model_param, ds_param, antibiotic_i, species_j)
+                            run_exp(dataset, model_param, ds_param, antibiotic_i, species_j, exp_prefix)
             else:
-                run_exp(dataset, model_param, ds_param, antibiotic_i, species)
+                run_exp(dataset, model_param, ds_param, antibiotic_i, species, exp_prefix)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, antibiotic_i, species)
+                run_exp(dataset, model_param, ds_param, antibiotic_i, species, exp_prefix)
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
@@ -163,7 +163,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
             except Exception as e:
                 print(e)
                 return -1
-            exp_name = '_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
+            exp_name = exp_prefix+'_'+'_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
 
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
