@@ -395,6 +395,11 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(filtered, 'test_standard')
         e_utils.look_at_anti_dist(filtered, 'units')
 
+    def print_pheno_exp_anti_measure(self, species, antibiotic):
+        filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
+        e_utils.print_anti_measure(filtered, antibiotic)
+
+
     def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
         if ds_param is None:
             ds_param = {'species_sep': True, 'antibiotic_sep': True}
