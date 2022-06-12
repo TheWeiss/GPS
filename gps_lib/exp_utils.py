@@ -56,13 +56,14 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None):
     plt.show()
 
     
-def print_anti_measure(all_ASR, anti_index):
+def print_anti_measure(all_ASR, anti_index, need_log=False):
     if type(anti_index) == str:
         anti = anti_index
     else:
         anti = all_ASR['antibiotic_name'].value_counts().index[anti_index]
     anti_MIC = all_ASR[all_ASR['antibiotic_name'] == anti]
-    anti_MIC['measurement'] = anti_MIC['measurement'].apply(np.log2)
+    if need_log:
+        anti_MIC['measurement'] = anti_MIC['measurement'].apply(np.log2)
     low = anti_MIC['measurement'].min().round()
     high = anti_MIC['measurement'].max().round()
     hist_range = np.arange(low-0.5, high+1, 1)
