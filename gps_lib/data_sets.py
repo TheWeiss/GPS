@@ -487,6 +487,7 @@ class MICDataSet(ABC):
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
                 print(anti)
                 print(antibiotic_list)
+                print(filtered['antibiotic_name'].unique())
                 print(antibiotic_list[anti])
                 try:
                     antibiotic = antibiotic_list[anti]
