@@ -49,11 +49,10 @@ def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     # return aml
 
 def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
-    model_name = '_'.join(['_'.join([k, str(v)]) for k, v in model_param.items()])
+    model_name = '_'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
     # required parameters:
     train_filename = '{}/train.csv'.format(ds_param_files_path)
     output = '../experiments/{}/{}/model'.format(exp_name, model_name)
-    logging.basicConfig(filename='../experiments/{}/{}/model.log'.format(exp_name, model_name), level=logging.INFO)
     if os.path.exists('/sise/home/amitdanw/GPS/experiments/{}/{}/model'.format(exp_name, model_name)):
         os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}/model'".format(exp_name, model_name))
         os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}'".format(exp_name, model_name))
@@ -169,6 +168,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
                 data_path.write(ds_param_files_path)
             model_name = '_'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+            os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
             pd.DataFrame(model_param, index=[0]).to_csv(
                 '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
             try:
