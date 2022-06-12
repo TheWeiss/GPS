@@ -377,7 +377,7 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(self.all_ASR, 'species_fam')
         e_utils.look_at_anti_dist(self.all_ASR, 'exact_value')
         e_utils.look_at_anti_dist(self.all_ASR, 'sign', col_order=['<', '<=', '=', '>=', '>'])
-        e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype')
+        e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype', col_order=['S', 'I', 'R'])
         e_utils.look_at_anti_dist(self.all_ASR, 'is_multi_mic')
         e_utils.look_at_anti_dist(self.all_ASR, 'measurement_has_/')
         e_utils.look_at_anti_dist(self.all_ASR, 'test_standard')
@@ -486,6 +486,8 @@ class MICDataSet(ABC):
                 filtered = filtered[filtered['is_max_mic']]
             else:
                 filtered = filtered[~filtered['is_multi_mic']]
+
+        filtered = filtered[~filtered['units']=='mm']
 
         return filtered, species, antibiotic
 
