@@ -9,6 +9,8 @@ from parse_raw_utils import get_isolate_features
 import data_sets as ds
 from autoxgb import AutoXGB
 from autoxgb.cli.predict import PredictAutoXGBCommand
+import sys
+import traceback
 
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
@@ -147,8 +149,11 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
                     ds_param, antibiotic, species)
-            except:
-                print('This comnibation of antibiotic and species doesnt exist: anti-{} species-{}'.format(antibiotic, species))
+            except ds.SpecAntiNotExistError as e:
+                print(e)
+                return -1
+            except Exception:
+                print("Unexpected error in :", antibiotic, species, sys.exc_info()[0])
                 return -1
             exp_name = '_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
 
@@ -156,10 +161,17 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
                 data_path.write(ds_param_files_path)
             model_name = '_'.join(['_'.join([k, str(v)]) for k, v in model_param.items()])
-            if model_param['model'] == 'autoxgb':
-                run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
-            elif model_param['model'] == 'h2o':
-                run_h2o(exp_name, model_param, ds_param_files_path, col_names)
+            try:
+                if model_param['model'] == 'autoxgb':
+                    run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
+                elif model_param['model'] == 'h2o':
+                    run_h2o(exp_name, model_param, ds_param_files_path, col_names)
+            except Exception:
+                with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
+                    traceback.print_exc(file=f)
+                print("Unexpected error:", sys.exc_info()[0])
+                return -1
+
 
 
 def main():

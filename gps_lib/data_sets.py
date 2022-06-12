@@ -21,7 +21,7 @@ import gps_lib.parse_raw_utils as p_utils
 import gps_lib.exp_utils as e_utils
 
 from abc import ABC, abstractmethod
- 
+
 class MICDataSet(ABC):
 
     def __init__(self, name, path_dict, pre_params=None, saved_files_path='../pre_proccesing/',
@@ -49,7 +49,7 @@ class MICDataSet(ABC):
         try:
             genotypic = pd.read_csv(self.saved_files_path + '/geno.csv')
             self.geno = genotypic
-        except:
+        except FileNotFoundError:
             self._load_all_geno_data()
             self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
@@ -70,8 +70,7 @@ class MICDataSet(ABC):
     def _load_pheno(self):
         try:
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
-        except:
-
+        except FileNotFoundError:
             self._load_all_phan_data()
             self._align_ASR()
             self._merge_all_meta()
@@ -102,7 +101,7 @@ class MICDataSet(ABC):
     ):
         try:
             phen_df = pd.read_csv(path, sep=file_sep)
-        except:
+        except FileNotFoundError:
             return path
         
         biosample_id = path.split('/')[-1].split(bio_id_sep)[0]
@@ -394,7 +393,7 @@ class MICDataSet(ABC):
 
         ds_param_name = str(' '.join([str(key) + '_' + str(value) for key, value in ds_param.items()]))
         ds_param = MICDataSet._add_default_ds_param(ds_param)
-        filtered, antibiotic_name, species_name = self._filter_data(ds_param, antibiotic, species)
+        filtered, species_name, antibiotic_name = self._filter_data(ds_param, species, antibiotic)
         ds_param_files_path = self.saved_files_path + '/' + ds_param_name + '/' + str(species_name) + '/' + str(antibiotic_name)
         if not os.path.exists(ds_param_files_path):
             os.makedirs(ds_param_files_path)
@@ -408,7 +407,7 @@ class MICDataSet(ABC):
                 col_names = json.load(json_file)
             with open(ds_param_files_path + '/cv.json') as json_file:
                 cv = json.load(json_file)
-        except:
+        except FileNotFoundError:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
             train, test, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
             train.to_csv(ds_param_files_path + '/train.csv')
@@ -442,7 +441,7 @@ class MICDataSet(ABC):
             full_ds_param[key] = ds_param.get(key, value)
         return full_ds_param
 
-    def _filter_data(self, ds_param, anti, spec):
+    def _filter_data(self, ds_param, spec, anti):
         species = ''
         antibiotic = ''
         filtered = self.all_ASR.copy()
@@ -454,7 +453,10 @@ class MICDataSet(ABC):
                 species_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['species_fam'].iloc[0]).value_counts().drop(
                     ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0, errors='ignore').index.values
-                species = species_list[spec]
+                try:
+                    species = species_list[spec]
+                except Exception:
+                    raise SpecAntiNotExistError(spec, anti)
 
             filtered = filtered[filtered['species_fam'] == species]
         else:
@@ -466,11 +468,17 @@ class MICDataSet(ABC):
             else:
                 antibiotic_list = filtered.groupby(by='biosample_id').apply(
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
-                antibiotic = antibiotic_list[anti]
+                try:
+                    antibiotic = antibiotic_list[anti]
+                except Exception:
+                    raise SpecAntiNotExistError(spec, anti)
 
             filtered = filtered[filtered['antibiotic_name'] == antibiotic]
         else:
             antibiotic = 'all_antibiotic'
+
+        if len(filtered) == 0:
+            raise SpecAntiNotExistError(spec, anti)
 
         if ds_param['handle_multi_mic'] == 'remove':
             if ds_param['ignore_small_dilu']:
@@ -479,7 +487,7 @@ class MICDataSet(ABC):
             else:
                 filtered = filtered[~filtered['is_multi_mic']]
 
-        return filtered, antibiotic, species
+        return filtered, species, antibiotic
 
     def _split_train_valid_test(self, ds_param, filtered):
 
@@ -846,6 +854,18 @@ class CollectionDataSet(MICDataSet):
 
     def _merge_all_meta(self):
         pass
+
+
+class SpecAntiNotExistError(Exception):
+
+    def __init__(self, spec, anti):
+        self.anti = anti
+        self.spec = spec
+        self.message = "The Given combination of antibiotics and species is out of range or doesn't exist"
+        super().__init__(self.message)
+
+    def __str__(self):
+        return '({},{}) -> {}'.format(self.spec, self.anti, self.message)
 
 
 def main():
