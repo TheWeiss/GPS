@@ -144,18 +144,18 @@ def walk_level(some_dir, level=1):
         if num_sep + level <= num_sep_this:
             del dirs[:]
 
-def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_prefix = ''):
+def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc = ''):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic)==list:
                 for antibiotic_i in antibiotic:
-                            run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_prefix)
+                            run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc)
             else:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_prefix)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_prefix)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, )
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
@@ -163,12 +163,14 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             except Exception as e:
                 print(e)
                 return -1
-            exp_name = exp_prefix+'_'+'_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
+            exp_name = '_'+'_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])+'_'+exp_desc
 
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
                 data_path.write(ds_param_files_path)
-            model_name = '_'.join(['_'.join([k, str(v)]) for k, v in model_param.items()])
+            model_name = '_'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+            pd.DataFrame(model_param, index=[0]).to_csv(
+                '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
             try:
                 if model_param['model'] == 'autoxgb':
                     run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
