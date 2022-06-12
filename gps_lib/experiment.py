@@ -157,7 +157,9 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
                 print(e)
                 return -1
             except Exception as e:
-                print("Unexpected error in :", antibiotic, species, e)
+                print(type(e))
+                print(type(SpecAntiNotExistError))
+                print("Unexpected error in :", species, antibiotic, e)
                 return -1
             exp_name = '_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
 
