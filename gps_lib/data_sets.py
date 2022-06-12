@@ -499,7 +499,7 @@ class MICDataSet(ABC):
             else:
                 filtered = filtered[~filtered['is_multi_mic']]
 
-        filtered = filtered[~filtered['units']=='mm']
+        filtered = filtered[filtered['units'] != 'mm']
 
         return filtered, species, antibiotic
 
