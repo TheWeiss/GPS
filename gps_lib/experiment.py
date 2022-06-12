@@ -153,12 +153,12 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
                     ds_param, antibiotic, species)
-            except SpecAntiNotExistError as e:
+            except ds.SpecAntiNotExistError as e:
                 print(e)
                 return -1
             except Exception as e:
                 print(type(e))
-                print(type(SpecAntiNotExistError))
+                print(type(ds.SpecAntiNotExistError))
                 print("Unexpected error in :", species, antibiotic, e)
                 return -1
             exp_name = '_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
