@@ -483,12 +483,7 @@ class MICDataSet(ABC):
             if type(anti) == str:
                 antibiotic = anti
             else:
-                antibiotic_list = filtered.groupby(by='biosample_id').apply(
-                    lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
-                print(anti)
-                print(antibiotic_list)
-                print(filtered['antibiotic_name'].unique())
-                print(antibiotic_list[anti])
+                antibiotic_list = filtered['antibiotic_name'].value_counts().index.values
                 try:
                     antibiotic = antibiotic_list[anti]
                 except IndexError:
