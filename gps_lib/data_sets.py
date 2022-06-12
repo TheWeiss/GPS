@@ -455,7 +455,7 @@ class MICDataSet(ABC):
                     ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0, errors='ignore').index.values
                 try:
                     species = species_list[spec]
-                except Exception:
+                except IndexError:
                     raise SpecAntiNotExistError(spec, anti)
 
             filtered = filtered[filtered['species_fam'] == species]
@@ -470,7 +470,7 @@ class MICDataSet(ABC):
                     lambda x: x['antibiotic_name'].iloc[0]).value_counts().index.values
                 try:
                     antibiotic = antibiotic_list[anti]
-                except Exception:
+                except IndexError:
                     raise SpecAntiNotExistError(spec, anti)
 
             filtered = filtered[filtered['antibiotic_name'] == antibiotic]
