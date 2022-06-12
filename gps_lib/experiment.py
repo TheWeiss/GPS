@@ -145,17 +145,17 @@ def walk_level(some_dir, level=1):
             del dirs[:]
 
 def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None, species=None):
-    if type(antibiotic)==list:
-        for antibiotic_i in antibiotic:
-            if type(species)==list:
-                for species_j in species:
-                    run_exp(dataset, model_param, ds_param, antibiotic_i, species_j)
+    if type(species) == list:
+        for species_j in species:
+            if type(antibiotic)==list:
+                for antibiotic_i in antibiotic:
+                            run_exp(dataset, model_param, ds_param, antibiotic_i, species_j)
             else:
                 run_exp(dataset, model_param, ds_param, antibiotic_i, species)
     else:
-        if type(species) == list:
-            for species_j in species:
-                run_exp(dataset, model_param, ds_param, antibiotic, species_j)
+        if type(antibiotic) == list:
+            for antibiotic_i in antibiotic:
+                run_exp(dataset, model_param, ds_param, antibiotic_i, species)
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
