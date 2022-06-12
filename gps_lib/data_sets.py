@@ -383,6 +383,18 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(self.all_ASR, 'test_standard')
         e_utils.look_at_anti_dist(self.all_ASR, 'units')
 
+    def print_pheno_exp_for_species(self, species):
+        filtered = self.all_ASR[self.all_ASR['species_fam']==species]
+        e_utils.anti_presence_in_isolates_figure(filtered, self.name)
+        e_utils.look_at_anti_dist(filtered, 'DB')
+        e_utils.look_at_anti_dist(filtered, 'exact_value')
+        e_utils.look_at_anti_dist(filtered, 'sign', col_order=['<', '<=', '=', '>=', '>'])
+        e_utils.look_at_anti_dist(filtered, 'resistance_phenotype', col_order=['S', 'I', 'R'])
+        e_utils.look_at_anti_dist(filtered, 'is_multi_mic')
+        e_utils.look_at_anti_dist(filtered, 'measurement_has_/')
+        e_utils.look_at_anti_dist(filtered, 'test_standard')
+        e_utils.look_at_anti_dist(filtered, 'units')
+
     def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
         if ds_param is None:
             ds_param = {'species_sep': True, 'antibiotic_sep': True}
