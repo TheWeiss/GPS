@@ -156,9 +156,9 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
             except SpecAntiNotExistError as e:
                 print(e)
                 return -1
-            # except Exception:
-            #     print("Unexpected error in :", antibiotic, species, sys.exc_info()[0])
-            #     return -1
+            except Exception as e:
+                print("Unexpected error in :", antibiotic, species, e)
+                return -1
             exp_name = '_'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])
 
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
