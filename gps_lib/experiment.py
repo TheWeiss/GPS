@@ -144,22 +144,22 @@ def walk_level(some_dir, level=1):
         if num_sep + level <= num_sep_this:
             del dirs[:]
 
-def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None, species=None, exp_prefix = ''):
+def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_prefix = ''):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic)==list:
                 for antibiotic_i in antibiotic:
-                            run_exp(dataset, model_param, ds_param, antibiotic_i, species_j, exp_prefix)
+                            run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_prefix)
             else:
-                run_exp(dataset, model_param, ds_param, antibiotic_i, species, exp_prefix)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_prefix)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, antibiotic_i, species, exp_prefix)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_prefix)
         else:
             try:
-                train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
-                    ds_param, antibiotic, species)
+                train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
+                    ds_param, species, antibiotic)
             except Exception as e:
                 print(e)
                 return -1

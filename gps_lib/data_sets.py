@@ -400,7 +400,7 @@ class MICDataSet(ABC):
         e_utils.print_anti_measure(filtered, antibiotic)
 
 
-    def generate_dataset(self, ds_param=None, antibiotic=None, species=None):
+    def generate_dataset(self, ds_param=None, species=None, antibiotic=None):
         if ds_param is None:
             ds_param = {'species_sep': True, 'antibiotic_sep': True}
             if antibiotic is None:
@@ -436,7 +436,7 @@ class MICDataSet(ABC):
             with open(ds_param_files_path + '/cv.json', "w") as fp:
                 json.dump(cv, fp)
             pd.DataFrame(ds_param, index=[0]).to_csv(ds_param_files_path + '/ds_param.csv')
-        return train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv
+        return train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv
 
     @staticmethod
     def _add_default_ds_param(ds_param):
