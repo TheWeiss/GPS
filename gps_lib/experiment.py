@@ -150,8 +150,8 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, antibiotic=None,
             for species_j in species:
                 run_exp(dataset, model_param, ds_param, antibiotic, species_j)
         else:
-            try:
-                train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
+            # try:
+            train, test, range_X, range_y, col_names, ds_param_files_path, antibiotic_name, species_name, cv = dataset.generate_dataset(
                     ds_param, antibiotic, species)
             # except SpecAntiNotExistError as e:
             #     print(type(e))
