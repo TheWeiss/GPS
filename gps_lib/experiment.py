@@ -12,6 +12,7 @@ from autoxgb import AutoXGB
 from autoxgb.cli.predict import PredictAutoXGBCommand
 import sys
 import traceback
+import logging
 
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
@@ -52,6 +53,7 @@ def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
     # required parameters:
     train_filename = '{}/train.csv'.format(ds_param_files_path)
     output = '../experiments/{}/{}/model'.format(exp_name, model_name)
+    logging.basicConfig(filename='../experiments/{}/{}/model.log'.format(exp_name, model_name), level=logging.INFO)
     if os.path.exists('/sise/home/amitdanw/GPS/experiments/{}/{}/model'.format(exp_name, model_name)):
         os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}/model'".format(exp_name, model_name))
         os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}'".format(exp_name, model_name))
@@ -70,6 +72,11 @@ def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
     time_limit = model_param['train_time']
     fast = True
 
+    # os.system("autoxgb train \
+    #             --train_filename {} \
+    #             --output {} \
+    #             --test_filename {} \
+    #             --use_gpu")
     # Now its time to train the model!
     axgb = AutoXGB(
         train_filename=train_filename,
