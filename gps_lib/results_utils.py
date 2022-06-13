@@ -65,12 +65,38 @@ def fill_data_param(row):
     return tmp
 
 
+def fill_model_param(row):
+    i = row.to_frame().T.index.values[0]
+    exp_path = row['exp_path']
+    model_params = pd.DataFrame({})
+    for model_path in os.listdir('../experiments/{}'.format(exp_path)):
+        if os.path.isdir('../experiments/{}/{}'.format(exp_path, model_path)):
+            if os.path.exists('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)):
+                model_param = pd.read_csv('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)).drop('Unnamed: 0',axis=1)
+                model_param.index = [i]
+                if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_path, model_path)):
+                    model_param['error'] = True
+                    with open('../experiments/{}/{}/tb.txt'.format(exp_path, model_path)) as f:
+                        model_param['tb'] = f.readlines()[0]
+                else:
+                    model_param['error'] = False
+                    model_param['tb'] = None
+                if len(model_params) == 0:
+                    model_params = model_param
+                else:
+                    model_params = pd.concat([model_params, model_param], axis=0)
+    tmp = row.to_frame().T.merge(right=model_params, left_index=True, right_index=True, how='outer')
+    # print(tmp)
+    return tmp
+
+
 def read_exp_dirs(exp_dir_path):
     results = parse_results(exp_dir_path)
     results['exp_path'].apply(align_model_params_files)
     results['data_path'] = results['exp_path'].apply(fill_data_path)
     results['dataset'] = results['data_path'].apply(fill_data_set)
     results = results.apply(fill_data_param, axis=1)
+    results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
     return results
 
 
