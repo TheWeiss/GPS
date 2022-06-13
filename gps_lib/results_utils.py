@@ -36,6 +36,15 @@ def align_model_params_files(exp_path):
     return 'filled model_param_file'
 
 
+def align_error_files_files(exp_path):
+    if os.path.exists('../experiments/{}/tb.txt'.format(exp_path)):
+        if os.path.isdir('../experiments/{}/model:autoxgb_train_time:3600_max_models:100'.format(exp_path)):
+            os.system("mv ../experiments/{}/tb.txt ../experiments/{}/model:autoxgb_train_time:3600_max_models:100/tb.txt".format(exp_path, exp_path))
+            return 'moved'
+        else:
+            return 'no long exp found'
+    return 'no error file found'
+
 
 def fill_data_path(exp_path):
     data_file_path = '../experiments/{}/data_path.txt'.format(exp_path)
