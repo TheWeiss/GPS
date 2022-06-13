@@ -73,6 +73,7 @@ def fill_model_param(row):
         if os.path.isdir('../experiments/{}/{}'.format(exp_path, model_path)):
             if os.path.exists('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)):
                 model_param = pd.read_csv('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)).drop('Unnamed: 0',axis=1)
+                model_param['model_path'] = model_path
                 model_param.index = [i]
                 if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_path, model_path)):
                     model_param['error'] = True
