@@ -448,44 +448,35 @@ def save_species_dict(path="../resources/species_dict.json"):
         'Enterobacter kobei': 'Enterobacter sp.',
     }
     with open(path, "w") as fp:
-        json.dump(species_dict,fp)
+        json.dump(species_dict, fp)
 
 
-def main():
-    ds_name = 'PATAKI+VAMP'
-    resources = {
+def save_resources_dict(path="../resources/resources_dict.json"):
+    resources_dict = {
+        'PATAKI': {
+            'geno': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/Pataki.results.for.Amit',
+            'pheno': '../resources/26.12.21/Pataki_paper/AST_2548_all',
+            'run2bio': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_full_SAM_and_SRR_list.xlsx',
+            'filter_list': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_filtered_SRR_list_for_Amit.xlsx',
+        },
         'VAMP': {
             'geno': '../resources/28.12.21/VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMPr.results.for.Amit',
             'pheno': '../resources/28.12.21/VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_full_AST_data',
-            'run2bio': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_full_SAM_and_SRR_list.xlsx',
+            'run2bio': '../resources/28.12.21//VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_full_SAM_and_SRR_list.csv',
             'filter_list': '../resources/28.12.21//VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_filtered_SRR_list.20211228.xlsx',
         },
-        'PATAKI': {
-            'geno': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/Pataki.results.for.Amit',
-            'pheno': '../resources/26.12.21/Pataki_paper/AST_2548_all', 
-            'run2bio': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_full_SAM_and_SRR_list.xlsx',
-            'filter_list': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_filtered_SRR_list_for_Amit.xlsx',
-        }
+        'PA': {
+            'geno': "../resources/data/PA.dataset.400.for.Amit/",
+            'pheno': '../resources/data/Pseudomonas_paper_AST.xlsx',
+            'run2bio': '../resources/data/PA.dataset.400.RunInfo.xlsx',
+            'filter_list': '',
+        },
+        'PATRIC': {
+            'geno': '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.passed.spades.20220313/',
+            'pheno': '../resources/data/PATRIC_AMR_ESKAPE_etal_with_numericalAST_only.xlsx',
+            'run2bio': '../resources/data/PATRIC_genome_final_db.20220223.xlsx',
+            'filter_list': '',
+        },
     }
-    
-    filtered_data_list, labels_list, features_list = [], [], []
-    for db_name, resource in resources.items():
-        db_data, db_labels, db_features = merge_gen2phen(
-            geno = get_genotype_per_db(resource['geno']), 
-            pheno = get_phenotype_per_db(resource['pheno'], db_name=db_name), 
-            run2bio_match_path = resource['run2bio'], 
-            filter_list_path = resource['filter_list'], 
-            db_name = db_name,
-        )
-        filtered_data_list.append(db_data)
-        labels_list.append(db_labels)
-        features_list.append(db_features)
-    tot_data, labels, features = merging_dbs(filtered_data_list, labels_list, features_list)
-    save_dataset(tot_data, labels, features, ds_name)
-    
-    all_metadata, error_id = get_metadata(resources)
-    save_filtered_metadata(tot_data, all_metadata, ds_name)
-        
-
-if __name__ == "__main__":
-    main()
+    with open(path, "w") as fp:
+        json.dump(resources_dict, fp)
