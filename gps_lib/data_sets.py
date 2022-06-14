@@ -889,13 +889,13 @@ class SpecAntiNotExistError(Exception):
         return '({},{}) -> {}'.format(self.spec, self.anti, self.message)
 
 
-def main():
+def main(pre_params=None):
     data = CollectionDataSet(dbs_name_list=[
         'PATAKI',
         'VAMP',
         'PA',
         'PATRIC',
-    ])
+    ], pre_params=pre_params)
     data.print_geno_exp()
     data.print_pheno_exp()
     data.print_pheno_exp_for_species('Pseudomonas aeruginosa')

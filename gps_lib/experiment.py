@@ -167,7 +167,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
                 data_path.write(ds_param_files_path)
-            model_name = '_'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+            model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
             os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
             pd.DataFrame(model_param, index=[0]).to_csv(
                 '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
@@ -183,8 +183,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                 return -1
 
 
-
-def main():
+def main_h2o():
     species_filter_index_list = [0,1]
     antibiotic_index_list = [0,1]  # np.arange(10, 20)
 
@@ -237,6 +236,29 @@ def main():
     h2o.init()
     for exp_name in tqdm(exp_names):
         a = run_h2o(model_param, exp_name)
+
+
+def main():
+    pre_params=None
+    data = ds.CollectionDataSet(dbs_name_list=[
+        'PATAKI',
+        'VAMP',
+        'PA',
+        'PATRIC',
+    ], pre_params=pre_params)
+
+    model_param = {
+        'model': 'autoxgb',
+        'train_time': 3600,
+        'max_models': 100,
+    }
+    ds_param = None
+
+    species_list = [0, 1]  # ['Pseudomonas aeruginosa'] #+list(np.arange(5))
+    anti_list = [20] #list(np.arange(0, 20))
+    run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
+
+
 
 if __name__ == "__main__":
     main()
