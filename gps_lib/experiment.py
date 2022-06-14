@@ -164,7 +164,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             except Exception as e:
                 print(e)
                 return -1
-            exp_name = '|'+'|'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])+'|'+exp_desc
+            exp_name = '|'+'|'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])+'|'+dataset.name + '|' + exp_desc
 
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
