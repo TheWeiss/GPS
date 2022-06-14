@@ -13,6 +13,8 @@ from autoxgb.cli.predict import PredictAutoXGBCommand
 import sys
 import traceback
 import logging
+import getopt
+
 
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
@@ -238,7 +240,7 @@ def main_h2o():
         a = run_h2o(model_param, exp_name)
 
 
-def main():
+def main(argv):
     pre_params=None
     data = ds.CollectionDataSet(dbs_name_list=[
         'PATAKI',
@@ -261,4 +263,30 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # # Store argument variable omitting the script name
+    # argv = sys.argv[1:]
+    #
+    # try:
+    #     # Define getopt short and long options
+    #     options, args = getopt.getopt(sys.argv[1:], 's:a', ['spec=', 'anti='])
+    #
+    #     # Read each option using for loop
+    #     for opt, arg in options:
+    #         # Calculate the sum if the option is -a or --add
+    #         if opt in ('-s', '--spec'):
+    #             spec = int(argv[1]) + int(argv[2])
+    #
+    #         # Calculate the suntraction if the option is -s or --sub
+    #         elif opt in ('-s', '--sub'):
+    #             result = int(argv[1]) - int(argv[2])
+    #
+    #     print('Result = ', result)
+    #
+    # except getopt.GetoptError:
+    #
+    #     # Print the error message if the wrong option is provided
+    #     print('The wrong option is provided')
+    #
+    #     # Terminate the script
+    #     sys.exit(2)
+    # main(sys.argv[1:])
