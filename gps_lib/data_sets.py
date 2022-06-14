@@ -24,14 +24,17 @@ from abc import ABC, abstractmethod
 
 class MICDataSet(ABC):
 
-    def __init__(self, name, path_dict, pre_params=None, saved_files_path='../pre_proccesing/',
-                 species_dict_path="../resources/species_dict.json"):
+    def __init__(self, name, pre_params=None, saved_files_path='../pre_proccesing/',
+                 species_dict_path="../resources/species_dict.json", resources_dict_path = "../resources/resources_dict.json"):
         super().__init__()
         
         self.name = name
         with open(species_dict_path) as json_file:
             self.species_dict = json.load(json_file)
-        self.path_dict = path_dict
+        with open(resources_dict_path) as json_file:
+            resources_dict = json.load(json_file)
+            self.path_dict = resources_dict[name]
+
         self.pre_params = pre_params
         
         if self.pre_params is None:
@@ -599,8 +602,8 @@ class MICDataSet(ABC):
 
 class PATAKICDataSet(MICDataSet):
     
-    def __init__(self, path_dict, pre_params = None):
-        super().__init__('PATAKI', path_dict, pre_params)
+    def __init__(self, pre_params = None):
+        super().__init__('PATAKI', pre_params)
 
     def _load_all_phen_data_per_file(self, path):
         return super()._load_all_phen_data_per_file(
@@ -646,8 +649,8 @@ class PATAKICDataSet(MICDataSet):
 
 class VAMPDataSet(MICDataSet):
     
-    def __init__(self, path_dict, pre_params = None):
-        super().__init__('VAMP', path_dict, pre_params)
+    def __init__(self, pre_params = None):
+        super().__init__('VAMP', pre_params)
         
 
     def _load_all_phen_data_per_file(self, path):
@@ -689,8 +692,8 @@ class VAMPDataSet(MICDataSet):
         
 class PADataSet(MICDataSet):
     
-    def __init__(self, path_dict, pre_params = None):
-        super().__init__('PA', path_dict, pre_params)
+    def __init__(self, pre_params = None):
+        super().__init__('PA', pre_params)
         
 
     def _load_all_phan_data(self):
@@ -741,8 +744,8 @@ class PADataSet(MICDataSet):
 
 class PATRICDataSet(MICDataSet):
 
-    def __init__(self, path_dict, pre_params=None):
-        super().__init__('PATRIC', path_dict, pre_params)
+    def __init__(self, pre_params=None):
+        super().__init__('PATRIC', pre_params)
     
     def _load_all_phan_data(self):
         self.all_ASR = pd.read_excel(self.path_dict['pheno'])
@@ -818,10 +821,10 @@ class PATRICDataSet(MICDataSet):
     
 class CollectionDataSet(MICDataSet):
 
-    def __init__(self, all_path_dict: dict, dbs_list: list=None, pre_params=None):
+    def __init__(self, dbs_name_list: list=None, dbs_list: list=None, pre_params=None, resources_dict_path = "../resources/resources_dict.json"):
         if dbs_list is not None:
             self._normal_init(dbs_list, pre_params)
-        elif all_path_dict is not None:
+        elif dbs_name_list is not None:
             dbs_list = []
             name2class = {
                 'PATAKI': PATAKICDataSet,
@@ -829,8 +832,8 @@ class CollectionDataSet(MICDataSet):
                 'PATRIC': PATRICDataSet,
                 'PA': PADataSet,
             }
-            for name, path_dict in all_path_dict.items():
-                dbs_list.append(name2class[name](path_dict, pre_params))
+            for name in dbs_name_list:
+                dbs_list.append(name2class[name](pre_params, resources_dict_path))
 
             self._normal_init(dbs_list, pre_params)
         else:
@@ -839,9 +842,8 @@ class CollectionDataSet(MICDataSet):
 
     def _normal_init(self, dbs_list: list, pre_params=None):
         name = '_'.join([db.name for db in dbs_list])
-        path_dict = {db.name: db.path_dict for db in dbs_list}
         self.dbs_list = dbs_list
-        super().__init__(name, path_dict, pre_params)
+        super().__init__(name, pre_params)
 
     def _load_all_geno_data(self):
         self.geno = None
