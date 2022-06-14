@@ -5,13 +5,13 @@ import numpy as np
 def parse_results(exp_dir_path):
     exp_list =  []
     for path in os.listdir(exp_dir_path):
-        if len(path.split('_')[0]) > 0:
+        if len(path.split('|')[0]) > 0:
             continue
         exp_list.append(path)
     results = pd.DataFrame({
         'exp_path': exp_list,
-        'species': [path.split('_')[1] for path in exp_list],
-        'antibiotic': [path.split('_')[2] for path in exp_list],
+        'species': [path.split('|')[1] for path in exp_list],
+        'antibiotic': [path.split('|')[2] for path in exp_list],
     })
     return results
 
@@ -38,8 +38,8 @@ def align_model_params_files(exp_path):
 
 def align_error_files_files(exp_path):
     if os.path.exists('../experiments/{}/tb.txt'.format(exp_path)):
-        if os.path.isdir('../experiments/{}/model:autoxgb_train_time:3600_max_models:100'.format(exp_path)):
-            os.system("mv ../experiments/{}/tb.txt ../experiments/{}/model:autoxgb_train_time:3600_max_models:100/tb.txt".format(exp_path, exp_path))
+        if os.path.isdir('../experiments/{}/model:autoxgb|train_time:3600|max_models:100'.format(exp_path)):
+            os.system("mv ../experiments/{}/tb.txt ../experiments/{}/model:autoxgb|train_time:3600|max_models:100/tb.txt".format(exp_path, exp_path))
             return 'moved'
         else:
             return 'no long exp found'
