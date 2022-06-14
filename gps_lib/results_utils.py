@@ -248,7 +248,7 @@ def add_exact_metrices(results, equal_meaning=True):
     return results
 
 
-def add_exact_param_metrices(res, equal_meaning=True):
+def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
     results = res.copy()
     for i in np.arange(len(results)):
         try:
@@ -331,13 +331,14 @@ def add_exact_param_metrices(res, equal_meaning=True):
             train_range_res = range_res.loc[set(range_res.index).intersection(set(split_res['train'].index))]
             test_range_res = range_res.loc[set(range_res.index) - set(split_res['train'].index)]
 
-            for key, res in {'train': train_range_res, 'test': test_range_res}.items():
-                range_confusion = res.groupby(by=['sign', 'y_true'])['error'].agg(['count', 'sum']).replace(True, 1)
-                range_confusion['perc'] = range_confusion['sum'] / range_confusion['count']
-                range_confusion.columns = ['range_total', 'range_true', 'range_accuracy']
-                range_confusion = pd.DataFrame(range_confusion.stack()).T.swaplevel(i=2, j=0, axis=1)
-                range_confusion.index = [key]
-                regression_res = pd.concat([regression_res, range_confusion], axis=1)
+            if range_conf:
+                for key, res in {'train': train_range_res, 'test': test_range_res}.items():
+                    range_confusion = res.groupby(by=['sign', 'y_true'])['error'].agg(['count', 'sum']).replace(True, 1)
+                    range_confusion['perc'] = range_confusion['sum'] / range_confusion['count']
+                    range_confusion.columns = ['range_total', 'range_true', 'range_accuracy']
+                    range_confusion = pd.DataFrame(range_confusion.stack()).T.swaplevel(i=2, j=0, axis=1)
+                    range_confusion.index = [key]
+                    regression_res = pd.concat([regression_res, range_confusion], axis=1)
 
             regression_res_cleaned = pd.DataFrame({})
             for col in regression_res.columns:
