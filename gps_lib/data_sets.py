@@ -414,7 +414,7 @@ class MICDataSet(ABC):
             if species is None:
                 species = 0
 
-        ds_param_name = str(' '.join([str(key) + '_' + str(value) for key, value in ds_param.items()]))
+        ds_param_name = str('|'.join([str(key) + ':' + str(value) for key, value in ds_param.items()]))
         ds_param = MICDataSet._add_default_ds_param(ds_param)
         filtered, species_name, antibiotic_name = self._filter_data(ds_param, species, antibiotic)
         ds_param_files_path = self.saved_files_path + '/' + ds_param_name + '/' + str(species_name) + '/' + str(antibiotic_name)
