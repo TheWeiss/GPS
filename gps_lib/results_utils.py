@@ -261,6 +261,24 @@ def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
                 col_names = json.load(json_file)
             range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
             range_y.columns = ['y_true', 'sign']
+            train_y = pd.read_csv('{}/{}.csv'.format(data_path, 'train')).rename(columns={"Unnamed: 0": col_names['id']})[
+                [
+                    col_names['id'],
+                    col_names['label'],
+                ]].set_index(col_names['id'])
+            train_y.columns = ['y_true']
+            train_y.loc[set(train_y.index) - set(range_y.index)]
+            test_y = pd.read_csv('{}/{}.csv'.format(data_path, 'test')).rename(columns={"Unnamed: 0": col_names['id']})[
+                [
+                    col_names['id'],
+                    col_names['label'],
+                ]].set_index(col_names['id'])
+            test_y.columns = ['y_true']
+            test_y.loc[set(test_y.index) - set(range_y.index)]
+            y = pd.concat([range_y, train_y, test_y], axis=0)
+            mode = y['y_true'].mode()
+
+
             split_res = {}
             for split in ['train', 'test']:
                 split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
@@ -284,18 +302,24 @@ def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
                 max_true = split_res_i['y_true'].max(axis=0)
                 split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
                 split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
+                split_res_i['naive_residual'] = split_res_i['y_true'] - mode
                 split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
                 split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
                 split_res_i['error'] = split_res_i['round_residual'].abs() < 1
+                split_res_i['naive_error'] = split_res_i['naive_residual'].abs() < 1
                 split_res_i['error2'] = split_res_i['round_residual'].abs() < 2
+                split_res_i['naive_error2'] = split_res_i['naive_residual'].abs() < 2
                 split_res[split] = split_res_i
 
             regression_res = pd.DataFrame({
-                'exact RMSE': [np.sqrt(split_data['residual'].pow(2).mean()) for split_data in split_res.values()],
-                'exact_rounded RMSE': [np.sqrt(split_data['round_residual'].pow(2).mean()) for split_data in
+                'exact_RMSE': [np.sqrt(split_data['residual'].pow(2).mean()) for split_data in split_res.values()],
+                'exact_RMSE_naive': [np.sqrt(split_data['naive_residual'].pow(2).mean()) for split_data in split_res.values()],
+                'exact_rounded_RMSE': [np.sqrt(split_data['round_residual'].pow(2).mean()) for split_data in
                                        split_res.values()],
                 'exact_accuracy': [split_data['error'].mean() for split_data in split_res.values()],
+                'exact_accuracy_naive': [split_data['naive_error'].mean() for split_data in split_res.values()],
                 'exact_accuracy2': [split_data['error2'].mean() for split_data in split_res.values()],
+                'exact_accuracy2_naive': [split_data['naive_error2'].mean() for split_data in split_res.values()],
             }, index=['train', 'test'])
 
             if results['model'].iloc[i] == 'autoxgb':
@@ -323,10 +347,19 @@ def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
                     range_res['y_pred'] > range_res['updated_y_true'])
             range_res.loc[range_res['updated_sign'] == '<', 'error'] = (
                     range_res['y_pred'] < range_res['updated_y_true'])
+            range_res.loc[range_res['updated_sign'] == '>', 'naive_error'] = (
+                    mode > range_res['updated_y_true'])
+            range_res.loc[range_res['updated_sign'] == '<', 'naive_error'] = (
+                    mode < range_res['updated_y_true'])
+
             range_res.loc[range_res['updated_sign'] == '>', 'error2'] = (
                     range_res['y_pred'] > range_res['updated_y_true'] - 1)
             range_res.loc[range_res['updated_sign'] == '<', 'error2'] = (
                     range_res['y_pred'] < range_res['updated_y_true'] + 1)
+            range_res.loc[range_res['updated_sign'] == '>', 'naive_error2'] = (
+                    mode > range_res['updated_y_true'] - 1)
+            range_res.loc[range_res['updated_sign'] == '<', 'naive_error2'] = (
+                    mode < range_res['updated_y_true'] + 1)
 
             train_range_res = range_res.loc[set(range_res.index).intersection(set(split_res['train'].index))]
             test_range_res = range_res.loc[set(range_res.index) - set(split_res['train'].index)]
