@@ -109,7 +109,7 @@ def read_exp_dirs(exp_dir_path):
 
 def add_exact_metrices(results, equal_meaning=True):
     for i in np.arange(len(results)):
-        try:
+        # try:
             exp_name = results['exp_path'].iloc[i]
             if results['dup_drop'].iloc[i]:
                 id_col = 'biosample_id'
@@ -240,9 +240,9 @@ def add_exact_metrices(results, equal_meaning=True):
                                       for col in regression_res.columns]
             regression_res.index = [i]
             regression_res['exp_done'] = True
-        except:
-            regression_res = pd.DataFrame({}, index=[0])
-            regression_res['exp_done'] = False
+        # except:
+        #     regression_res = pd.DataFrame({}, index=[0])
+        #     regression_res['exp_done'] = False
         regression_res.index = [i]
         results = pd.concat([results, pd.DataFrame(columns=regression_res.columns)])
         results.update(regression_res)
