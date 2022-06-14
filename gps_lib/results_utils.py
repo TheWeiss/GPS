@@ -22,6 +22,7 @@ def align_model_params_files(exp_path):
         return 'missing data_path from the new format'
     for model_path in os.listdir(full_path):
         if os.path.isdir(full_path + '/' + model_path):
+            print('{}/{}/model_param.csv'.format(full_path, model_path))
             if not os.path.exists('{}/{}/model_param.csv'.format(full_path, model_path)):
                 model_param = {
                     'model': model_path.split('|')[0].split('_')[1],
