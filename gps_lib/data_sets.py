@@ -835,7 +835,7 @@ class CollectionDataSet(MICDataSet):
                 'PA': PADataSet,
             }
             for name in dbs_name_list:
-                dbs_list.append(name2class[name](pre_params, resources_dict_path))
+                dbs_list.append(name2class[name](pre_params=pre_params, resources_dict_path=resources_dict_path))
 
             self._normal_init(dbs_list, pre_params)
         else:
