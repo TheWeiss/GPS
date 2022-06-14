@@ -99,8 +99,7 @@ def read_exp_dirs(exp_dir_path):
     results['dataset'] = results['data_path'].apply(fill_data_set)
     results = results.apply(fill_data_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
-    results = add_exact_param_metrices(results, equal_meaning=True)
-    print(results.columns)
+    results = add_metrices(results, equal_meaning=True)
     results['exact_size'] = results['exact_size_train'] + results['exact_size_test']
     results['range_size'] = results['range_size_train'] + results['range_size_test']
     results['size'] = results['exact_size'] + results['range_size']
@@ -249,7 +248,7 @@ def add_exact_metrices(results, equal_meaning=True):
     return results
 
 
-def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
+def add_metrices(res, equal_meaning=True, range_conf=False):
     results = res.copy()
     for i in np.arange(len(results)):
         try:
@@ -387,11 +386,21 @@ def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
                 test_range_res['error'].mean(),
             ]
             regression_res['range_accuracy'].fillna(0, inplace=True)
+            regression_res['range_accuracy_naive'] = [
+                train_range_res['naive_error'].mean(),
+                test_range_res['naive_error'].mean(),
+            ]
+            regression_res['range_accuracy_naive'].fillna(0, inplace=True)
             regression_res['range_accuracy2'] = [
                 train_range_res['error2'].mean(),
                 test_range_res['error2'].mean(),
             ]
             regression_res['range_accuracy2'].fillna(0, inplace=True)
+            regression_res['range_accuracy2_naive'] = [
+                train_range_res['naive_error2'].mean(),
+                test_range_res['naive_error2'].mean(),
+            ]
+            regression_res['range_accuracy2_naive'].fillna(0, inplace=True)
             regression_res['range_size'] = [
                 len(train_range_res),
                 len(test_range_res),
@@ -403,9 +412,19 @@ def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
                 'exact_size'].fillna(0) \
                                           + regression_res['range_accuracy'] * regression_res['range_size']) \
                                          / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
+            regression_res['accuracy_naive'] = (regression_res['exact_accuracy_naive'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                          + regression_res['range_accuracy_naive'] * regression_res['range_size']) \
+                                         / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
+
             regression_res['essential_agreement'] = (regression_res['exact_accuracy2'].fillna(0) * regression_res[
                 'exact_size'].fillna(0) \
                                                      + regression_res['range_accuracy2'] * regression_res['range_size']) \
+                                                    / (regression_res['range_size'] + regression_res[
+                'exact_size'].fillna(0))
+            regression_res['essential_agreement_naive'] = (regression_res['exact_accuracy2_naive'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                                     + regression_res['range_accuracy2_naive'] * regression_res['range_size']) \
                                                     / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
 
