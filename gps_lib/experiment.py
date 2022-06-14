@@ -152,7 +152,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                 for antibiotic_i in antibiotic:
                             run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc)
             else:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc)
+                run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
