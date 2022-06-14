@@ -8,35 +8,40 @@ import numpy as np
 ########################################################################################
 
 
-def gene_presence_in_isolate_figure(genotype, db_name):
+def gene_presence_in_isolate_figure(genotype, db_name, path=None):
     plt.plot(genotype.describe().iloc[0].iloc[0:-1:2].sort_values(ascending=False).values)
     plt.title('{}: Gene presence in isolates sorted by count in raw data'.format(db_name))
     plt.xlabel('Genes')
     plt.ylabel('# of isolates contining this gene')
+    plt.savefig(path)
     plt.show()
 
 
-def gene_num_in_isolate_figure(genotype, db_name):
+def gene_num_in_isolate_figure(genotype, db_name, path=None):
     genotype.set_index('run_id').count(axis=1).apply(lambda x: x/2).hist(bins=30)
     plt.title('{}: Number of gene found in isolates distribution from raw data'.format(db_name))
     plt.xlabel('number of genes found')
     plt.ylabel('# of isolates with this number of genes')
+    if path is not None:
+        plt.savefig(path)
     plt.show()
 
     
-def anti_presence_in_isolates_figure(all_ASR, db_name):
+def anti_presence_in_isolates_figure(all_ASR, db_name, path=None):
     phenotype = all_ASR['antibiotic_name'].value_counts()
     plt.figure(figsize=(15,10))
     plt.plot(phenotype.sort_values(ascending=False))
     plt.title('{}: Phenotypic measurement sorted by count from'.format(db_name))
     plt.xlabel('antibiotic')
     plt.ylabel('# of isolates having ASR measurement of this antibiotic')
+    if path is not None:
+        plt.savefig(path)
     plt.show()
 
 '''
 
 '''
-def look_at_anti_dist(all_ASR, col_name, col_order=None):
+def look_at_anti_dist(all_ASR, col_name, col_order=None, path=None):
     col_dist = all_ASR.groupby(by='antibiotic_name')[col_name].apply(lambda x: x.value_counts()).reset_index()
     col_dist.columns = ['antibiotic_name', col_name, 'count']
     order = col_dist.groupby(by='antibiotic_name')['count'].apply(sum).sort_values().index
@@ -53,10 +58,12 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None):
     plt.ylabel('antibiotics')
     plt.xlabel('# of measurements')
     plt.legend(loc='lower right')
+    if path is not None:
+        plt.savefig(path)
     plt.show()
 
     
-def print_anti_measure(all_ASR, anti_index, need_log=False):
+def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
     if type(anti_index) == str:
         anti = anti_index
     else:
@@ -74,6 +81,9 @@ def print_anti_measure(all_ASR, anti_index, need_log=False):
     plt.title(anti)
     plt.xlabel('log2(mg//L)')
     plt.ylabel('#')
+    if path is not None:
+        plt.savefig(path)
+    plt.show()
 
     
 def heatmap(data, row_labels, col_labels, ax=None,
