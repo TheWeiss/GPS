@@ -263,6 +263,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    pass
     # # Store argument variable omitting the script name
     # argv = sys.argv[1:]
     #
