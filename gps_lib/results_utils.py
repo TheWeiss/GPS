@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import json
 
 def parse_results(exp_dir_path):
     exp_list =  []
@@ -22,7 +23,6 @@ def align_model_params_files(exp_path):
         return 'missing data_path from the new format'
     for model_path in os.listdir(full_path):
         if os.path.isdir(full_path + '/' + model_path):
-            print('{}/{}/model_param.csv'.format(full_path, model_path))
             if not os.path.exists('{}/{}/model_param.csv'.format(full_path, model_path)):
                 model_param = {
                     'model': model_path.split('|')[0].split(':')[1],
@@ -99,6 +99,7 @@ def read_exp_dirs(exp_dir_path):
     results['dataset'] = results['data_path'].apply(fill_data_set)
     results = results.apply(fill_data_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
+    results = add_exact_param_metrices(results, equal_meaning=True)
     return results
 
 
@@ -244,118 +245,91 @@ def add_exact_metrices(results, equal_meaning=True):
     return results
 
 
-def add_exact_param_metrices(results, equal_meaning=True):
+def add_exact_param_metrices(res, equal_meaning=True):
+    results = res.copy()
     for i in np.arange(len(results)):
         # try:
         exp_name = results['exp_path'].iloc[i]
-        data_dir = exp_name.split('/')[0]
-        id_col = 'biosample_id'
-        label = pd.read_csv('../experiments/{}/label.csv'.format(data_dir)).loc[0, 'label']
-        y_range = pd.read_csv('../experiments/{}/y_range.csv'.format(data_dir)).set_index(id_col)
-        y = pd.read_csv('../experiments/{}/train.csv'.format(data_dir)).rename(columns={"Unnamed: 0": id_col})[
-            [id_col, label]]
-        if results['model'].iloc[i] == 'autoxgb':
-            train_res = pd.read_csv('../experiments/{}/oof_predictions.csv'.format(exp_name)).set_index(id_col)
-            train_res.columns = ['predict']
-            train_res = train_res.merge(y, left_index=True, right_index=True, how='inner').set_index(id_col)
-        elif results['model'].iloc[i] == 'h2o':
-            train_res = pd.read_csv('../experiments/{}/train_preds.csv'.format(exp_name)).drop('Unnamed: 0',
-                                                                                               axis=1).merge(y,
-                                                                                                             left_index=True,
-                                                                                                             right_index=True,
-                                                                                                             how='inner').set_index(
-                id_col)
+        model_name = results['model_path'].iloc[i]
+        data_path = results['data_path'].iloc[i]
+        if results['error'].iloc[i]:
+            continue
+        with open(data_path + '/col_names.json') as json_file:
+            col_names = json.load(json_file)
+        range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
+        range_y.columns = ['y_true', 'sign']
+        split_res = {}
+        for split in ['train', 'test']:
+            split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
+                [
+                    col_names['id'],
+                    col_names['label'],
+                ]].set_index(col_names['id'])
+            split_y.columns = ['y_true']
+            if results['model'].iloc[i] == 'autoxgb':
+                split_preds = pd.read_csv(
+                    '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).set_index(col_names['id'])
+                split_preds.columns = ['y_pred']
+                split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
+            elif results['model'].iloc[i] == 'h2o':
+                print('h2o not implemented yet')
 
-        train_res = train_res.loc[set(train_res.index) - set(y_range.index)]
-        train_res.columns = ['y_pred', 'y_true']
-        train_res['y_true'] = np.round(train_res['y_true'])
-        min_true = train_res['y_true'].min()
-        max_true = train_res['y_true'].max(axis=0)
-        train_res['y_pred'] = train_res['y_pred'].clip(lower=min_true, upper=max_true)
-        train_res['residual'] = train_res['y_true'] - train_res['y_pred']
-        train_res['y_pred'] = np.round(train_res['y_pred'])
-        train_res['round_residual'] = train_res['y_true'] - train_res['y_pred']
-        train_res['error'] = train_res['round_residual'].abs() < 1
-        train_res['error2'] = train_res['round_residual'].abs() < 2
+            split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
 
-        y = pd.read_csv('../experiments/{}/test.csv'.format(data_dir)).rename(columns={"Unnamed: 0": id_col})[
-            [id_col, label]]
-        if results['model'].iloc[i] == 'autoxgb':
-            test_res = pd.read_csv('../experiments/{}/test_predictions.csv'.format(exp_name)).set_index(id_col)
-            test_res.columns = ['predict']
-            test_res = test_res.merge(y, left_index=True, right_index=True, how='inner').set_index(id_col)
-        elif results['model'].iloc[i] == 'h2o':
-            test_res = pd.read_csv('../experiments/{}/test_preds.csv'.format(exp_name)).drop('Unnamed: 0',
-                                                                                             axis=1).merge(y,
-                                                                                                           left_index=True,
-                                                                                                           right_index=True,
-                                                                                                           how='inner').set_index(
-                id_col)
-        test_res = test_res.loc[set(test_res.index) - set(y_range.index)]
-        test_res.columns = ['y_pred', 'y_true']
-        test_res['y_true'] = np.round(test_res['y_true'])
-        min_true = test_res['y_true'].min()
-        max_true = test_res['y_true'].max(axis=0)
-        test_res['y_pred'] = test_res['y_pred'].clip(lower=min_true, upper=max_true)
-        test_res['residual'] = test_res['y_true'] - test_res['y_pred']
-        test_res['y_pred'] = np.round(test_res['y_pred'])
-        test_res['round_residual'] = test_res['y_true'] - test_res['y_pred']
-        test_res['error'] = test_res['round_residual'].abs() < 1
-        test_res['error2'] = test_res['round_residual'].abs() < 2
+            split_res_i['y_true'] = np.round(split_res_i['y_true'])
+            min_true = split_res_i['y_true'].min()
+            max_true = split_res_i['y_true'].max(axis=0)
+            split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
+            split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
+            split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
+            split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
+            split_res_i['error'] = split_res_i['round_residual'].abs() < 1
+            split_res_i['error2'] = split_res_i['round_residual'].abs() < 2
+            split_res[split] = split_res_i
 
         regression_res = pd.DataFrame({
-            'exact RMSE': [np.sqrt(train_res['residual'].pow(2).mean()),
-                           np.sqrt(test_res['residual'].pow(2).mean())],
-            'exact_rounded RMSE': [np.sqrt(train_res['round_residual'].pow(2).mean()),
-                                   np.sqrt(test_res['round_residual'].pow(2).mean())],
-            'exact_accuracy': [train_res['error'].mean(), test_res['error'].mean()],
-            'exact_accuracy2': [train_res['error2'].mean(), test_res['error2'].mean()],
+            'exact RMSE': [np.sqrt(split_data['residual'].pow(2).mean()) for split_data in split_res.values()],
+            'exact_rounded RMSE': [np.sqrt(split_data['round_residual'].pow(2).mean()) for split_data in
+                                   split_res.values()],
+            'exact_accuracy': [split_data['error'].mean() for split_data in split_res.values()],
+            'exact_accuracy2': [split_data['error2'].mean() for split_data in split_res.values()],
         }, index=['train', 'test'])
 
         if results['model'].iloc[i] == 'autoxgb':
-            range_res = pd.read_csv('../experiments/{}/range_preds.csv'.format(exp_name)).set_index(id_col).merge(
-                y_range, left_index=True, right_index=True, how='inner')
+            range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
+            if len(range_preds) == 0:
+                range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
+            range_preds = range_preds.set_index(col_names['id'])
+            range_preds.columns = ['y_pred']
+            range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
         elif results['model'].iloc[i] == 'h2o':
-            range_res = pd.read_csv('../experiments/{}/range_preds.csv'.format(exp_name)).drop('Unnamed: 0',
-                                                                                               axis=1).merge(
-                y_range.reset_index(), left_index=True, right_index=True, how='inner').set_index(id_col)
-        range_res.columns = ['y_pred'] + list(range_res.columns.values)[1:]
-        range_res['values'] = np.round(range_res['values'])
-        range_res['updated_values'] = np.nan
-        range_res['updated_direction'] = np.nan
-        if equal_meaning:
-            range_res.loc[range_res['direction'] == '>=', 'updated_values'] = range_res['values'] - 1
-            range_res.loc[range_res['direction'] == '<=', 'updated_values'] = range_res['values'] + 1
-        range_res.loc[range_res['direction'] == '>=', 'updated_direction'] = '>'
-        range_res.loc[range_res['direction'] == '<=', 'updated_direction'] = '<'
-        range_res.loc[:, 'updated_values'].fillna(range_res['values'], inplace=True)
-        range_res.loc[:, 'updated_direction'].fillna(range_res['direction'], inplace=True)
+            print('h2o not implemented yet')
 
-        range_res.loc[range_res['updated_direction'] == '>', 'error'] = (
-                    range_res['y_pred'] > range_res['updated_values'])
-        range_res.loc[range_res['updated_direction'] == '<', 'error'] = (
-                    range_res['y_pred'] < range_res['updated_values'])
-        range_res.loc[range_res['updated_direction'] == '>', 'error2'] = (
-                    range_res['y_pred'] > range_res['updated_values'] - 1)
-        range_res.loc[range_res['updated_direction'] == '<', 'error2'] = (
-                    range_res['y_pred'] < range_res['updated_values'] + 1)
+        range_res['y_true'] = np.round(range_res['y_true'])
+        range_res['updated_y_true'] = np.nan
+        range_res['updated_sign'] = np.nan
+        if not equal_meaning:
+            range_res.loc[range_res['sign'] == '>=', 'updated_y_true'] = range_res['y_true'] - 1
+            range_res.loc[range_res['sign'] == '<=', 'updated_y_true'] = range_res['y_true'] + 1
+        range_res.loc[range_res['sign'] == '>=', 'updated_sign'] = '>'
+        range_res.loc[range_res['sign'] == '<=', 'updated_sign'] = '<'
+        range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
+        range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
 
-        y = pd.read_csv('../experiments/{}/train.csv'.format(data_dir)).rename(columns={"Unnamed: 0": id_col})[
-            [id_col, label]]
-        if results['model'].iloc[i] == 'autoxgb':
-            train_res = pd.read_csv('../experiments/{}/oof_predictions.csv'.format(exp_name)).set_index(id_col)
-            train_res.columns = ['predict']
-            train_res = train_res.merge(y, left_index=True, right_index=True, how='inner').set_index(id_col)
-        elif results['model'].iloc[i] == 'h2o':
-            train_res_index = pd.read_csv('../experiments/{}/train_preds.csv'.format(exp_name)).drop('Unnamed: 0',
-                                                                                                     axis=1).merge(
-                y, left_index=True, right_index=True, how='inner').set_index(id_col).index
-        train_range_res = range_res.loc[set(range_res.index).intersection(set(train_res_index))]
-        test_range_res = range_res.loc[set(range_res.index) - set(train_res_index)]
+        range_res.loc[range_res['updated_sign'] == '>', 'error'] = (
+                range_res['y_pred'] > range_res['updated_y_true'])
+        range_res.loc[range_res['updated_sign'] == '<', 'error'] = (
+                range_res['y_pred'] < range_res['updated_y_true'])
+        range_res.loc[range_res['updated_sign'] == '>', 'error2'] = (
+                range_res['y_pred'] > range_res['updated_y_true'] - 1)
+        range_res.loc[range_res['updated_sign'] == '<', 'error2'] = (
+                range_res['y_pred'] < range_res['updated_y_true'] + 1)
+
+        train_range_res = range_res.loc[set(range_res.index).intersection(set(split_res['train'].index))]
+        test_range_res = range_res.loc[set(range_res.index) - set(split_res['train'].index)]
 
         for key, res in {'train': train_range_res, 'test': test_range_res}.items():
-            range_confusion = res.groupby(by=['direction', 'values'])['error'].agg(['count', 'sum']).replace(True,
-                                                                                                             1)
+            range_confusion = res.groupby(by=['sign', 'y_true'])['error'].agg(['count', 'sum']).replace(True, 1)
             range_confusion['perc'] = range_confusion['sum'] / range_confusion['count']
             range_confusion.columns = ['range_total', 'range_true', 'range_accuracy']
             range_confusion = pd.DataFrame(range_confusion.stack()).T.swaplevel(i=2, j=0, axis=1)
@@ -385,10 +359,7 @@ def add_exact_param_metrices(results, equal_meaning=True):
             len(test_range_res),
         ]
         regression_res['range_size'].fillna(0, inplace=True)
-        regression_res['exact_size'] = [
-            len(train_res),
-            len(test_res),
-        ]
+        regression_res['exact_size'] = [len(split_data) for split_data in split_res.values()]
         regression_res['exact_size'].fillna(0, inplace=True)
         regression_res['accuracy'] = (regression_res['exact_accuracy'].fillna(0) * regression_res[
             'exact_size'].fillna(0) \
@@ -405,7 +376,7 @@ def add_exact_param_metrices(results, equal_meaning=True):
         regression_res.columns = ['{}_{}'.format(col[0], col[1])
                                   for col in regression_res.columns]
         regression_res.index = [i]
-        regression_res['exp_done'] = True
+        regression_res['all_results_generated'] = True
         # except:
         #     regression_res = pd.DataFrame({}, index=[0])
         #     regression_res['exp_done'] = False
