@@ -100,6 +100,7 @@ def read_exp_dirs(exp_dir_path):
     results = results.apply(fill_data_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
     results = add_exact_param_metrices(results, equal_meaning=True)
+    print(results.columns)
     results['exact_size'] = results['exact_size_train'] + results['exact_size_test']
     results['range_size'] = results['range_size_train'] + results['range_size_test']
     results['size'] = results['exact_size'] + results['range_size']
