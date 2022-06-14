@@ -277,7 +277,7 @@ def add_exact_param_metrices(res, equal_meaning=True, range_conf=False):
         test_y.columns = ['y_true']
         test_y.loc[set(test_y.index) - set(range_y.index)]
         y = pd.concat([range_y, train_y, test_y], axis=0)
-        mode = y['y_true'].mode().values
+        mode = y['y_true'].mode().values[0]
         print(mode)
 
 
