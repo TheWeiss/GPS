@@ -110,136 +110,136 @@ def read_exp_dirs(exp_dir_path):
 def add_exact_metrices(results, equal_meaning=True):
     for i in np.arange(len(results)):
         # try:
-            exp_name = results['exp_path'].iloc[i]
-            if results['dup_drop'].iloc[i]:
-                id_col = 'biosample_id'
+        exp_name = results['exp_path'].iloc[i]
+        if results['dup_drop'].iloc[i]:
+            id_col = 'biosample_id'
+        else:
+            id_col = 'unique_id'
+        label = pd.read_csv('../resources/label_{}.csv'.format(exp_name)).loc[0, 'label']
+        y_range = pd.read_csv('../resources/y_range_{}.csv'.format(exp_name)).set_index(id_col)
+        y = pd.read_csv('../resources/train_{}.csv'.format(exp_name)).set_index(id_col)[label]
+
+        train_res = pd.read_csv('../experiments/{}/oof_predictions.csv'.format(exp_name)).set_index(id_col).merge(y,
+                                                                                                                  left_index=True,
+                                                                                                                  right_index=True,
+                                                                                                                  how='inner')
+        train_res = train_res.loc[set(train_res.index) - set(y_range.index)]
+        train_res.columns = ['y_pred', 'y_true']
+        train_res['y_true'] = np.round(train_res['y_true'])
+        min_true = train_res['y_true'].min()
+        max_true = train_res['y_true'].max(axis=0)
+        train_res['y_pred'] = train_res['y_pred'].clip(lower=min_true, upper=max_true)
+        train_res['residual'] = train_res['y_true'] - train_res['y_pred']
+        train_res['y_pred'] = np.round(train_res['y_pred'])
+        train_res['round_residual'] = train_res['y_true'] - train_res['y_pred']
+        train_res['error'] = train_res['round_residual'].abs() < 1
+        train_res['error2'] = train_res['round_residual'].abs() < 2
+
+        y = pd.read_csv('../resources/test_{}.csv'.format(exp_name)).set_index(id_col)[label]
+        test_res = pd.read_csv('../experiments/{}/test_predictions.csv'.format(exp_name)).set_index(id_col).merge(y,
+                                                                                                                  left_index=True,
+                                                                                                                  right_index=True,
+                                                                                                                  how='inner')
+        test_res = test_res.loc[set(test_res.index) - set(y_range.index)]
+        test_res.columns = ['y_pred', 'y_true']
+        test_res['y_true'] = np.round(test_res['y_true'])
+        min_true = test_res['y_true'].min()
+        max_true = test_res['y_true'].max(axis=0)
+        test_res['y_pred'] = test_res['y_pred'].clip(lower=min_true, upper=max_true)
+        test_res['residual'] = test_res['y_true'] - test_res['y_pred']
+        test_res['y_pred'] = np.round(test_res['y_pred'])
+        test_res['round_residual'] = test_res['y_true'] - test_res['y_pred']
+        test_res['error'] = test_res['round_residual'].abs() < 1
+        test_res['error2'] = test_res['round_residual'].abs() < 2
+
+        regression_res = pd.DataFrame({
+            'exact RMSE': [np.sqrt(train_res['residual'].pow(2).mean()),
+                           np.sqrt(test_res['residual'].pow(2).mean())],
+            'exact_rounded RMSE': [np.sqrt(train_res['round_residual'].pow(2).mean()),
+                                   np.sqrt(test_res['round_residual'].pow(2).mean())],
+            'exact_accuracy': [train_res['error'].mean(), test_res['error'].mean()],
+            'exact_accuracy2': [train_res['error2'].mean(), test_res['error2'].mean()],
+        }, index=['train', 'test'])
+
+        range_res = pd.read_csv('../experiments/{}/range_preds.csv'.format(exp_name)).set_index(id_col).merge(
+            y_range, left_index=True, right_index=True, how='inner')
+        range_res.columns = ['y_pred'] + list(range_res.columns.values)[1:]
+        range_res['values'] = np.round(range_res['values'])
+        range_res['updated_values'] = np.nan
+        range_res['updated_direction'] = np.nan
+        if equal_meaning:
+            range_res.loc[range_res['direction'] == '>=', 'updated_values'] = range_res['values'] - 1
+            range_res.loc[range_res['direction'] == '<=', 'updated_values'] = range_res['values'] + 1
+        range_res.loc[range_res['direction'] == '>=', 'updated_direction'] = '>'
+        range_res.loc[range_res['direction'] == '<=', 'updated_direction'] = '<'
+
+        range_res.loc[:, 'updated_values'].fillna(range_res['values'], inplace=True)
+        range_res.loc[:, 'updated_direction'].fillna(range_res['direction'], inplace=True)
+
+        range_res.loc[range_res['updated_direction'] == '>', 'error'] = (
+                    range_res['y_pred'] > range_res['updated_values'])
+        range_res.loc[range_res['updated_direction'] == '<', 'error'] = (
+                    range_res['y_pred'] < range_res['updated_values'])
+        range_res.loc[range_res['updated_direction'] == '>', 'error2'] = (
+                    range_res['y_pred'] > range_res['updated_values'] - 1)
+        range_res.loc[range_res['updated_direction'] == '<', 'error2'] = (
+                    range_res['y_pred'] < range_res['updated_values'] + 1)
+        y = pd.read_csv('../resources/train_{}.csv'.format(exp_name)).set_index(id_col)[label]
+        train_res_index = pd.read_csv('../experiments/{}/oof_predictions.csv'.format(exp_name)).set_index(
+            id_col).merge(y, left_index=True, right_index=True, how='inner').index
+        train_range_res = range_res.loc[set(range_res.index).intersection(set(train_res_index))]
+        test_range_res = range_res.loc[set(range_res.index) - set(train_res_index)]
+        for key, res in {'train': train_range_res, 'test': test_range_res}.items():
+            range_confusion = res.groupby(by=['direction', 'values'])['error'].agg(['count', 'sum']).replace(True,
+                                                                                                             1)
+            range_confusion['perc'] = range_confusion['sum'] / range_confusion['count']
+            range_confusion.columns = ['range_total', 'range_true', 'range_accuracy']
+            range_confusion = pd.DataFrame(range_confusion.stack()).T.swaplevel(i=2, j=0, axis=1)
+            range_confusion.index = [key]
+            regression_res = pd.concat([regression_res, range_confusion], axis=1)
+        regression_res_cleaned = pd.DataFrame({})
+        for col in regression_res.columns:
+            if len(regression_res[[col]].columns) > 1:
+                regression_res_cleaned[col] = regression_res[[col]].iloc[:, 0].fillna(
+                    regression_res[[col]].iloc[:, 1])
             else:
-                id_col = 'unique_id'
-            label = pd.read_csv('../resources/label_{}.csv'.format(exp_name)).loc[0, 'label']
-            y_range = pd.read_csv('../resources/y_range_{}.csv'.format(exp_name)).set_index(id_col)
-            y = pd.read_csv('../resources/train_{}.csv'.format(exp_name)).set_index(id_col)[label]
+                regression_res_cleaned[col] = regression_res[[col]]
+        regression_res = regression_res_cleaned
+        regression_res['range_accuracy'] = [
+            train_range_res['error'].mean(),
+            test_range_res['error'].mean(),
+        ]
+        regression_res['range_accuracy'].fillna(0, inplace=True)
+        regression_res['range_accuracy2'] = [
+            train_range_res['error2'].mean(),
+            test_range_res['error2'].mean(),
+        ]
+        regression_res['range_accuracy2'].fillna(0, inplace=True)
+        regression_res['range_size'] = [
+            len(train_range_res),
+            len(test_range_res),
+        ]
+        regression_res['range_size'].fillna(0, inplace=True)
+        regression_res['exact_size'] = [
+            len(train_res),
+            len(test_res),
+        ]
+        regression_res['accuracy'] = (regression_res['exact_accuracy'].fillna(0) * regression_res[
+            'exact_size'].fillna(0) \
+                                      + regression_res['range_accuracy'] * regression_res['range_size']) \
+                                     / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
+        regression_res['essential_agreement'] = (regression_res['exact_accuracy2'].fillna(0) * regression_res[
+            'exact_size'].fillna(0) \
+                                                 + regression_res['range_accuracy2'] * regression_res['range_size']) \
+                                                / (regression_res['range_size'] + regression_res[
+            'exact_size'].fillna(0))
 
-            train_res = pd.read_csv('../experiments/{}/oof_predictions.csv'.format(exp_name)).set_index(id_col).merge(y,
-                                                                                                                      left_index=True,
-                                                                                                                      right_index=True,
-                                                                                                                      how='inner')
-            train_res = train_res.loc[set(train_res.index) - set(y_range.index)]
-            train_res.columns = ['y_pred', 'y_true']
-            train_res['y_true'] = np.round(train_res['y_true'])
-            min_true = train_res['y_true'].min()
-            max_true = train_res['y_true'].max(axis=0)
-            train_res['y_pred'] = train_res['y_pred'].clip(lower=min_true, upper=max_true)
-            train_res['residual'] = train_res['y_true'] - train_res['y_pred']
-            train_res['y_pred'] = np.round(train_res['y_pred'])
-            train_res['round_residual'] = train_res['y_true'] - train_res['y_pred']
-            train_res['error'] = train_res['round_residual'].abs() < 1
-            train_res['error2'] = train_res['round_residual'].abs() < 2
+        regression_res = pd.DataFrame(regression_res.unstack()).T
 
-            y = pd.read_csv('../resources/test_{}.csv'.format(exp_name)).set_index(id_col)[label]
-            test_res = pd.read_csv('../experiments/{}/test_predictions.csv'.format(exp_name)).set_index(id_col).merge(y,
-                                                                                                                      left_index=True,
-                                                                                                                      right_index=True,
-                                                                                                                      how='inner')
-            test_res = test_res.loc[set(test_res.index) - set(y_range.index)]
-            test_res.columns = ['y_pred', 'y_true']
-            test_res['y_true'] = np.round(test_res['y_true'])
-            min_true = test_res['y_true'].min()
-            max_true = test_res['y_true'].max(axis=0)
-            test_res['y_pred'] = test_res['y_pred'].clip(lower=min_true, upper=max_true)
-            test_res['residual'] = test_res['y_true'] - test_res['y_pred']
-            test_res['y_pred'] = np.round(test_res['y_pred'])
-            test_res['round_residual'] = test_res['y_true'] - test_res['y_pred']
-            test_res['error'] = test_res['round_residual'].abs() < 1
-            test_res['error2'] = test_res['round_residual'].abs() < 2
-
-            regression_res = pd.DataFrame({
-                'exact RMSE': [np.sqrt(train_res['residual'].pow(2).mean()),
-                               np.sqrt(test_res['residual'].pow(2).mean())],
-                'exact_rounded RMSE': [np.sqrt(train_res['round_residual'].pow(2).mean()),
-                                       np.sqrt(test_res['round_residual'].pow(2).mean())],
-                'exact_accuracy': [train_res['error'].mean(), test_res['error'].mean()],
-                'exact_accuracy2': [train_res['error2'].mean(), test_res['error2'].mean()],
-            }, index=['train', 'test'])
-
-            range_res = pd.read_csv('../experiments/{}/range_preds.csv'.format(exp_name)).set_index(id_col).merge(
-                y_range, left_index=True, right_index=True, how='inner')
-            range_res.columns = ['y_pred'] + list(range_res.columns.values)[1:]
-            range_res['values'] = np.round(range_res['values'])
-            range_res['updated_values'] = np.nan
-            range_res['updated_direction'] = np.nan
-            if equal_meaning:
-                range_res.loc[range_res['direction'] == '>=', 'updated_values'] = range_res['values'] - 1
-                range_res.loc[range_res['direction'] == '<=', 'updated_values'] = range_res['values'] + 1
-            range_res.loc[range_res['direction'] == '>=', 'updated_direction'] = '>'
-            range_res.loc[range_res['direction'] == '<=', 'updated_direction'] = '<'
-
-            range_res.loc[:, 'updated_values'].fillna(range_res['values'], inplace=True)
-            range_res.loc[:, 'updated_direction'].fillna(range_res['direction'], inplace=True)
-
-            range_res.loc[range_res['updated_direction'] == '>', 'error'] = (
-                        range_res['y_pred'] > range_res['updated_values'])
-            range_res.loc[range_res['updated_direction'] == '<', 'error'] = (
-                        range_res['y_pred'] < range_res['updated_values'])
-            range_res.loc[range_res['updated_direction'] == '>', 'error2'] = (
-                        range_res['y_pred'] > range_res['updated_values'] - 1)
-            range_res.loc[range_res['updated_direction'] == '<', 'error2'] = (
-                        range_res['y_pred'] < range_res['updated_values'] + 1)
-            y = pd.read_csv('../resources/train_{}.csv'.format(exp_name)).set_index(id_col)[label]
-            train_res_index = pd.read_csv('../experiments/{}/oof_predictions.csv'.format(exp_name)).set_index(
-                id_col).merge(y, left_index=True, right_index=True, how='inner').index
-            train_range_res = range_res.loc[set(range_res.index).intersection(set(train_res_index))]
-            test_range_res = range_res.loc[set(range_res.index) - set(train_res_index)]
-            for key, res in {'train': train_range_res, 'test': test_range_res}.items():
-                range_confusion = res.groupby(by=['direction', 'values'])['error'].agg(['count', 'sum']).replace(True,
-                                                                                                                 1)
-                range_confusion['perc'] = range_confusion['sum'] / range_confusion['count']
-                range_confusion.columns = ['range_total', 'range_true', 'range_accuracy']
-                range_confusion = pd.DataFrame(range_confusion.stack()).T.swaplevel(i=2, j=0, axis=1)
-                range_confusion.index = [key]
-                regression_res = pd.concat([regression_res, range_confusion], axis=1)
-            regression_res_cleaned = pd.DataFrame({})
-            for col in regression_res.columns:
-                if len(regression_res[[col]].columns) > 1:
-                    regression_res_cleaned[col] = regression_res[[col]].iloc[:, 0].fillna(
-                        regression_res[[col]].iloc[:, 1])
-                else:
-                    regression_res_cleaned[col] = regression_res[[col]]
-            regression_res = regression_res_cleaned
-            regression_res['range_accuracy'] = [
-                train_range_res['error'].mean(),
-                test_range_res['error'].mean(),
-            ]
-            regression_res['range_accuracy'].fillna(0, inplace=True)
-            regression_res['range_accuracy2'] = [
-                train_range_res['error2'].mean(),
-                test_range_res['error2'].mean(),
-            ]
-            regression_res['range_accuracy2'].fillna(0, inplace=True)
-            regression_res['range_size'] = [
-                len(train_range_res),
-                len(test_range_res),
-            ]
-            regression_res['range_size'].fillna(0, inplace=True)
-            regression_res['exact_size'] = [
-                len(train_res),
-                len(test_res),
-            ]
-            regression_res['accuracy'] = (regression_res['exact_accuracy'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                          + regression_res['range_accuracy'] * regression_res['range_size']) \
-                                         / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
-            regression_res['essential_agreement'] = (regression_res['exact_accuracy2'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                                     + regression_res['range_accuracy2'] * regression_res['range_size']) \
-                                                    / (regression_res['range_size'] + regression_res[
-                'exact_size'].fillna(0))
-
-            regression_res = pd.DataFrame(regression_res.unstack()).T
-
-            regression_res.columns = ['{}_{}'.format(col[0], col[1])
-                                      for col in regression_res.columns]
-            regression_res.index = [i]
-            regression_res['exp_done'] = True
+        regression_res.columns = ['{}_{}'.format(col[0], col[1])
+                                  for col in regression_res.columns]
+        regression_res.index = [i]
+        regression_res['exp_done'] = True
         # except:
         #     regression_res = pd.DataFrame({}, index=[0])
         #     regression_res['exp_done'] = False
