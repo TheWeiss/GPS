@@ -25,9 +25,9 @@ def align_model_params_files(exp_path):
             print('{}/{}/model_param.csv'.format(full_path, model_path))
             if not os.path.exists('{}/{}/model_param.csv'.format(full_path, model_path)):
                 model_param = {
-                    'model': model_path.split('|')[0].split('_')[1],
-                    'train_time': model_path.split('|')[1].split('_')[2],
-                    'max_models': model_path.split('|')[2].split('_')[2],
+                    'model': model_path.split('|')[0].split(':')[1],
+                    'train_time': model_path.split('|')[1].split(':')[1],
+                    'max_models': model_path.split('|')[2].split(':')[1],
                 }
 
                 pd.DataFrame(model_param, index=[0]).to_csv(
