@@ -16,6 +16,37 @@ import logging
 import getopt
 
 
+def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
+    # Import a sample binary outcome train/test set into H2O
+    trainH2o = h2o.import_file('{}/train.csv'.format(ds_param_files_path))
+    testH2o = h2o.import_file('{}/test.csv'.format(ds_param_files_path))
+    rangeH2o = h2o.import_file('{}/range_X.csv'.format(ds_param_files_path))
+    model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+
+    # Identify predictors and response
+    x = col_names['features']
+    y = col_names['label']
+
+    # Run AutoML for 20 base models
+    aml = H2OAutoML(max_models=model_param['max_models'], seed=42, max_runtime_secs=model_param['train_time'])
+    aml.train(x=x, y=y, training_frame=trainH2o)
+    #
+    # View the AutoML Leaderboard
+    lb = h2o.automl.get_leaderboard(aml, extra_columns="ALL")
+    lb.head(rows=lb.nrows)  # Print all rows instead of default (10 rows)
+    #
+    model = aml.leader
+    model_path = h2o.save_model(model=model, path='../experiments/{}/{}/model'.format(exp_name, model_name), force=True)
+    lb.as_data_frame().to_csv('../experiments/{}/{}/leader_board.csv'.format(exp_name, model_name))
+    test_preds = model.predict(testH2o).as_data_frame()
+    range_preds = model.predict(rangeH2o).as_data_frame()
+    train_preds = model.predict(trainH2o).as_data_frame()
+    test_preds.to_csv('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name))
+    range_preds.to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
+    train_preds.to_csv('../experiments/{}/{}/train_preds.csv'.format(exp_name, model_name))
+    return aml
+
+
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     pass
@@ -183,61 +214,6 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                     traceback.print_exc(file=f)
                 print("Unexpected error:", e)
                 return -1
-
-
-def main_h2o():
-    species_filter_index_list = [0,1]
-    antibiotic_index_list = [0,1]  # np.arange(10, 20)
-
-    data_param = {
-        'naive': True,
-        'strip_range_train': False,
-        'distance_range_train': False,
-        'reg_stratified': True,
-        'species_sep': True,
-        'antibiotic_sep': True,
-        'exp_describtion': 'naive_strat',
-    }
-
-    model_param = {
-        'model': 'h2o',
-        'train_time': 3600,
-        'max_models': 100,
-    }
-
-    exp_names = []
-    for species_filter_index in tqdm(species_filter_index_list):
-        for antibiotic_index in tqdm(antibiotic_index_list):
-            train, test, X_range, y_range, features, label, species = get_filtered_data(
-                data='tot_filtered_data.csv',
-                features='final_features',
-                ASR_data='filtered_ASR_data.csv',
-                species_filter_index=species_filter_index,
-                antibiotic_index=antibiotic_index,
-                species_sep=data_param['species_sep'],
-                antibiotic_sep=data_param['antibiotic_sep'],
-                naive=data_param['naive'],
-                strip_range_train=data_param['strip_range_train'],
-                reg_stratified=data_param['reg_stratified'],
-                distance_range_train=data_param['distance_range_train'],
-                task='regression',
-            )
-            data_param['species'] = species
-            data_param['antibiotic'] = label
-            exp_name = '{}_{}_{}'.format(species, label, data_param['exp_describtion'])
-            exp_names.append(exp_name)
-            os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
-            train.to_csv('../experiments/{}/train.csv'.format(exp_name))
-            test.to_csv('../experiments/{}/test.csv'.format(exp_name))
-            X_range.to_csv('../experiments/{}/X_range.csv'.format(exp_name))
-            y_range.to_csv('../experiments/{}/y_range.csv'.format(exp_name))
-            pd.DataFrame({'features': features}).to_csv('../experiments/{}/features.csv'.format(exp_name))
-            pd.DataFrame({'label': [label]}).to_csv('../experiments/{}/label.csv'.format(exp_name))
-            pd.DataFrame(data_param, index=[0]).to_csv('../experiments/{}/data_param.csv'.format(exp_name))
-
-    h2o.init()
-    for exp_name in tqdm(exp_names):
-        a = run_h2o(model_param, exp_name)
 
 
 def main(argv):
