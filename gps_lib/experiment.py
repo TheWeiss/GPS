@@ -17,6 +17,7 @@ import getopt
 
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
+    h2o.init()
     # Import a sample binary outcome train/test set into H2O
     trainH2o = h2o.import_file('{}/train.csv'.format(ds_param_files_path))
     testH2o = h2o.import_file('{}/test.csv'.format(ds_param_files_path))
@@ -48,8 +49,8 @@ def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
 
 
 
-def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
-    pass
+# def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
+#     pass
     # print(exp_name)
     # # Import a sample binary outcome train/test set into H2O
     # trainH2o = h2o.import_file('../experiments/{}/train.csv'.format(exp_name))
