@@ -14,6 +14,8 @@ import sys
 import traceback
 import logging
 import getopt
+from h2o.automl import H2OAutoML
+import h2o
 
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
