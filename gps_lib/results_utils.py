@@ -293,7 +293,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                     split_preds.columns = ['y_pred']
                     split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
                 elif results['model'].iloc[i] == 'h2o':
-                    print('h2o not implemented yet')
+                    split_preds = pd.read_csv(
+                        '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).drop('Unnamed: 0', axis=1)
+                    split_preds.columns = ['y_pred']
+                    split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
+                                                    how='inner').set_index(col_names['id'])
 
                 split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
 
@@ -330,7 +334,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 range_preds.columns = ['y_pred']
                 range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
             elif results['model'].iloc[i] == 'h2o':
-                print('h2o not implemented yet')
+                range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).drop('Unnamed: 0', axis=1)
+                if len(range_preds) == 0:
+                    range_preds = pd.DataFrame({'measurment': []}, index=[])
+                range_preds.columns = ['y_pred']
+                range_res = range_preds.merge(range_y.reset_index(), left_index=True, right_index=True, how='inner')
 
             range_res['y_true'] = np.round(range_res['y_true'])
             range_res['updated_y_true'] = np.nan
