@@ -195,6 +195,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
                     ds_param, species, antibiotic)
+
             except Exception as e:
                 print(e)
                 return -1
@@ -203,6 +204,10 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
                 data_path.write(ds_param_files_path)
+            if len(train) < 5:
+                with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
+                    f.write('Training set doesnt have at-least 5 samples reqiered for training')
+                    return -1
             model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
             os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
             pd.DataFrame(model_param, index=[0]).to_csv(
