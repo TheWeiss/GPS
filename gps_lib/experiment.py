@@ -47,7 +47,7 @@ def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     test_preds.to_csv('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name))
     range_preds.to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
     train_preds.to_csv('../experiments/{}/{}/train_preds.csv'.format(exp_name, model_name))
-    h2o.shutdown()
+    # h2o.shutdown()
     return aml
 
 
