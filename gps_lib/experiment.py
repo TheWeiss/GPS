@@ -50,40 +50,6 @@ def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     return aml
 
 
-
-# def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
-#     pass
-    # print(exp_name)
-    # # Import a sample binary outcome train/test set into H2O
-    # trainH2o = h2o.import_file('../experiments/{}/train.csv'.format(exp_name))
-    # print(trainH2o.as_data_frame().columns[-1])
-    # testH2o = h2o.import_file('../experiments/{}/test.csv'.format(exp_name))
-    # rangeH2o = h2o.import_file('../experiments/{}/X_range.csv'.format(exp_name))
-    # model_name = '_'.join(['_'.join([k, str(v)]) for k, v in model_param.items()])
-    #
-    # # Identify predictors and response
-    # x = list(pd.read_csv('../experiments/{}/features.csv'.format(exp_name))['features'].values)
-    # y = pd.read_csv('../experiments/{}/label.csv'.format(exp_name)).loc[0, 'label']
-    #
-    # # Run AutoML for 20 base models
-    # aml = H2OAutoML(max_models=model_param['max_models'], seed=42, max_runtime_secs=model_param['train_time'])
-    # aml.train(x=x, y=y, training_frame=trainH2o)
-    #
-    # # View the AutoML Leaderboard
-    # lb = h2o.automl.get_leaderboard(aml, extra_columns="ALL")
-    # lb.head(rows=lb.nrows)  # Print all rows instead of default (10 rows)
-    #
-    # model = aml.leader
-    # model_path = h2o.save_model(model=model, path='../experiments/{}/{}/model'.format(exp_name, model_name), force=True)
-    # lb.as_data_frame().to_csv('../experiments/{}/{}/leader_board.csv'.format(exp_name, model_name))
-    # test_preds = model.predict(testH2o).as_data_frame()
-    # range_preds = model.predict(rangeH2o).as_data_frame()
-    # train_preds = model.predict(trainH2o).as_data_frame()
-    # test_preds.to_csv('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name))
-    # range_preds.to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
-    # train_preds.to_csv('../experiments/{}/{}/train_preds.csv'.format(exp_name, model_name))
-    # return aml
-
 def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
     model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
     # required parameters:
