@@ -408,21 +408,14 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 'exact_size'].fillna(0) \
                                           + regression_res['range_accuracy'] * regression_res['range_size']) \
                                          / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
-            regression_res['accuracy_naive'] = (regression_res['exact_accuracy_naive'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                          + regression_res['range_accuracy_naive'] * regression_res['range_size']) \
-                                         / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
+
 
             regression_res['essential_agreement'] = (regression_res['exact_accuracy2'].fillna(0) * regression_res[
                 'exact_size'].fillna(0) \
                                                      + regression_res['range_accuracy2'] * regression_res['range_size']) \
                                                     / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
-            regression_res['essential_agreement_naive'] = (regression_res['exact_accuracy2_naive'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                                     + regression_res['range_accuracy2_naive'] * regression_res['range_size']) \
-                                                    / (regression_res['range_size'] + regression_res[
-                'exact_size'].fillna(0))
+
 
             regression_res = pd.DataFrame(regression_res.unstack()).T
 
@@ -446,6 +439,20 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
             regression_res['range_accuracy2_naive'] = range_res['naive_error2'].mean()
             regression_res['exact_size'] = regression_res['exact_size_train'] + regression_res['exact_size_test']
             regression_res['range_size'] = regression_res['range_size_train'] + regression_res['range_size_test']
+
+            regression_res['accuracy_naive'] = (regression_res['exact_accuracy_naive'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                                + regression_res['range_accuracy_naive'] * regression_res['range_size']) \
+                                               / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
+
+            regression_res['essential_agreement_naive'] = (regression_res['exact_accuracy2_naive'].fillna(0) *
+                                                           regression_res[
+                                                               'exact_size'].fillna(0) \
+                                                           + regression_res['range_accuracy2_naive'] * regression_res[
+                                                               'range_size']) \
+                                                          / (regression_res['range_size'] + regression_res[
+                'exact_size'].fillna(0))
+
             regression_res['size'] = regression_res['exact_size'] + regression_res['range_size']
             regression_res['exp_done'] = True
         except (FileNotFoundError, OSError):
