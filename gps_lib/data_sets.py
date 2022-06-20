@@ -556,8 +556,6 @@ class MICDataSet(ABC):
         range_y_train = range_y.loc[range_train_ids,]
         train_label = pd.concat([exact_y.loc[exact_train_ids,], range_y.loc[range_train_ids,]])
         test_label = pd.concat([exact_y.loc[exact_test_ids,], range_y.loc[range_test_ids,]])
-        print(train_label)
-        print(test_label)
 
 
         # generate cv from train that is stratified
@@ -575,6 +573,7 @@ class MICDataSet(ABC):
                 cv_test_ids = exact_cv_test_ids + range_cv_test_ids
                 cv.append((list(train_ref[train_ref['index'].isin(cv_train_ids)].index),
                            list(train_ref[train_ref['index'].isin(cv_test_ids)].index)))
+        print('got here')
 
         return train_label, test_label, range_label, cv
 
