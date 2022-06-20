@@ -537,6 +537,7 @@ class MICDataSet(ABC):
                     range_y - ds_param['move_range_by'])
             else:
                 range_y = pd.Series([], name='measurement')
+                range_y.index.name = filtered.index.name
         else:
             raise Exception('regression not in the naive approach is not implemented yet.')
 
