@@ -159,13 +159,13 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             for antibiotic_i in antibiotic:
                 run_exp(dataset, model_param, ds_param, species, antibiotic_i, )
         else:
-            try:
-                train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
-                    ds_param, species, antibiotic)
+            # try:
+            train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
+                ds_param, species, antibiotic)
 
-            except Exception as e:
-                print(e)
-                return -1
+            # except Exception as e:
+            #     print(e)
+            #     return -1
             exp_name = '|'+'|'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])+'|'+dataset.name + '|' + exp_desc
 
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
