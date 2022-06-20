@@ -442,15 +442,15 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
 
             regression_res['accuracy_naive'] = (regression_res['exact_accuracy_naive'].fillna(0) * regression_res[
                 'exact_size'].fillna(0) \
-                                                + regression_res['range_accuracy_naive'] * regression_res['range_size']) \
-                                               / (regression_res['range_size'] + regression_res['exact_size'].fillna(0))
+                                                + regression_res['range_accuracy_naive'].fillna(0) * regression_res['range_size'].fillna(0)) \
+                                               / (regression_res['range_size'].fillna(0) + regression_res['exact_size'].fillna(0))
 
             regression_res['essential_agreement_naive'] = (regression_res['exact_accuracy2_naive'].fillna(0) *
                                                            regression_res[
                                                                'exact_size'].fillna(0) \
-                                                           + regression_res['range_accuracy2_naive'] * regression_res[
-                                                               'range_size']) \
-                                                          / (regression_res['range_size'] + regression_res[
+                                                           + regression_res['range_accuracy2_naive'].fillna(0) * regression_res[
+                                                               'range_size'].fillna(0)) \
+                                                          / (regression_res['range_size'].fillna(0) + regression_res[
                 'exact_size'].fillna(0))
 
             regression_res['size'] = regression_res['exact_size'] + regression_res['range_size']
