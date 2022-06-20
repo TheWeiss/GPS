@@ -562,6 +562,7 @@ class MICDataSet(ABC):
         cv = []
         if ds_param['stratified_cv_num']>1:
             train_ref = train_label.reset_index()
+            printtrain_ref.columns)
             for i in np.arange(ds_param['stratified_cv_num']):
                 exact_cv_train_ids, exact_cv_test_ids = MICDataSet._strat_id(
                     exact_y_train, ds_param['random_seed'], seed_add=i)
