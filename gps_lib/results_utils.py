@@ -18,23 +18,25 @@ def parse_results(exp_dir_path):
 
 def align_model_params_files(exp_path):
     full_path = '../experiments/{}'.format(exp_path)
-    data_path = full_path +'/data_path.txt'
+    data_path = full_path + '/data_path.txt'
     if not os.path.exists(data_path):
         return 'missing data_path from the new format'
     for model_path in os.listdir(full_path):
         if os.path.isdir(full_path + '/' + model_path):
+            if model_path == '.ipynb_checkpoints':
+                continue
             if not os.path.exists('{}/{}/model_param.csv'.format(full_path, model_path)):
                 model_param = {
                     'model': model_path.split('|')[0].split(':')[1],
                     'train_time': model_path.split('|')[1].split(':')[1],
                     'max_models': model_path.split('|')[2].split(':')[1],
                 }
-
                 pd.DataFrame(model_param, index=[0]).to_csv(
-                            '{}/{}/model_param.csv'.format(full_path, model_path))
+                    '{}/{}/model_param.csv'.format(full_path, model_path))
+                return 'filled model_param_file'
             else:
                 return 'alreadt exist'
-    return 'filled model_param_file'
+    return 'not model param folder'
 
 
 def align_error_files_files(exp_path):
