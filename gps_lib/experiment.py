@@ -171,7 +171,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
                 data_path.write(ds_param_files_path)
-            if len(train) < 5:
+            if len(train) < 40:
                 with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
                     f.write('Training set doesnt have at-least 5 samples reqiered for training')
                     return -1
