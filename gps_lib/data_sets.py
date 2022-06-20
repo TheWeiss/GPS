@@ -554,10 +554,10 @@ class MICDataSet(ABC):
                     list(range_y.index), test_size=0.2, random_state=ds_param['random_seed'])
         exact_y_train = exact_y.loc[exact_train_ids,]
         range_y_train = range_y.loc[range_train_ids,]
-        print(exact_y_train)
-        print(range_y_train)
         train_label = pd.concat([exact_y.loc[exact_train_ids,], range_y.loc[range_train_ids,]])
         test_label = pd.concat([exact_y.loc[exact_test_ids,], range_y.loc[range_test_ids,]])
+        print(train_label)
+        print(test_label)
 
 
         # generate cv from train that is stratified
