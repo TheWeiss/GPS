@@ -575,8 +575,8 @@ class MICDataSet(ABC):
                     print(range_cv_test_ids)
                 cv_train_ids = exact_cv_train_ids + range_cv_train_ids
                 cv_test_ids = exact_cv_test_ids + range_cv_test_ids
-                cv.append((list(train_ref[train_ref['index'].isin(cv_train_ids)].index),
-                           list(train_ref[train_ref['index'].isin(cv_test_ids)].index)))
+                cv.append((list(train_ref[train_ref['run_id'].isin(cv_train_ids)].index),
+                           list(train_ref[train_ref['run_id'].isin(cv_test_ids)].index)))
         print('got here')
 
         return train_label, test_label, range_label, cv
