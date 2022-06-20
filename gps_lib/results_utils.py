@@ -73,10 +73,12 @@ def fill_model_param(row):
     exp_path = row['exp_path']
     model_params = pd.DataFrame({})
     if os.path.exists('../experiments/{}/tb.txt'.format(exp_path)):
-        model_params.loc['error'] = True
+        model_params = pd.DataFrame({
+            'error': [True],
+            'tb': [''],
+        }, index=[i])
         with open('../experiments/{}/tb.txt'.format(exp_path)) as f:
-            model_params['tb'] = f.readlines()[0]
-        model_params.index = [i]
+            model_params.loc[i, 'tb'] = f.readlines()[0]
     for model_path in os.listdir('../experiments/{}'.format(exp_path)):
         if os.path.isdir('../experiments/{}/{}'.format(exp_path, model_path)):
             if os.path.exists('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)):
