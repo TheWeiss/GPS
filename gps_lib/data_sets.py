@@ -561,7 +561,7 @@ class MICDataSet(ABC):
         # generate cv from train that is stratified
         cv = []
         if ds_param['stratified_cv_num']>1:
-            train_ref = train_label.reset_index().reset_index()
+            train_ref = train_label.reset_index()
             print(train_ref.columns)
             for i in np.arange(ds_param['stratified_cv_num']):
                 exact_cv_train_ids, exact_cv_test_ids = MICDataSet._strat_id(
@@ -570,6 +570,8 @@ class MICDataSet(ABC):
                 if ds_param['handle_range'] != 'remove':
                     range_cv_train_ids, range_cv_test_ids = MICDataSet._strat_id(
                         range_y_train, ds_param['random_seed'], seed_add=i)
+                    print(range_cv_train_ids)
+                    print(range_cv_test_ids)
                 cv_train_ids = exact_cv_train_ids + range_cv_train_ids
                 cv_test_ids = exact_cv_test_ids + range_cv_test_ids
                 cv.append((list(train_ref[train_ref['index'].isin(cv_train_ids)].index),
