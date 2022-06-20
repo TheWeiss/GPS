@@ -276,14 +276,14 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                     col_names['label'],
                 ]].set_index(col_names['id'])
             train_y.columns = ['y_true']
-            train_y.loc[set(train_y.index) - set(range_y.index)]
+            train_y = train_y.loc[set(train_y.index) - set(range_y.index)]
             test_y = pd.read_csv('{}/{}.csv'.format(data_path, 'test')).rename(columns={"Unnamed: 0": col_names['id']})[
                 [
                     col_names['id'],
                     col_names['label'],
                 ]].set_index(col_names['id'])
             test_y.columns = ['y_true']
-            test_y.loc[set(test_y.index) - set(range_y.index)]
+            test_y = test_y.loc[set(test_y.index) - set(range_y.index)]
             y = pd.concat([range_y, train_y, test_y], axis=0)
             mode = y['y_true'].mode().values[0]
 
@@ -307,8 +307,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                     split_preds.columns = ['y_pred']
                     split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
                                                     how='inner').set_index(col_names['id'])
-
-                split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
+                print(len(split_res_i))
+                split_res_i = split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
 
                 split_res_i['y_true'] = np.round(split_res_i['y_true'])
                 min_true = split_res_i['y_true'].min()
@@ -418,6 +418,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 test_range_res['naive_error2'].mean(),
             ]
             regression_res['range_accuracy2_naive'].fillna(0, inplace=True)
+
             regression_res['range_size'] = [
                 len(train_range_res),
                 len(test_range_res),
