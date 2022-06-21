@@ -120,6 +120,7 @@ def read_exp_dirs(exp_dir_path):
     results = results.apply(fill_data_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
     results = add_metrices(results, equal_meaning=True)
+    results = compare_to_naive(results)
     return results
 
 
