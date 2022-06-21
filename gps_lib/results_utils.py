@@ -381,7 +381,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
 
 
             train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
-            test_range_res = range_res.loc[set(range_res.index) - set(test_indexs)]
+            test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
 
             if range_conf:
                 for key, res in {'train': train_range_res, 'test': test_range_res}.items():
