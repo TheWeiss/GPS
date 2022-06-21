@@ -10,7 +10,7 @@ import numpy as np
 
 def gene_presence_in_isolate_figure(genotype, db_name, path=None):
     plt.plot(genotype.describe().iloc[0].iloc[0:-1:2].sort_values(ascending=False).values)
-    plt.title('{}: Gene presence in isolates sorted by count in raw data'.format(db_name))
+    plt.title('{}: Gene presence in isolates sorted by count'.format(db_name))
     plt.xlabel('Genes')
     plt.ylabel('# of isolates contining this gene')
     plt.savefig(path)
@@ -19,7 +19,7 @@ def gene_presence_in_isolate_figure(genotype, db_name, path=None):
 
 def gene_num_in_isolate_figure(genotype, db_name, path=None):
     genotype.set_index('run_id').count(axis=1).apply(lambda x: x/2).hist(bins=30)
-    plt.title('{}: Number of gene found in isolates distribution from raw data'.format(db_name))
+    plt.title('{}: Number of gene found in isolates distribution'.format(db_name))
     plt.xlabel('number of genes found')
     plt.ylabel('# of isolates with this number of genes')
     if path is not None:
@@ -30,8 +30,8 @@ def gene_num_in_isolate_figure(genotype, db_name, path=None):
 def anti_presence_in_isolates_figure(all_ASR, db_name, path=None):
     phenotype = all_ASR['antibiotic_name'].value_counts()
     plt.figure(figsize=(15,10))
-    plt.plot(phenotype.sort_values(ascending=False))
-    plt.title('{}: Phenotypic measurement sorted by count from'.format(db_name))
+    plt.plot(phenotype.sort_values(ascending=False).values)
+    plt.title('{}: Phenotypic measurement sorted by count'.format(db_name))
     plt.xlabel('antibiotic')
     plt.ylabel('# of isolates having ASR measurement of this antibiotic')
     if path is not None:
