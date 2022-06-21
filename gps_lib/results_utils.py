@@ -288,7 +288,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 ]].set_index(col_names['id'])
             train_y.columns = ['y_true']
             train_indexs = train_y.index
-            train_y = train_y.loc[train_indexs - set(range_y.index)]
+            train_y = train_y.loc[set(train_indexs) - set(range_y.index)]
             test_y = pd.read_csv('{}/{}.csv'.format(data_path, 'test')).rename(columns={"Unnamed: 0": col_names['id']})[
                 [
                     col_names['id'],
@@ -296,7 +296,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 ]].set_index(col_names['id'])
             test_y.columns = ['y_true']
             test_indexs = test_y.index
-            test_y = test_y.loc[test_indexs - set(range_y.index)]
+            test_y = test_y.loc[set(test_indexs) - set(range_y.index)]
             y = pd.concat([range_y, train_y, test_y], axis=0)
             mode = y['y_true'].mode().values[0]
             y = pd.concat([train_y, test_y], axis=0)
