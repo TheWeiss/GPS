@@ -33,10 +33,6 @@ def align_model_params_files(exp_path):
                 }
                 pd.DataFrame(model_param, index=[0]).to_csv(
                     '{}/{}/model_param.csv'.format(full_path, model_path))
-                return 'filled model_param_file'
-            else:
-                return 'alreadt exist'
-    return 'not model param folder'
 
 
 def align_error_files_files(exp_path):
