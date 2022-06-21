@@ -68,6 +68,12 @@ def fill_data_param(row):
     return tmp
 
 
+def fix_range_values(res):
+    res.loc[res['handle_range']=='remove', 'move_range_by'] = None
+    res.loc[res['handle_range'] == 'strip', 'move_range_by'] = 0
+    return res
+
+
 def compare_to_naive(res):
     res['learned_accuracy_train'] = res['accuracy_train'].div(res['accuracy_naive'].where(res['accuracy_naive'] != 0, np.nan))
     res['learned_accuracy_test'] = res['accuracy_test'].div(res['accuracy_naive'].where(res['accuracy_naive'] != 0, np.nan))
@@ -120,6 +126,7 @@ def read_exp_dirs(exp_dir_path):
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
     results = add_metrices(results, equal_meaning=True)
     results = compare_to_naive(results)
+    results = fix_range_values(results)
     return results
 
 
