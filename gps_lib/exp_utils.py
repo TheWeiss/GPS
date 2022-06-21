@@ -71,8 +71,8 @@ def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
     anti_MIC = all_ASR[all_ASR['antibiotic_name'] == anti]
     if need_log:
         anti_MIC['measurement'] = anti_MIC['measurement'].apply(np.log2)
-    low = anti_MIC['measurement'].min().round()
-    high = anti_MIC['measurement'].max().round()
+    low = np.round(anti_MIC['measurement'].min())
+    high = np.round(anti_MIC['measurement'].max().round())
     hist_range = np.arange(low-0.5, high+1, 1)
     bins_count = pd.DataFrame(anti_MIC.groupby(by='sign')['measurement'].apply(lambda x: np.histogram(x, bins=hist_range)[0]))
     bins_count = bins_count.merge(pd.DataFrame({'fill': [np.zeros(len(hist_range)-1)]}, index=['=', '<=', '>=', '<', '>']), left_index=True, right_index=True, how='right')
