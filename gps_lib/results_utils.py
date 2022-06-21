@@ -62,6 +62,10 @@ def fill_data_set(data_path):
 def fill_data_param(row):
     i = row.to_frame().T.index.values[0]
     data_param = pd.read_csv('{}/ds_param.csv'.format(row['data_path'])).drop('Unnamed: 0',axis=1)
+    if data_param['handle_range'] == 'remove':
+        data_param['move_range_by'] = None
+    elif data_param['handle_range'] == 'strip':
+        data_param['move_range_by'] = 0
     data_param.index = [i]
     tmp = pd.concat([row.to_frame().T, data_param], axis=1)
     tmp = tmp.iloc[0]
