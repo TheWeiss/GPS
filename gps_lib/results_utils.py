@@ -75,7 +75,6 @@ def compare_to_naive(res):
     res['learned_essential_agreement_test'] = res['essential_agreement_test'].div(res['essential_agreement_naive'].where(res['essential_agreement_naive'] != 0, np.nan))
     res['learned_RMSE_train'] = res['exact_RMSE_train'].div(res['exact_RMSE_naive'].where(res['exact_RMSE_naive'] != 0, np.nan))
     res['learned_RMSE_test'] = res['exact_RMSE_test'].div(res['exact_RMSE_naive'].where(res['exact_RMSE_naive'] != 0, np.nan))
-
     return res
 
 
