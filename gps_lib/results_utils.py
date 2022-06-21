@@ -68,6 +68,15 @@ def fill_data_param(row):
     return tmp
 
 
+def compare_to_naive(row):
+    i = row.to_frame().T.index.values[0]
+    row['learned_accuracy_train'] = row['accuracy_train'] / row['accuracy_naive']
+    row['learned_accuracy_test'] = row['accuracy_test'] / row['accuracy_naive']
+    row['learned_essential_agreement_train'] = row['essential_agreement_train'] / row['essential_agreement_naive']
+    row['learned_essential_agreement_test'] = row['essential_agreement_test'] / row['essential_agreement_naive']
+    return row
+
+
 def fill_model_param(row):
     i = row.to_frame().T.index.values[0]
     exp_path = row['exp_path']
