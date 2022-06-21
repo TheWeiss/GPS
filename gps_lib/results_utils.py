@@ -74,6 +74,9 @@ def compare_to_naive(row):
     row['learned_accuracy_test'] = row['accuracy_test'] / row['accuracy_naive']
     row['learned_essential_agreement_train'] = row['essential_agreement_train'] / row['essential_agreement_naive']
     row['learned_essential_agreement_test'] = row['essential_agreement_test'] / row['essential_agreement_naive']
+    row['learned_RMSE_train'] = row['exact_RMSE_train'] / row['exact_RMSE_naive']
+    row['learned_RMSE_test'] = row['exact_RMSE_test'] / row['exact_RMSE_naive']
+
     return row
 
 
