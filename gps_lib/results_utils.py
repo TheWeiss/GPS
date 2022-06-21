@@ -69,12 +69,12 @@ def fill_data_param(row):
 
 
 def compare_to_naive(res):
-    res['learned_accuracy_train'] = res['accuracy_train'].div(res['accuracy_naive'])
-    res['learned_accuracy_test'] = res['accuracy_test'].div(res['accuracy_naive'])
-    res['learned_essential_agreement_train'] = res['essential_agreement_train'].div(res['essential_agreement_naive'])
-    res['learned_essential_agreement_test'] = res['essential_agreement_test'].div(res['essential_agreement_naive'])
-    res['learned_RMSE_train'] = res['exact_RMSE_train'].div(res['exact_RMSE_naive'])
-    res['learned_RMSE_test'] = res['exact_RMSE_test'].div(res['exact_RMSE_naive'])
+    res['learned_accuracy_train'] = res['accuracy_train'].div(res['accuracy_naive'].where(res['accuracy_naive'] != 0, np.nan))
+    res['learned_accuracy_test'] = res['accuracy_test'].div(res['accuracy_naive'].where(res['accuracy_naive'] != 0, np.nan))
+    res['learned_essential_agreement_train'] = res['essential_agreement_train'].div(res['essential_agreement_naive'].where(res['essential_agreement_naive'] != 0, np.nan))
+    res['learned_essential_agreement_test'] = res['essential_agreement_test'].div(res['essential_agreement_naive'].where(res['essential_agreement_naive'] != 0, np.nan))
+    res['learned_RMSE_train'] = res['exact_RMSE_train'].div(res['exact_RMSE_naive'].where(res['exact_RMSE_naive'] != 0, np.nan))
+    res['learned_RMSE_test'] = res['exact_RMSE_test'].div(res['exact_RMSE_naive'].where(res['exact_RMSE_naive'] != 0, np.nan))
 
     return res
 
