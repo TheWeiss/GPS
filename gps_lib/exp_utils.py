@@ -9,16 +9,18 @@ import numpy as np
 
 
 def gene_presence_in_isolate_figure(genotype, db_name, path=None):
+    plt.figure(figsize=(15, 10))
     plt.plot(genotype.describe().iloc[0].iloc[0:-1:2].sort_values(ascending=False).values)
     plt.title('{}: Gene presence in isolates sorted by count'.format(db_name))
     plt.xlabel('Genes')
-    plt.ylabel('# of isolates contining this gene')
+    plt.ylabel('# of isolates containing this gene')
     plt.savefig(path)
     plt.show()
 
 
 def gene_num_in_isolate_figure(genotype, db_name, path=None):
     genotype.set_index('run_id').count(axis=1).apply(lambda x: x/2).hist(bins=30)
+    plt.figure(figsize=(15, 10))
     plt.title('{}: Number of gene found in isolates distribution'.format(db_name))
     plt.xlabel('number of genes found')
     plt.ylabel('# of isolates with this number of genes')
