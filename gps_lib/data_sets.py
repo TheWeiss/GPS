@@ -391,19 +391,21 @@ class MICDataSet(ABC):
 
     def print_pheno_exp_for_species(self, species):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
-        e_utils.anti_presence_in_isolates_figure(filtered, self.name, path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'DB', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'exact_value', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'sign', col_order=['<', '<=', '=', '>=', '>'], path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'resistance_phenotype', col_order=['S', 'I', 'R'], path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'is_multi_mic', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'measurement_has_/', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'test_standard', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(filtered, 'units', path = self.saved_files_path)
+        saved_path = '{}/{}'.format(self.saved_files_path, species)
+        e_utils.anti_presence_in_isolates_figure(filtered, self.name, path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'DB', path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'exact_value', path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'sign', col_order=['<', '<=', '=', '>=', '>'], path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'resistance_phenotype', col_order=['S', 'I', 'R'], path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'is_multi_mic', path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'measurement_has_/', path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'test_standard', path = saved_path)
+        e_utils.look_at_anti_dist(filtered, 'units', path = saved_path)
 
     def print_pheno_exp_anti_measure(self, species, antibiotic):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
-        e_utils.print_anti_measure(filtered, antibiotic, path = self.saved_files_path)
+        saved_path = '{}/{}_{}'.format(self.saved_files_path, species, antibiotic)
+        e_utils.print_anti_measure(filtered, antibiotic, path = saved_path)
 
 
     def generate_dataset(self, ds_param=None, species=None, antibiotic=None):

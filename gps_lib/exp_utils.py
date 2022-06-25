@@ -15,6 +15,8 @@ def gene_presence_in_isolate_figure(genotype, db_name, path=None):
     plt.xlabel('Genes')
     plt.ylabel('# of isolates containing this gene')
     plt.savefig(path)
+    if path is not None:
+        plt.savefig(path+'/Gene_presence_in_isolates_per_gene')
     plt.show()
 
 
@@ -25,7 +27,7 @@ def gene_num_in_isolate_figure(genotype, db_name, path=None):
     plt.xlabel('number of genes found')
     plt.ylabel('# of isolates with this number of genes')
     if path is not None:
-        plt.savefig(path)
+        plt.savefig(path+'/Gene_presence_in_isolates_per_isolate')
     plt.show()
 
     
@@ -37,7 +39,7 @@ def anti_presence_in_isolates_figure(all_ASR, db_name, path=None):
     plt.xlabel('antibiotic')
     plt.ylabel('# of isolates having ASR measurement of this antibiotic')
     if path is not None:
-        plt.savefig(path)
+        plt.savefig(path+'/Amount_of_measurment_per_antibiotic')
     plt.show()
 
 '''
@@ -56,12 +58,12 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None, path=None):
                 filtered_col_order.append(col)
         col_dist = col_dist[filtered_col_order]
     ax = col_dist.loc[order].plot.barh(stacked=True, rot=0, figsize=(20,15))
-    plt.title('Distribution of ' + col_name+' for each anti-biotics')
+    plt.title('Distribution of ' + col_name+' for each antibiotics')
     plt.ylabel('antibiotics')
     plt.xlabel('# of measurements')
     plt.legend(loc='lower right')
     if path is not None:
-        plt.savefig(path)
+        plt.savefig('{}/Distribution_{}_per_antibiotics'.format(path, col_name))
     plt.show()
 
     
