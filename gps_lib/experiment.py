@@ -184,7 +184,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             if len(train) < 40:
                 with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
                     f.write('Training set doesnt have at-least 40 samples reqiered for training')
-                    print('{}|{} is too small, train size - {}'.format(exp_name, model_name, len(train))
+                    print('{} is too small, train size - {}'.format(exp_name, len(train)))
                     return -1
             model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
             os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
