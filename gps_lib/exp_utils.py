@@ -90,7 +90,7 @@ def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
     bins_count = pd.DataFrame(anti_MIC.groupby(by='sign')['measurement'].apply(lambda x: np.histogram(x, bins=hist_range)[0]))
     bins_count = bins_count.merge(pd.DataFrame({'fill': [np.zeros(len(hist_range)-1)]}, index=['=', '<=', '>=', '<', '>']), left_index=True, right_index=True, how='right')
     bins_count['measurement'].fillna(bins_count['fill'], inplace=True)
-    pd.DataFrame(bins_count['measurement'].tolist(), index= bins_count.index, columns=hist_range[:-1]+0.5).T.plot.bar(stacked=True)
+    pd.DataFrame(bins_count['measurement'].tolist(), index= bins_count.index, columns=hist_range[:-1]+0.5).T.plot.bar(stacked=True, figsize=(15,10))
     plt.title(anti)
     plt.xlabel('log2(mg//L)')
     plt.ylabel('#')
