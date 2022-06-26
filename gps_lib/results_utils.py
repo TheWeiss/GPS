@@ -299,11 +299,13 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
             test_y = test_y.loc[set(test_indexs) - set(range_y.index)]
             y = pd.concat([range_y, train_y, test_y], axis=0)
             mode = y['y_true'].mode().values[0]
+            mean = y['y_true'].mean().values[0]
             y = pd.concat([train_y, test_y], axis=0)
 
-            y['naive_residual'] = y['y_true'] - mode
-            y['naive_error'] = y['naive_residual'].abs() < 1
-            y['naive_error2'] = y['naive_residual'].abs() < 2
+            y['naive_residual_mode'] = y['y_true'] - mode
+            y['naive_residual_mean'] = y['y_true'] - mean
+            y['naive_error'] = y['naive_residual_mode'].abs() < 1
+            y['naive_error2'] = y['naive_residual_mode'].abs() < 2
 
             split_res = {}
             for split in ['train', 'test']:
@@ -439,7 +441,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                                       for col in regression_res.columns]
             regression_res.index = [i]
 
-            regression_res['exact_RMSE_naive'] = np.sqrt(y['naive_residual'].pow(2).mean())
+            regression_res['exact_RMSE_naive'] = np.sqrt(y['naive_residual_mean'].pow(2).mean())
             regression_res['exact_accuracy_naive'] = y['naive_error'].mean()
             regression_res['exact_accuracy2_naive'] = y['naive_error2'].mean()
 
