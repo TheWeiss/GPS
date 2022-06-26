@@ -15,6 +15,7 @@ import traceback
 import logging
 import getopt
 from h2o.automl import H2OAutoML
+import argparse
 import h2o
 
 
@@ -197,54 +198,48 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             #     return -1
 
 
-def main(argv):
-    pre_params=None
-    data = ds.CollectionDataSet(dbs_name_list=[
-        'PATAKI',
-        'VAMP',
-        'PA',
-        'PATRIC',
-    ], pre_params=pre_params)
+def main(args):
+    pre_params = None
 
-    model_param = {
-        'model': 'autoxgb',
-        'train_time': 3600,
-        'max_models': 100,
-    }
-    ds_param = None
+    data = ds.CollectionDataSet(dbs_name_list=args.data_sets, pre_params=pre_params)
 
-    species_list = [0, 1]  # ['Pseudomonas aeruginosa'] #+list(np.arange(5))
-    anti_list = [20] #list(np.arange(0, 20))
-    run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
+    ds_param = {}
+    if args.handle_range:
+        ds_param['handle_range'] = args.handle_range
+    if args.move_range_by:
+        ds_param['move_range_by'] = args.move_range_by
+    if ds == {}:
+        ds_param = None
+
+    model_param = {}
+    model_param['model'] = args.model
+    model_param['train_time'] = args.train_time
+    model_param['max_models'] = args.max_models
+
+    run_exp(data, model_param, ds_param, species=args.species_list, antibiotic=args.anti_list)
 
 
 
 if __name__ == "__main__":
-    pass
-    # # Store argument variable omitting the script name
-    # argv = sys.argv[1:]
-    #
-    # try:
-    #     # Define getopt short and long options
-    #     options, args = getopt.getopt(sys.argv[1:], 's:a', ['spec=', 'anti='])
-    #
-    #     # Read each option using for loop
-    #     for opt, arg in options:
-    #         # Calculate the sum if the option is -a or --add
-    #         if opt in ('-s', '--spec'):
-    #             spec = int(argv[1]) + int(argv[2])
-    #
-    #         # Calculate the suntraction if the option is -s or --sub
-    #         elif opt in ('-s', '--sub'):
-    #             result = int(argv[1]) - int(argv[2])
-    #
-    #     print('Result = ', result)
-    #
-    # except getopt.GetoptError:
-    #
-    #     # Print the error message if the wrong option is provided
-    #     print('The wrong option is provided')
-    #
-    #     # Terminate the script
-    #     sys.exit(2)
-    # main(sys.argv[1:])
+    parser = argparse.ArgumentParser()
+    # dataset to load
+    parser.add_argument('--data-sets', dest='data_sets', default=['PATAKI', 'VAMP', 'PA', 'PATRIC'], nargs='+')
+
+    # pairs to generate X-y data for
+    parser.add_argument('--species-list', dest='species_list', default=0, nargs='+')
+    parser.add_argument('--anti-list', dest='anti_list', default=0, nargs='+')
+
+    # ds parameters like range handling
+    parser.add_argument('--handle-range', dest='handle_range',
+                        choices=['remove', 'strip', 'move'])
+    parser.add_argument('--move-range-by', dest='move_range_by', type=int, nargs='?')
+
+    # pre parameters like geno thresholds
+
+    # models to run
+    parser.add_argument('--model', dest='model', default='autoxgb', type=str, nargs='?')
+    parser.add_argument('--train-time', dest='train_time', default=1, type=int, nargs='?')
+    parser.add_argument('--max-models', dest='max_models', default=1, type=int, nargs='?')
+
+    args = parser.parse_args()
+    main(args)
