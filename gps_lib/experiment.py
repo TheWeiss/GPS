@@ -231,12 +231,14 @@ def main(args):
     if type(args.anti_list) == list:
         anti_list = [int(anti) if anti.isnumeric() else anti for anti in args.anti_list]
     else:
-        anti_list = int(args.anti_list)
+        if args.anti_list.isnumeric():
+            anti_list = int(args.anti_list)
 
     if type(args.species_list) == list:
-        species_list = [int(species) if species.isnumeric() else species for species in args.species_list]
+        species_list = [int(species) if species.isnumeric() else ' '.join(species.split('_')) for species in args.species_list]
     else:
-        species_list = int(args.species_list)
+        if args.species_list.isnumeric():
+            species_list = int(args.species_list)
     run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
 
 
