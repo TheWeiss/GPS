@@ -151,18 +151,18 @@ def walk_level(some_dir, level=1):
         if num_sep + level <= num_sep_this:
             del dirs[:]
 
-def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc = ''):
+def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc = '', run_over=False):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic)==list:
                 for antibiotic_i in antibiotic:
-                            run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc)
+                            run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=False)
             else:
-                run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc)
+                run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=False)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc, run_over=False)
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
@@ -179,17 +179,25 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                 data_path.write(ds_param_files_path)
             if len(train) < 40:
                 with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
-                    f.write('Training set doesnt have at-least 5 samples reqiered for training')
+                    f.write('Training set doesnt have at-least 40 samples reqiered for training')
                     return -1
             model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
             os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
             pd.DataFrame(model_param, index=[0]).to_csv(
                 '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
+
+            if not run_over:
+                if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_name, model_name)) or
+                    os.path.exists('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name)):
+                    print('{}|{} was already run'.format(exp_name, model_name))
+                    return 0
             try:
                 if model_param['model'] == 'autoxgb':
                     run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
                 elif model_param['model'] == 'h2o':
                     run_h2o(exp_name, model_param, ds_param_files_path, col_names)
+                print('done running exp {}|{}'.format(exp_name, model_param))
+                return 0
             except Exception as e:
                 with open('../experiments/{}/{}/tb.txt'.format(exp_name, model_name), 'w+') as f:
                     traceback.print_exc(file=f)
@@ -215,12 +223,15 @@ def main(args):
     model_param['train_time'] = args.train_time
     model_param['max_models'] = args.max_models
 
-    run_exp(data, model_param, ds_param, species=args.species_list, antibiotic=args.anti_list)
+    run_exp(data, model_param, ds_param, species=args.species_list, antibiotic=args.anti_list, run_over=args.run_over)
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--run-over', dest='run_over', action="store_true")
+
     # dataset to load
     parser.add_argument('--data-sets', dest='data_sets', default=['PATAKI', 'VAMP', 'PA', 'PATRIC'], nargs='+')
 
