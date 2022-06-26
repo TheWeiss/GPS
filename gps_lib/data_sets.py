@@ -404,7 +404,7 @@ class MICDataSet(ABC):
 
     def print_pheno_exp_anti_measure(self, species, antibiotic):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
-        saved_path = '{}/exp/{}/{}'.format(self.saved_files_path, species, antibiotic)
+        saved_path = '{}/exp/{}'.format(self.saved_files_path, species)
         e_utils.print_anti_measure(filtered, antibiotic, path = saved_path)
 
 
