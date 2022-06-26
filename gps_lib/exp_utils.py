@@ -19,7 +19,7 @@ def gene_presence_in_isolate_figure(genotype, db_name, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig(path+'/Gene_presence_in_isolates_per_gene')
+        plt.savefig('{}/Gene_presence_in_isolates_per_gene'.format(path))
     plt.show()
 
 
@@ -32,7 +32,7 @@ def gene_num_in_isolate_figure(genotype, db_name, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig(path+'/Gene_presence_in_isolates_per_isolate')
+        plt.savefig('{}/Gene_presence_in_isolates_per_isolate'.format(path))
     plt.show()
 
     
@@ -46,7 +46,7 @@ def anti_presence_in_isolates_figure(all_ASR, db_name, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig(path+'/Amount_of_measurment_per_antibiotic')
+        plt.savefig('{}/Amount_of_measurment_per_antibiotic'.format(path))
     plt.show()
 
 '''
@@ -97,7 +97,7 @@ def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig(path)
+        plt.savefig('{}/{}_MIC_values'.format(path, anti))
     plt.show()
 
     
