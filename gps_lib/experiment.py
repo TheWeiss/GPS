@@ -205,6 +205,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             except Exception as e:
                 with open('../experiments/{}/{}/tb.txt'.format(exp_name, model_name), 'w+') as f:
                     traceback.print_exc(file=f)
+                print('{}|{} ERROR'.format(exp_name, model_name))
                 print("Unexpected error:", e)
                 return -1
 
