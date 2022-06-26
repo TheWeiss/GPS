@@ -163,7 +163,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, )
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc)
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
@@ -186,16 +186,16 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
             os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
             pd.DataFrame(model_param, index=[0]).to_csv(
                 '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
-            # try:
-            if model_param['model'] == 'autoxgb':
-                run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
-            elif model_param['model'] == 'h2o':
-                run_h2o(exp_name, model_param, ds_param_files_path, col_names)
-            # except Exception as e:
-            #     with open('../experiments/{}/{}/tb.txt'.format(exp_name, model_name), 'w+') as f:
-            #         traceback.print_exc(file=f)
-            #     print("Unexpected error:", e)
-            #     return -1
+            try:
+                if model_param['model'] == 'autoxgb':
+                    run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
+                elif model_param['model'] == 'h2o':
+                    run_h2o(exp_name, model_param, ds_param_files_path, col_names)
+            except Exception as e:
+                with open('../experiments/{}/{}/tb.txt'.format(exp_name, model_name), 'w+') as f:
+                    traceback.print_exc(file=f)
+                print("Unexpected error:", e)
+                return -1
 
 
 def main(args):
