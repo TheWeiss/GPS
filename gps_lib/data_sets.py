@@ -385,7 +385,7 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(self.all_ASR, 'sign', col_order=['<', '<=', '=', '>=', '>'], path = '{}/exp'.format(self.saved_files_path))
         e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype', col_order=['S', 'I', 'R'], path = '{}/exp'.format(self.saved_files_path))
         e_utils.look_at_anti_dist(self.all_ASR, 'is_multi_mic', path = '{}/exp'.format(self.saved_files_path))
-        e_utils.look_at_anti_dist(self.all_ASR, 'measurement_has_/', path = '{}/exp'.format(self.saved_files_path))
+        # e_utils.look_at_anti_dist(self.all_ASR, 'measurement_has_/', path = '{}/exp'.format(self.saved_files_path))
         e_utils.look_at_anti_dist(self.all_ASR, 'test_standard', path = '{}/exp'.format(self.saved_files_path))
         e_utils.look_at_anti_dist(self.all_ASR, 'units', path = '{}/exp'.format(self.saved_files_path))
 
