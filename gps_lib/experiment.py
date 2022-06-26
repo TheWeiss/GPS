@@ -237,6 +237,7 @@ def main(args):
     else:
         species_list = int(args.species_list)
 
+    print(species_list, anti_list)
     run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
 
 
