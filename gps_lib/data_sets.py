@@ -398,7 +398,7 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(filtered, 'sign', col_order=['<', '<=', '=', '>=', '>'], path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'resistance_phenotype', col_order=['S', 'I', 'R'], path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'is_multi_mic', path = saved_path)
-        e_utils.look_at_anti_dist(filtered, 'measurement_has_/', path = saved_path)
+        # e_utils.look_at_anti_dist(filtered, 'measurement_has_/', path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'test_standard', path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'units', path = saved_path)
 
