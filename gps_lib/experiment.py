@@ -104,14 +104,15 @@ def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
     axgb.train()
     try:
         PredictAutoXGBCommand('../experiments/{}/{}/model'.format(exp_name, model_name),
-                          '{}/range_X.csv'.format(ds_param_files_path),
-                          '../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).execute()
+                              '{}/range_X.csv'.format(ds_param_files_path),
+                              '../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).execute()
     except ValueError:
         pd.DataFrame({}).to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
     os.rename("../experiments/{}/{}/model/oof_predictions.csv".format(exp_name, model_name),
               "../experiments/{}/{}/train_preds.csv".format(exp_name, model_name))
     os.rename("../experiments/{}/{}/model/test_predictions.csv".format(exp_name, model_name),
               "../experiments/{}/{}/test_preds.csv".format(exp_name, model_name))
+
 
 def fill_all_results():
     h2o.init()
@@ -151,12 +152,14 @@ def walk_level(some_dir, level=1):
         if num_sep + level <= num_sep_this:
             del dirs[:]
 
-def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc = '', run_over=False):
+
+def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc='',
+            run_over=False):
     if type(species) == list:
         for species_j in species:
-            if type(antibiotic)==list:
+            if type(antibiotic) == list:
                 for antibiotic_i in antibiotic:
-                            run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=False)
+                    run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=False)
             else:
                 run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=False)
     else:
@@ -172,7 +175,8 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                 print(type(e))
                 print(e)
                 return -1
-            exp_name = '|'+'|'.join([ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]])+'|'+dataset.name + '|' + exp_desc
+            exp_name = '|' + '|'.join(
+                [ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]]) + '|' + dataset.name + '|' + exp_desc
 
             os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
             with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
@@ -187,8 +191,8 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                 '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
 
             if not run_over:
-                if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_name, model_name)) or
-                    os.path.exists('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name)):
+                if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_name, model_name)) or \
+                        os.path.exists('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name)):
                     print('{}|{} was already run'.format(exp_name, model_name))
                     return 0
             try:
@@ -224,7 +228,6 @@ def main(args):
     model_param['max_models'] = args.max_models
 
     run_exp(data, model_param, ds_param, species=args.species_list, antibiotic=args.anti_list, run_over=args.run_over)
-
 
 
 if __name__ == "__main__":
