@@ -206,6 +206,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
             }, index=['train', 'test'])
 
             if results['model'].iloc[i] == 'autoxgb':
+                print('xgb')
                 range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
                 if len(range_preds) == 0:
                     range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
@@ -216,6 +217,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
                 print(range_res)
             elif results['model'].iloc[i] == 'h2o':
+                print('h2o')
                 range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).drop('Unnamed: 0', axis=1)
                 if len(range_preds) == 0:
                     range_preds = pd.DataFrame({'measurment': []}, index=[])
