@@ -208,7 +208,7 @@ def main(args):
         ds_param['handle_range'] = args.handle_range
     if args.move_range_by:
         ds_param['move_range_by'] = args.move_range_by
-    if ds == {}:
+    if ds_param == {}:
         ds_param = None
 
     model_param = {}
