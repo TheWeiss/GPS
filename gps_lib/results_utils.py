@@ -299,7 +299,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
             test_y = test_y.loc[set(test_indexs) - set(range_y.index)]
             y = pd.concat([range_y, train_y, test_y], axis=0)
             mode = y['y_true'].mode().values[0]
-            mean = y['y_true'].mean().values[0]
+            mean = y['y_true'].mean()
             y = pd.concat([train_y, test_y], axis=0)
 
             y['naive_residual_mode'] = y['y_true'] - mode
