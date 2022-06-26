@@ -224,7 +224,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 range_preds.columns = ['y_pred']
                 print(range_y)
                 print(range_preds)
-                range_res = range_preds.merge(range_y.reset_index(), left_index=True, right_index=True, how='inner')
+                range_res = range_preds.merge(range_y.reset_index(), left_index=True, right_index=True, how='inner').set_index(col_names['id'])
                 print(range_res)
 
             range_res['y_true'] = np.round(range_res['y_true'])
