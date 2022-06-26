@@ -1,6 +1,5 @@
 import os
 from tqdm import tqdm
-import h2o
 import pandas as pd
 import re
 import glob

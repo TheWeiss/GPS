@@ -17,8 +17,8 @@ import h2o
 from tqdm import tqdm
 import pickle
 import json
-import gps_lib.parse_raw_utils as p_utils
-import gps_lib.exp_utils as e_utils
+import parse_raw_utils as p_utils
+import exp_utils as e_utils
 
 from abc import ABC, abstractmethod
 
