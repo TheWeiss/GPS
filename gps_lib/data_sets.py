@@ -374,24 +374,24 @@ class MICDataSet(ABC):
         return self.all_ASR
 
     def print_geno_exp(self):
-        e_utils.gene_presence_in_isolate_figure(self.geno, self.name, path = self.saved_files_path)
-        e_utils.gene_num_in_isolate_figure(self.geno, self.name, path = self.saved_files_path)
+        e_utils.gene_presence_in_isolate_figure(self.geno, self.name, path = '{}/exp'.format(self.saved_files_path))
+        e_utils.gene_num_in_isolate_figure(self.geno, self.name, path = '{}/exp'.format(self.saved_files_path))
 
     def print_pheno_exp(self):
-        e_utils.anti_presence_in_isolates_figure(self.all_ASR, self.name, path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'DB', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'species_fam', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'exact_value', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'sign', col_order=['<', '<=', '=', '>=', '>'], path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype', col_order=['S', 'I', 'R'], path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'is_multi_mic', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'measurement_has_/', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'test_standard', path = self.saved_files_path)
-        e_utils.look_at_anti_dist(self.all_ASR, 'units', path = self.saved_files_path)
+        e_utils.anti_presence_in_isolates_figure(self.all_ASR, self.name, path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'DB', path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'species_fam', path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'exact_value', path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'sign', col_order=['<', '<=', '=', '>=', '>'], path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'resistance_phenotype', col_order=['S', 'I', 'R'], path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'is_multi_mic', path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'measurement_has_/', path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'test_standard', path = '{}/exp'.format(self.saved_files_path))
+        e_utils.look_at_anti_dist(self.all_ASR, 'units', path = '{}/exp'.format(self.saved_files_path))
 
     def print_pheno_exp_for_species(self, species):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
-        saved_path = '{}/{}'.format(self.saved_files_path, species)
+        saved_path = '{}/exp/{}'.format(self.saved_files_path, species)
         e_utils.anti_presence_in_isolates_figure(filtered, self.name, path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'DB', path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'exact_value', path = saved_path)
@@ -404,7 +404,7 @@ class MICDataSet(ABC):
 
     def print_pheno_exp_anti_measure(self, species, antibiotic):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
-        saved_path = '{}/{}_{}'.format(self.saved_files_path, species, antibiotic)
+        saved_path = '{}/exp/{}/{}'.format(self.saved_files_path, species, antibiotic)
         e_utils.print_anti_measure(filtered, antibiotic, path = saved_path)
 
 
