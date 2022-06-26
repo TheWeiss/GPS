@@ -200,7 +200,7 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                     run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
                 elif model_param['model'] == 'h2o':
                     run_h2o(exp_name, model_param, ds_param_files_path, col_names)
-                print('done running exp {}|{}'.format(exp_name, model_param))
+                print('done running exp {}|{}'.format(exp_name, model_name))
                 return 0
             except Exception as e:
                 with open('../experiments/{}/{}/tb.txt'.format(exp_name, model_name), 'w+') as f:
@@ -236,8 +236,6 @@ def main(args):
         species_list = [int(species) if species.isnumeric() else species for species in args.species_list]
     else:
         species_list = int(args.species_list)
-    print(args.species_list, args.anti_list)
-    print(species_list, anti_list)
     run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
 
 
