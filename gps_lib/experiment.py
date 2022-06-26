@@ -227,7 +227,10 @@ def main(args):
     model_param['train_time'] = args.train_time
     model_param['max_models'] = args.max_models
 
-    run_exp(data, model_param, ds_param, species=args.species_list, antibiotic=args.anti_list, run_over=args.run_over)
+    anti_list = [int(anti) if anti.isnumeric() else anti for anti in args.anti_list]
+    species_list = [int(species) if species.isnumeric() else species for species in args.species_list]
+
+    run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
 
 
 if __name__ == "__main__":
