@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import pandas as pd
 import numpy as np
+import os
 
 ########################################################################################
 ################################## Printing functions ##################################
@@ -16,6 +17,8 @@ def gene_presence_in_isolate_figure(genotype, db_name, path=None):
     plt.ylabel('# of isolates containing this gene')
     plt.savefig(path)
     if path is not None:
+        if not os.path.exists(path):
+            os.makedirs(path)
         plt.savefig(path+'/Gene_presence_in_isolates_per_gene')
     plt.show()
 
@@ -27,6 +30,8 @@ def gene_num_in_isolate_figure(genotype, db_name, path=None):
     plt.xlabel('number of genes found')
     plt.ylabel('# of isolates with this number of genes')
     if path is not None:
+        if not os.path.exists(path):
+            os.makedirs(path)
         plt.savefig(path+'/Gene_presence_in_isolates_per_isolate')
     plt.show()
 
@@ -39,6 +44,8 @@ def anti_presence_in_isolates_figure(all_ASR, db_name, path=None):
     plt.xlabel('antibiotic')
     plt.ylabel('# of isolates having ASR measurement of this antibiotic')
     if path is not None:
+        if not os.path.exists(path):
+            os.makedirs(path)
         plt.savefig(path+'/Amount_of_measurment_per_antibiotic')
     plt.show()
 
@@ -63,6 +70,8 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None, path=None):
     plt.xlabel('# of measurements')
     plt.legend(loc='lower right')
     if path is not None:
+        if not os.path.exists(path):
+            os.makedirs(path)
         plt.savefig('{}/Distribution_{}_per_antibiotics'.format(path, col_name))
     plt.show()
 
@@ -86,6 +95,8 @@ def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
     plt.xlabel('log2(mg//L)')
     plt.ylabel('#')
     if path is not None:
+        if not os.path.exists(path):
+            os.makedirs(path)
         plt.savefig(path)
     plt.show()
 
