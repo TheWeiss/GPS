@@ -239,8 +239,6 @@ def main(args):
     else:
         if args.species_list.isnumeric():
             species_list = int(args.species_list)
-    print(args.anti_list)
-    print(anti_list)
     run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
 
 
