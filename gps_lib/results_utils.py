@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix, mean_squared_error, ConfusionMatrixDisplay
 
 def parse_results(exp_dir_path):
     exp_list =  []
@@ -182,6 +184,246 @@ def read_exp_dirs(exp_dir_path):
     results = fix_range_values(results)
     results.to_csv('{}/results_summery.csv'.format(exp_dir_path), index=True)
     return results
+
+
+def exact_plots(i):
+    res = pd.read_csv('../experiments/results_summery.csv')
+    exp_name = res.loc[i, 'exp_path']
+    model_path = res.loc[i, 'model_path']
+    model = res.loc[i, 'model']
+    data_path = res.loc[i, 'data_path']
+    with open(data_path + '/col_names.json') as json_file:
+        col_names = json.load(json_file)
+    range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
+    range_y.columns = ['y_true', 'sign']
+
+    split_res = {}
+    for split in ['train', 'test']:
+        split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
+            [
+                col_names['id'],
+                col_names['label'],
+            ]].set_index(col_names['id'])
+        split_y.columns = ['y_true']
+        if model == 'autoxgb':
+            split_preds = pd.read_csv(
+                '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).set_index(col_names['id'])
+            split_preds.columns = ['y_pred']
+            split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
+        elif model == 'h2o':
+            split_preds = pd.read_csv(
+                '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
+            split_preds.columns = ['y_pred']
+            split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
+                                            how='inner').set_index(col_names['id'])
+        split_res_i = split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
+
+        split_res_i['y_true'] = np.round(split_res_i['y_true'])
+        min_true = split_res_i['y_true'].min()
+        max_true = split_res_i['y_true'].max(axis=0)
+        split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
+        split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
+        split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
+        split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
+        split_res_i['error'] = split_res_i['round_residual'].abs() < 1
+        split_res_i['error2'] = split_res_i['round_residual'].abs() < 2
+        split_res[split] = split_res_i
+
+    tics = list(set(list(np.round(split_res['train']['y_true']).unique())).union(
+        set(list(np.round(split_res['train']['y_pred']).unique()))))
+
+    N = len(tics)
+
+    for key, res in split_res.items():
+
+        title = 'Exact confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], key)
+        # for title, normalize in titles_options:
+        plt.figure(figsize=(10, 10))
+
+        # Generate the confusion matrix
+        cf_matrix = confusion_matrix(np.round(res['y_true']), np.round(res['y_pred']), labels=tics)
+        group_counts = ["{0:0.0f}".format(value) for value in cf_matrix.flatten()]
+
+        cf_matrix = confusion_matrix(np.round(res['y_true']), np.round(res['y_pred']), normalize='true', labels=tics)
+        group_percentages = ["{0:.2%}".format(value) for value in cf_matrix.flatten()]
+
+        labels = [f"{v1}\n({v2})" for v1, v2 in
+                  zip(group_percentages, group_counts)]
+
+        labels = np.asarray(labels).reshape(N, N)
+
+        ax = sns.heatmap(cf_matrix, annot=labels, fmt='', cmap='Blues')
+        # ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
+
+        ax.set_title(title);
+        ax.set_xlabel('\nPredicted Values')
+        ax.set_ylabel('Actual Values ')
+
+        ## Ticket labels - List must be in alphabetical order
+        ax.xaxis.set_ticklabels(tics)
+        ax.yaxis.set_ticklabels(tics)
+
+        ## Display the visualization of the Confusion Matrix.
+        plt.show()
+        # cm.to_csv('../experiments/{}/{}_df_confusion_matrix_{}.csv'.format(exp_name, key, normalize))
+        # plt.savefig('../experiments/{}/{}_confusion_matrix_{}.png'.format(exp_name, key, normalize), format='png')
+        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, key))
+    plt.show()
+
+
+def PA_plot(i, threshold):
+    res = pd.read_csv('../experiments/results_summery.csv')
+    exp_name = res.loc[i, 'exp_path']
+    model_path = res.loc[i, 'model_path']
+    model = res.loc[i, 'model']
+    data_path = res.loc[i, 'data_path']
+    with open(data_path + '/col_names.json') as json_file:
+        col_names = json.load(json_file)
+    range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
+    range_y.columns = ['y_true', 'sign']
+
+    split_res = {}
+    for split in ['train', 'test']:
+        split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
+            [
+                col_names['id'],
+                col_names['label'],
+            ]].set_index(col_names['id'])
+        split_y.columns = ['y_true']
+        if model == 'autoxgb':
+            split_preds = pd.read_csv(
+                '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).set_index(col_names['id'])
+            split_preds.columns = ['y_pred']
+            split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
+        elif model == 'h2o':
+            split_preds = pd.read_csv(
+                '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
+            split_preds.columns = ['y_pred']
+            split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
+                                            how='inner').set_index(col_names['id'])
+        split_res_i = split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
+
+        split_res_i['y_true'] = np.round(split_res_i['y_true'])
+        split_res_i['y_true_side'] = np.sign(split_res_i['y_true'] - threshold)
+
+        min_true = split_res_i['y_true'].min()
+        max_true = split_res_i['y_true'].max(axis=0)
+        split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
+        split_res_i['y_pred_side'] = np.sign(split_res_i['y_pred'] - threshold)
+
+        split_res_i['error'] = split_res_i['y_true_side'] == split_res_i['y_pred_side']
+        split_res_i['error'].replace(True, 'correctly_classified', inplace=True)
+        split_res_i['error'].replace(False, 'misclassified', inplace=True)
+        split_res_i.loc[split_res_i['y_true_side'] == 0, 'error'] = 'intermidiate_(not_classified)'
+
+        if split == 'train':
+            low = np.round(split_res_i['y_true'].min())
+            high = np.round(split_res_i['y_true'].max())
+
+        hist_range = np.arange(low - 0.5, high + 1, 1)
+        bins_count = pd.DataFrame(
+            split_res_i.groupby(by='error')['y_true'].apply(lambda x: np.histogram(x, bins=hist_range)[0]))
+
+        tmp = pd.DataFrame(
+            {'y_true': [np.zeros(len(hist_range) - 1)]},
+            index=['correctly_classified', 'misclassified', 'intermidiate_(not_classified)']
+        )
+        bins_count = pd.concat([bins_count, tmp], axis=0)
+        bins_count = bins_count[~bins_count.index.duplicated(keep='first')]
+        bins_count = bins_count.loc[['correctly_classified', 'misclassified', 'intermidiate_(not_classified)']]
+
+        # bins_count = bins_count.join(pd.DataFrame({'fill': [np.zeros(len(hist_range)-1)]},
+        #                                            index=['correctly_classified', 'misclassified', 'intermidiate (not classified)']),
+        #                               left_index=True, right_index=True, how='right')
+        # print(bins_count)
+
+        # bins_count['y_true'].fillna(bins_count['fill'], inplace=True)
+        pd.DataFrame(bins_count['y_true'].tolist(), index=bins_count.index, columns=hist_range[:-1] + 0.5).T.plot.bar(
+            stacked=True, figsize=(10, 6), color=['g', 'r', 'purple'])
+        plt.title('SIR based on MIC predictionof the pair ({},{}) - {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], split))
+        plt.xlabel('log2(mg//L)')
+        plt.ylabel('#')
+        plt.savefig('../experiments/{}/{}/SIR_inference_{}'.format(exp_name, model_path, split))
+        plt.show()
+
+
+def range_plots(i):
+    res = pd.read_csv('../experiments/results_summery.csv')
+    exp_name = res.loc[i, 'exp_path']
+    model = res.loc[i, 'model']
+    model_path = res.loc[i, 'model_path']
+    data_path = res.loc[i, 'data_path']
+
+    equal_meaning = True
+    with open(data_path + '/col_names.json') as json_file:
+        col_names = json.load(json_file)
+    range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
+    range_y.columns = ['y_true', 'sign']
+
+    split_idx = {}
+    for split in ['train', 'test']:
+        split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
+            [
+                col_names['id'],
+                col_names['label'],
+            ]].set_index(col_names['id'])
+        split_idx[split] = split_y.index
+
+    if model == 'autoxgb':
+        range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path))
+        if len(range_preds) == 0:
+            range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
+        range_preds = range_preds.set_index(col_names['id'])
+        range_preds.columns = ['y_pred']
+        range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
+    elif model == 'h2o':
+        range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path)).drop(
+            'Unnamed: 0', axis=1)
+        if len(range_preds) == 0:
+            range_preds = pd.DataFrame({'measurment': []}, index=[])
+        range_preds.columns = ['y_pred']
+        range_res = range_preds.merge(range_y.reset_index(), left_index=True, right_index=True, how='inner').set_index(
+            col_names['id'])
+
+    range_res['y_true'] = np.round(range_res['y_true'])
+    range_res['updated_y_true'] = np.nan
+    range_res['updated_sign'] = np.nan
+    if not equal_meaning:
+        range_res.loc[range_res['sign'] == '>=', 'updated_y_true'] = range_res['y_true'] - 1
+        range_res.loc[range_res['sign'] == '<=', 'updated_y_true'] = range_res['y_true'] + 1
+    range_res.loc[range_res['sign'] == '>=', 'updated_sign'] = '>'
+    range_res.loc[range_res['sign'] == '<=', 'updated_sign'] = '<'
+    range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
+    range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
+
+    range_res.loc[range_res['updated_sign'] == '>', 'error'] = (
+            range_res['y_pred'] > range_res['updated_y_true'])
+    range_res.loc[range_res['updated_sign'] == '<', 'error'] = (
+            range_res['y_pred'] < range_res['updated_y_true'])
+    range_res.loc[range_res['updated_sign'] == '>', 'error2'] = (
+            range_res['y_pred'] > range_res['updated_y_true'] - 1)
+    range_res.loc[range_res['updated_sign'] == '<', 'error2'] = (
+            range_res['y_pred'] < range_res['updated_y_true'] + 1)
+
+    train_range_res = range_res.loc[set(range_res.index).intersection(set(split_idx['train']))]
+    test_range_res = range_res.loc[set(range_res.index) - set(split_idx['train'])]
+
+    for key, split_res in {'train': train_range_res, 'test': test_range_res}.items():
+        range_confusion = split_res.groupby(by=['y_true', 'sign'])['error'].agg(['count', 'sum']).replace(True, 1)
+        range_confusion['perc'] = 100 * range_confusion['sum'] / range_confusion['count']
+        range_confusion.columns = ['range_total', 'correctly_classified', 'range_accuracy']
+        range_confusion['misclassified'] = range_confusion['range_total'] - range_confusion['correctly_classified']
+
+        ax = range_confusion[['correctly_classified', 'misclassified']].plot.bar(stacked=True, figsize=(10, 6),
+                                                                                 color=['g', 'r'])
+        ax.set_ylabel("#Isolates")
+        ax2 = range_confusion[['range_accuracy']].plot(ax=ax.twinx(), color='blue', marker="o")
+        ax2.set_title('Range results of the pair ({},{}) - {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], key))
+        ax2.set_ylabel("Accuracy [%]", color="blue", fontsize=14)
+        ax2.set_ylim((0, 101))
+        plt.savefig('../experiments/{}/{}/range_conf_mat_{}'.format(exp_name, model_path, key))
+        plt.show()
+    return range_confusion
 
 
 def add_metrices(res, equal_meaning=True, range_conf=False):
