@@ -262,7 +262,7 @@ def exact_plots(i):
         ## Ticket labels - List must be in alphabetical order
         ax.xaxis.set_ticklabels(tics)
         ax.yaxis.set_ticklabels(tics)
-        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, fold))
+        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, key))
         ## Display the visualization of the Confusion Matrix.
         plt.show()
 
