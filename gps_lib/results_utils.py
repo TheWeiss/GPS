@@ -229,8 +229,8 @@ def exact_plots(i):
         split_res_i['error2'] = split_res_i['round_residual'].abs() < 2
         split_res[split] = split_res_i
 
-    tics = list(set(list(np.round(split_res['train']['y_true']).unique())).union(
-        set(list(np.round(split_res['train']['y_pred']).unique()))))
+    tics = np.sort(list(set(list(np.round(split_res['train']['y_true']).unique())).union(
+        set(list(np.round(split_res['train']['y_pred']).unique())))))
 
     N = len(tics)
 
