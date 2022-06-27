@@ -156,6 +156,20 @@ def print_results_by(results, sort_metric, metrices, infos, ascending=False):
     print(results_by(results, sort_metric, ascending).iloc[0])
 
 
+def get_exp_id_by_criterion(results, sort_metric, ascending=False):
+    criterion = sort_metric #'exact_RMSE'
+
+    criterion = criterion+'_test'
+    if ascending:
+        accuracy_score = results.groupby(['species', 'antibiotic'])[criterion].min()
+        species, antibiotic = accuracy_score.idxmin()
+    else:
+        accuracy_score = results.groupby(['species', 'antibiotic'])[criterion].max()
+        species, antibiotic = accuracy_score.idxmax()
+    i = results[np.logical_and(results['species']==species, results['antibiotic']==antibiotic)].sort_values(by=criterion, ascending=ascending).iloc[0].dropna().name
+    return i
+
+
 def read_exp_dirs(exp_dir_path):
     results = parse_results(exp_dir_path)
     results['exp_path'].apply(align_model_params_files)
