@@ -262,12 +262,10 @@ def exact_plots(i):
         ## Ticket labels - List must be in alphabetical order
         ax.xaxis.set_ticklabels(tics)
         ax.yaxis.set_ticklabels(tics)
-
+        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, fold))
         ## Display the visualization of the Confusion Matrix.
         plt.show()
-        # cm.to_csv('../experiments/{}/{}_df_confusion_matrix_{}.csv'.format(exp_name, key, normalize))
-        # plt.savefig('../experiments/{}/{}_confusion_matrix_{}.png'.format(exp_name, key, normalize), format='png')
-        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, fold))
+
     plt.show()
 
 
