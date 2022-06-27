@@ -267,7 +267,7 @@ def exact_plots(i):
         plt.show()
         # cm.to_csv('../experiments/{}/{}_df_confusion_matrix_{}.csv'.format(exp_name, key, normalize))
         # plt.savefig('../experiments/{}/{}_confusion_matrix_{}.png'.format(exp_name, key, normalize), format='png')
-        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, key))
+        plt.savefig('../experiments/{}/{}/exact_conf_mat_{}'.format(exp_name, model_path, fold))
     plt.show()
 
 
