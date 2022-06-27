@@ -238,7 +238,7 @@ def exact_plots(i):
 
         title = 'Exact confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], key)
         # for title, normalize in titles_options:
-        plt.figure(figsize=(10, 10))
+        plt.figure(figsize=(13, 13))
 
         # Generate the confusion matrix
         cf_matrix = confusion_matrix(np.round(fold['y_true']), np.round(fold['y_pred']), labels=tics)
