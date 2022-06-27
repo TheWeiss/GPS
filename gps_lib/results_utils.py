@@ -155,7 +155,6 @@ def print_results_by(results, sort_metric, metrices, infos, ascending=False):
         except:
             pass
     plt.show()
-    print(results_by(results, sort_metric, ascending).iloc[0])
 
 
 def get_exp_id_by_criterion(results, sort_metric, ascending=False, get_next=0):
