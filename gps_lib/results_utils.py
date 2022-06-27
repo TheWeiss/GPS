@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import json
+import matplotlib.pyplot as plt
 
 def parse_results(exp_dir_path):
     exp_list =  []
@@ -113,6 +114,48 @@ def fill_model_param(row):
     return tmp
 
 
+def results_by(results, metric, ascending=False):
+    filtered_res = results.sort_values(ascending=ascending, by='{}_test'.format(metric)).drop_duplicates(subset=['species', 'antibiotic'], keep='first')
+    filtered_res = filtered_res.sort_values(ascending=ascending, by='{}_test'.format(metric)).reset_index(drop=True)
+    return filtered_res
+
+
+def print_results_by(results, sort_metric, metrices, infos, ascending=False):
+    if sort_metric in metrices:
+        metrices.remove(sort_metric)
+    fig, axis = plt.subplots(len(metrices) + len(infos) + 1 + 1, sharex=True,
+                             figsize=(15, 4 * (len(metrices) + len(infos) + 1)))
+    fig.suptitle('performance sorted by {}'.format(sort_metric))
+    results_by(results, sort_metric, ascending)['{}_train'.format(sort_metric)].plot(legend='train', ax=axis[0],
+                                                                                     grid=True)
+    results_by(results, sort_metric, ascending)['{}_test'.format(sort_metric)].plot(legend='test', ax=axis[0],
+                                                                                    grid=True)
+    try:
+        results_by(results, sort_metric, ascending)['{}_naive'.format(sort_metric)].plot(legend='naive', ax=axis[0],
+                                                                                         grid=True)
+    except:
+        pass
+    size_infos = ['exact_size', 'range_size']
+    results_by(results, sort_metric, ascending)[size_infos].plot.area(legend=size_infos, ax=axis[1], grid=True)
+
+    for i, info in enumerate(infos):
+        results_by(results, sort_metric, ascending)[info].plot(legend=info, ax=axis[i + 2], grid=True)
+
+    for i, met in enumerate(metrices):
+        results_by(results, sort_metric, ascending)['{}_train'.format(met)].plot(legend='test',
+                                                                                 ax=axis[i + 2 + len(infos)], grid=True)
+        results_by(results, sort_metric, ascending)['{}_test'.format(met)].plot(legend='test',
+                                                                                ax=axis[i + 2 + len(infos)], grid=True)
+        try:
+            results_by(results, sort_metric, ascending)['{}_naive'.format(met)].plot(legend='naive',
+                                                                                     ax=axis[i + 2 + len(infos)],
+                                                                                     grid=True)
+        except:
+            pass
+    plt.show()
+    print(results_by(results, sort_metric, ascending).iloc[0])
+
+
 def read_exp_dirs(exp_dir_path):
     results = parse_results(exp_dir_path)
     results['exp_path'].apply(align_model_params_files)
@@ -123,7 +166,7 @@ def read_exp_dirs(exp_dir_path):
     results = add_metrices(results, equal_meaning=True)
     results = compare_to_naive(results)
     results = fix_range_values(results)
-    results.to_csv('{}/results_summery.csv'.format(exp_dir_path))
+    results.to_csv('{}/results_summery.csv'.format(exp_dir_path), index=True)
     return results
 
 
