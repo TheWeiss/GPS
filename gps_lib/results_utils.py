@@ -234,17 +234,17 @@ def exact_plots(i):
 
     N = len(tics)
 
-    for key, res in split_res.items():
+    for key, fold in split_res.items():
 
         title = 'Exact confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], key)
         # for title, normalize in titles_options:
         plt.figure(figsize=(10, 10))
 
         # Generate the confusion matrix
-        cf_matrix = confusion_matrix(np.round(res['y_true']), np.round(res['y_pred']), labels=tics)
+        cf_matrix = confusion_matrix(np.round(fold['y_true']), np.round(fold['y_pred']), labels=tics)
         group_counts = ["{0:0.0f}".format(value) for value in cf_matrix.flatten()]
 
-        cf_matrix = confusion_matrix(np.round(res['y_true']), np.round(res['y_pred']), normalize='true', labels=tics)
+        cf_matrix = confusion_matrix(np.round(fold['y_true']), np.round(fold['y_pred']), normalize='true', labels=tics)
         group_percentages = ["{0:.2%}".format(value) for value in cf_matrix.flatten()]
 
         labels = [f"{v1}\n({v2})" for v1, v2 in
