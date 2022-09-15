@@ -409,6 +409,7 @@ def range_plots(i):
         range_confusion = split_res.groupby(by=['y_true', 'sign'])['error'].agg(['count', 'sum']).replace(True, 1)
         range_confusion['perc'] = 100 * range_confusion['sum'] / range_confusion['count']
         range_confusion.columns = ['range_total', 'correctly_classified', 'range_accuracy']
+        range_confusion['correctly_classified'] = range_confusion['correctly_classified'].astype(int)
         range_confusion['misclassified'] = range_confusion['range_total'] - range_confusion['correctly_classified']
 
         ax = range_confusion[['correctly_classified', 'misclassified']].plot.bar(stacked=True, figsize=(10, 6),
