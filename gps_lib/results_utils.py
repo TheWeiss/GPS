@@ -421,7 +421,6 @@ def range_plots(i):
         ax2.set_ylim((0, 101))
         plt.savefig('../experiments/{}/{}/range_conf_mat_{}'.format(exp_name, model_path, key))
         plt.show()
-        print(range_confusion)
 
 
 def add_metrices(res, equal_meaning=True, range_conf=False):
