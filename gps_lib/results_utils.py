@@ -163,11 +163,12 @@ def get_exp_id_by_criterion(results, sort_metric, ascending=False, get_next=0):
     criterion = criterion+'_test'
     if ascending:
         accuracy_score = results.groupby(['species', 'antibiotic'])[criterion].min()
-        species, antibiotic = accuracy_score.idxmin()
+        species, antibiotic = accuracy_score.sort_values(ascending=True).index[get_next]
     else:
         accuracy_score = results.groupby(['species', 'antibiotic'])[criterion].max()
-        species, antibiotic = accuracy_score.idxmax()
-    i = results[np.logical_and(results['species']==species, results['antibiotic']==antibiotic)].sort_values(by=criterion, ascending=ascending).iloc[get_next].dropna().name
+        species, antibiotic = accuracy_score.sort_values(ascending=False).index[get_next]
+    i = results[np.logical_and(results['species'] == species, results['antibiotic'] == antibiotic)].sort_values(
+        by=criterion, ascending=ascending).iloc[0].dropna().name
     return i
 
 
