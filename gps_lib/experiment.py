@@ -50,12 +50,18 @@ class Model_h2o(Model):
         model_path = os.listdir(('{}{}/{}/model'.format(self.exp_dir_path, self.exp_name, self.model_name)))[0]
         self.model = h2o.load_model('{}{}/{}/model/{}'.format(self.exp_dir_path, self.exp_name, self.model_name, model_path))
 
+    def covert_X_test(self, X_test):
+        X_test[self.col_names['id']] = np.arange(len(X_test))
+        X_test[self.col_names['label']] = 0
+        test_h2o = h2o.H2OFrame(X_test)
+        return test_h2o
+
     def get_model(self):
         return self.model
 
     def predict(self, X_test):
-        testH2o = h2o.H2OFrame(X_test)
-        test_preds = self.model.predict(testH2o).as_data_frame()
+        test_h2o = self.covert_X_test(X_test)
+        test_preds = self.model.predict(test_h2o).as_data_frame()
         return test_preds
 
 
