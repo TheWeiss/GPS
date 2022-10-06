@@ -51,7 +51,7 @@ class Model_h2o(Model):
         self.model = h2o.load_model('{}{}/{}/model/{}'.format(self.exp_dir_path, self.exp_name, self.model_name, model_path))
 
     def covert_X_test(self, X_test):
-        print(X_test)
+        X_test = pd.DataFrame(data = X_test, columns = self.col_names['features'])
         X_test[self.col_names['id']] = np.arange(len(X_test))
         X_test[self.col_names['label']] = 0
         test_h2o = h2o.H2OFrame(X_test)
