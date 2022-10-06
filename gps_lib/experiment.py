@@ -16,7 +16,64 @@ import getopt
 from h2o.automl import H2OAutoML
 import argparse
 import h2o
+from abc import ABC, abstractmethod
 
+
+class Model(ABC):
+    def __init__(self, exp_name, model_param, ds_param_files_path, col_names, exp_dir_path='../experiments/'):
+        super().__init__()
+        self.exp_name = exp_name
+        self.model_param = model_param
+        self.model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+        self.ds_param_files_path = ds_param_files_path
+        self.col_names = col_names
+        self.exp_dir_path = exp_dir_path
+
+    def get_train(self):
+        return pd.read_csv('{}/train.csv'.format(self.ds_param_files_path))
+
+    def get_test(self):
+        return pd.read_csv('{}/test.csv'.format(self.ds_param_files_path))
+
+    def get_range(self):
+        return pd.read_csv('{}/range_X.csv'.format(self.ds_param_files_path))
+
+    @abstractmethod
+    def predict(self, X_test):
+        pass
+
+class Model_h2o(Model):
+    def __init__(self, exp_name, model_param, ds_param_files_path, col_names, exp_dir_path='../experiments/'):
+        super().__init__(exp_name, model_param, ds_param_files_path, col_names, exp_dir_path)
+        h2o.init()
+        model_path = os.listdir(('{}{}/{}/model'.format(self.exp_dir_path, self.exp_name, self.model_name)))[0]
+        self.model = h2o.load_model('{}{}/{}/model/{}'.format(self.exp_dir_path, self.exp_name, self.model_name, model_path))
+
+    def get_model(self):
+        return self.model
+
+    def predict(self, X_test):
+        testH2o = h2o.H2OFrame(X_test)
+        test_preds = self.model.predict(testH2o).as_data_frame()
+        return test_preds
+
+
+class model_axgb(Model):
+    def __init__(self, exp_name, model_param, ds_param_files_path, col_names, exp_dir_path='../experiments/'):
+        super().__init__(exp_name, model_param, ds_param_files_path, col_names, exp_dir_path)
+
+    def predict(self, X_test):
+        X_test.to_csv('{}{}/{}/tmp_test_X.csv'.format(self.exp_dir_path, self.exp_name, self.model_name))
+        PredictAutoXGBCommand('{}{}/{}/model'.format(self.exp_dir_path, self.exp_name, self.model_name),
+                              '{}{}/{}/tmp_test_X.csv'.format(self.exp_dir_path, self.exp_name, self.model_name),
+                              '{}{}/{}/tmp_test_preds.csv'.format(
+                                  self.exp_dir_path, self.exp_name, self.model_name)).execute()
+        test_preds = pd.read_csv('{}{}/{}/tmp_test_preds.csv'.format(self.exp_dir_path, self.exp_name, self.model_name))
+        os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}/tmp_test_X.csv'".format(
+            self.exp_name, self.model_name))
+        os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}/tmp_test_preds.csv'".format(
+            self.exp_name, self.model_name))
+        return test_preds
 
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     h2o.init()
