@@ -4,7 +4,9 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 import seaborn as sns
+import shap
 from sklearn.metrics import confusion_matrix, mean_squared_error, ConfusionMatrixDisplay
+from experiment import Model_h2o, Model_axgb
 
 def parse_results(exp_dir_path):
     exp_list =  []
@@ -636,3 +638,28 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
         results = pd.concat([results, pd.DataFrame(columns=regression_res.columns)])
         results.update(regression_res)
     return results
+
+
+def shap_plots(i):
+    res = pd.read_csv('../experiments/results_summery.csv')
+    exp_name = res.loc[i, 'exp_path']
+    model_type = res.loc[i, 'model']
+    model_name = res.loc[i, 'model_path']
+    data_path = res.loc[i, 'data_path']
+
+    if model_type == 'h2o':
+        model = Model_h2o(exp_name, model_name, data_path)
+    elif model_type == 'autoxgb':
+        model = Model_axgb(exp_name, model_name, data_path)
+    else:
+        print('model_type not supported: {}'.format(model_type))
+        return -1
+    X = model.get_test()
+    explainer = shap.KernelExplainer(model=model.predict, data=X)
+    shap_values = explainer.shap_values(X=X, nsamples=100)
+    shap.initjs()
+
+    shap.summary_plot(shap_values=shap_values,
+                      features=X)
+
+

@@ -17,23 +17,24 @@ from h2o.automl import H2OAutoML
 import argparse
 import h2o
 from abc import ABC, abstractmethod
+import json
 
 
 class Model(ABC):
-    def __init__(self, exp_name, model_param, ds_param_files_path, col_names, exp_dir_path='../experiments/'):
+    def __init__(self, exp_name, model_name, ds_param_files_path, exp_dir_path='../experiments/'):
         super().__init__()
         self.exp_name = exp_name
-        self.model_param = model_param
-        self.model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+        self.model_name = model_name
         self.ds_param_files_path = ds_param_files_path
-        self.col_names = col_names
+        with open(self.ds_param_files_path + '/col_names.json') as json_file:
+            self.col_names = json.load(json_file)
         self.exp_dir_path = exp_dir_path
 
     def get_train(self):
-        return pd.read_csv('{}/train.csv'.format(self.ds_param_files_path))
+        return pd.read_csv('{}/train.csv'.format(self.ds_param_files_path))[self.col_names['features']]
 
     def get_test(self):
-        return pd.read_csv('{}/test.csv'.format(self.ds_param_files_path))
+        return pd.read_csv('{}/test.csv'.format(self.ds_param_files_path))[self.col_names['features']]
 
     def get_range(self):
         return pd.read_csv('{}/range_X.csv'.format(self.ds_param_files_path))
@@ -43,8 +44,8 @@ class Model(ABC):
         pass
 
 class Model_h2o(Model):
-    def __init__(self, exp_name, model_param, ds_param_files_path, col_names, exp_dir_path='../experiments/'):
-        super().__init__(exp_name, model_param, ds_param_files_path, col_names, exp_dir_path)
+    def __init__(self, exp_name, model_name, ds_param_files_path, exp_dir_path='../experiments/'):
+        super().__init__(exp_name, model_name, ds_param_files_path, exp_dir_path)
         h2o.init()
         model_path = os.listdir(('{}{}/{}/model'.format(self.exp_dir_path, self.exp_name, self.model_name)))[0]
         self.model = h2o.load_model('{}{}/{}/model/{}'.format(self.exp_dir_path, self.exp_name, self.model_name, model_path))
@@ -58,9 +59,9 @@ class Model_h2o(Model):
         return test_preds
 
 
-class model_axgb(Model):
-    def __init__(self, exp_name, model_param, ds_param_files_path, col_names, exp_dir_path='../experiments/'):
-        super().__init__(exp_name, model_param, ds_param_files_path, col_names, exp_dir_path)
+class Model_axgb(Model):
+    def __init__(self, exp_name, model_name, ds_param_files_path, exp_dir_path='../experiments/'):
+        super().__init__(exp_name, model_name, ds_param_files_path, exp_dir_path)
 
     def predict(self, X_test):
         X_test.to_csv('{}{}/{}/tmp_test_X.csv'.format(self.exp_dir_path, self.exp_name, self.model_name))
