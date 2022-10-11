@@ -62,8 +62,10 @@ class Model_h2o(Model):
 
     def predict(self, X_test):
         test_h2o = self.convert_X_test(X_test)
-        test_preds = self.model.predict(test_h2o).as_data_frame()
+        test_preds_h2o = self.model.predict(test_h2o)
+        test_preds = test_preds_h2o.as_data_frame().copy()
         h2o.remove(test_h2o)
+        h2o.remove(test_preds_h2o)
         return test_preds
 
 
