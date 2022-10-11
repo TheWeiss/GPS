@@ -646,6 +646,8 @@ def shap_plots(i):
     model_type = res.loc[i, 'model']
     model_name = res.loc[i, 'model_path']
     data_path = res.loc[i, 'data_path']
+    with open(data_path + '/col_names.json') as json_file:
+        col_names = json.load(json_file)
 
     if model_type == 'h2o':
         model = Model_h2o(exp_name, model_name, data_path)
@@ -653,13 +655,13 @@ def shap_plots(i):
         model = Model_axgb(exp_name, model_name, data_path)
     else:
         print('model_type not supported: {}'.format(model_type))
-        return -1
     X = model.get_test()
     explainer = shap.KernelExplainer(model=model.predict, data=X)
-    shap_values = explainer.shap_values(X=X, nsamples=100)
+    shap_values = explainer.shap_values(X=X)
     shap.initjs()
 
     shap.summary_plot(shap_values=shap_values,
                       features=X)
+    return shap_values
 
 
