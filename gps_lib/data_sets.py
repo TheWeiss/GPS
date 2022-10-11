@@ -717,7 +717,7 @@ class MICDataSet(ABC):
             range_X = pca_range
             col_names['features'] = new_features
 
-        if ds_param['scalar']:
+        if ds_param.get('pca'):
             final_scalar = StandardScaler()
             train[col_names['features']] = final_scalar.fit_transform(train[col_names['features']])
             test[col_names['features']] = final_scalar.transform(test[col_names['features']])
