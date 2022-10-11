@@ -619,7 +619,9 @@ class MICDataSet(ABC):
         if ds_param.get('id_thresh') is not None:
             for gene in genes:
                 mask = train[gene + '->seq_id'] < ds_param.get('id_thresh')
+                print(mask)
                 train.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+                print(train)
                 mask = test[gene + '->seq_id'] < ds_param.get('id_thresh')
                 test.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
                 mask = range_X[gene + '->seq_id'] < ds_param.get('id_thresh')
@@ -636,7 +638,7 @@ class MICDataSet(ABC):
 
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
         col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
-        test = test[col_names['features']]
+        test = test[[col_names['id'], col_names['label']]+col_names['features']]
         range_X = range_X[col_names['features']]
 
         if ds_param.get('pca') == 'per_gene':
