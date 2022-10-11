@@ -10,6 +10,8 @@ from sklearn.model_selection import ParameterSampler, RandomizedSearchCV
 from scipy.stats.distributions import expon
 from scipy.stats import uniform
 from datetime import datetime
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 import os
 import glob
 import re
@@ -435,6 +437,7 @@ class MICDataSet(ABC):
         except FileNotFoundError:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
             train, test, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
+            train, test, range_X, range_y, col_names = self._transform_features(ds_param, train, test, range_X, range_y, col_names)
             train.to_csv(ds_param_files_path + '/train.csv')
             test.to_csv(ds_param_files_path + '/test.csv')
             range_X.to_csv(ds_param_files_path + '/range_X.csv')
@@ -460,6 +463,8 @@ class MICDataSet(ABC):
             'reg_stratified': True,
             'stratified_cv_num': 3,
             'random_seed': 42,
+            'pca': None,  # None/per_gene/all
+            'scalar': False,
         }
         full_ds_param = {}
         for key, value in default_values.items():
@@ -607,6 +612,117 @@ class MICDataSet(ABC):
         col_names['id'] = 'run_id'
         col_names['label'] = 'measurement'
         return train_data, test_data, range_X, range_y, col_names
+
+    def _transform_features(self, ds_param, train, test, range_X, range_y, col_names):
+        features = [x.split('->') for x in col_names['features']]
+        genes = list(dict.fromkeys([x[0] for x in features]))
+        if ds_param.get('id_thresh') is not None:
+            for gene in genes:
+                mask = train[gene + '->seq_id'] < ds_param.get('id_thresh')
+                train.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+                mask = test[gene + '->seq_id'] < ds_param.get('id_thresh')
+                test.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+                mask = range_X[gene + '->seq_id'] < ds_param.get('id_thresh')
+                range_X.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+
+        if ds_param.get('cov_thresh') is not None:
+            for gene in genes:
+                mask = train[gene + '->seq_cov'] < ds_param.get('cov_thresh')
+                train.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+                mask = test[gene + '->seq_cov'] < ds_param.get('cov_thresh')
+                test.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+                mask = range_X[gene + '->seq_cov'] < ds_param.get('cov_thresh')
+                range_X.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+
+        train = train.loc[:, train.apply(pd.Series.nunique) != 1]
+        col_names['features'] = set(train.columns) - set([col_names['id'], col_names['label']])
+        test = test[col_names['features']]
+        range_X = range_X[col_names['features']]
+
+        if ds_param.get('pca') == 'per_gene':
+
+            new_features = []
+            genes_info = {}
+            for gene in genes:
+                genes_info[gene] = {}
+                genes_info[gene]['gene_features'] = []
+                for feature in features:
+                    if gene == feature[0]:
+                        genes_info[gene]['gene_features'].append('->'.join(feature))
+                if len(genes_info[gene]['gene_features']) > 1:
+                    pca = PCA()
+                    scaler = StandardScaler()
+                    scaled_train = scaler.fit_transform(train[genes_info[gene]['gene_features']])
+                    scaled_test = scaler.transform(test[genes_info[gene]['gene_features']])
+                    if len(range_X) < 1:
+                        scaled_range = range_X
+                    else:
+                        scaled_range = scaler.transform(range_X[genes_info[gene]['gene_features']])
+                    genes_info[gene]['pca_features_train'] = pca.fit_transform(scaled_train)
+                    genes_info[gene]['pca_features_test'] = pca.transform(scaled_test)
+                    if len(scaled_range) > 0:
+                        genes_info[gene]['pca_features_range'] = pca.transform(scaled_range)
+                    genes_info[gene]['pca'] = pca
+                    genes_info[gene]['scaler'] = scaler
+            pca_train = train[[col_names['id'], col_names['label']]]
+            pca_test = test[[col_names['id'], col_names['label']]]
+            pca_range = range_X[[col_names['id']]]
+            suffix = ['a', 'b', 'c', 'd', 'e']
+            for gene in genes:
+                if len(genes_info[gene]['gene_features']) == 1:
+                    pca_train[genes_info[gene]['gene_features'][0]] = train[genes_info[gene]['gene_features'][0]]
+                    pca_test[genes_info[gene]['gene_features'][0]] = test[genes_info[gene]['gene_features'][0]]
+                    pca_range[genes_info[gene]['gene_features'][0]] = range_X[genes_info[gene]['gene_features'][0]]
+                    new_features.append(genes_info[gene]['gene_features'][0])
+                else:
+                    for i in np.arange(len(genes_info[gene]['pca_features_train'].T)):
+                        pca_train[gene + '->' + suffix[i]] = genes_info[gene]['pca_features_train'].T[i]
+                        pca_test[gene + '->' + suffix[i]] = genes_info[gene]['pca_features_test'].T[i]
+                        if len(range_X) > 0:
+                            pca_range[gene + '->' + suffix[i]] = genes_info[gene]['pca_features_range'].T[i]
+                        else:
+                            pca_range = pd.concat([pca_range, pd.DataFrame([], columns=[gene + '->' + suffix[i]])],
+                                                  axis=1)
+                        new_features.append(gene + '->' + suffix[i])
+            train = pca_train
+            test = pca_test
+            range_X = pca_range
+            col_names['features'] = new_features
+
+        elif ds_param.get('pca') == 'all':
+            train = train.loc[:, train.apply(pd.Series.nunique) != 1]
+            col_names['features'] = set(train.columns) - set([col_names['id'], col_names['label']])
+
+            pca_train = train[[col_names['id'], col_names['label']]]
+            pca_test = test[[col_names['id'], col_names['label']]]
+            pca_range = range_X[[col_names['id']]]
+            pca = PCA()
+            pca_data = pca.fit_transform(train[col_names['features']])
+            new_features = [str(x) for x in np.arange(len(pca_data.T))]
+            pca_train = pd.concat(
+                [pca_train, pd.DataFrame(pca_data, columns=new_features)],
+                axis=1)
+            pca_test = pd.concat(
+                [pca_test, pd.DataFrame(pca.transform(test[col_names['features']]), columns=new_features)], axis=1)
+            if len(pca_range) > 1:
+                pca_range = pd.concat(
+                    [pca_range, pd.DataFrame(pca.transform(range_X[col_names['features']]), columns=new_features)],
+                    axis=1)
+            else:
+                pca_range = pd.concat(
+                    [pca_range, pd.DataFrame([], columns=new_features)], axis=1)
+
+            train = pca_train
+            test = pca_test
+            range_X = pca_range
+            col_names['features'] = new_features
+
+        if ds_param['scalar']:
+            final_scalar = StandardScaler()
+            train[col_names['features']] = final_scalar.fit_transform(train[col_names['features']])
+            test[col_names['features']] = final_scalar.transform(test[col_names['features']])
+
+        return train, test, range_X, range_y, col_names
     
 
 class PATAKICDataSet(MICDataSet):
