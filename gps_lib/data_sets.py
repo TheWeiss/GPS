@@ -640,6 +640,7 @@ class MICDataSet(ABC):
 
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
         col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
+        print(test.columns)
         test = test[[col_names['id'], col_names['label']]+col_names['features']]
         range_X = range_X[col_names['features']]
 
