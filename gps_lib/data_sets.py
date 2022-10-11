@@ -615,6 +615,7 @@ class MICDataSet(ABC):
 
     def _transform_features(self, ds_param, train, test, range_X, range_y, col_names):
         print('Im here')
+        print(test.columns)
         features = [x.split('->') for x in col_names['features']]
         genes = list(dict.fromkeys([x[0] for x in features]))
         if ds_param.get('id_thresh') is not None:
@@ -637,6 +638,7 @@ class MICDataSet(ABC):
                 test.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
                 mask = range_X[gene + '->seq_cov'] < ds_param.get('cov_thresh')
                 range_X.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
+
 
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
         col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
