@@ -635,12 +635,11 @@ class MICDataSet(ABC):
                 range_X.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
 
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
-        col_names['features'] = set(train.columns) - set([col_names['id'], col_names['label']])
+        col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
         test = test[col_names['features']]
         range_X = range_X[col_names['features']]
 
         if ds_param.get('pca') == 'per_gene':
-
             new_features = []
             genes_info = {}
             for gene in genes:
@@ -690,9 +689,6 @@ class MICDataSet(ABC):
             col_names['features'] = new_features
 
         elif ds_param.get('pca') == 'all':
-            train = train.loc[:, train.apply(pd.Series.nunique) != 1]
-            col_names['features'] = set(train.columns) - set([col_names['id'], col_names['label']])
-
             pca_train = train[[col_names['id'], col_names['label']]]
             pca_test = test[[col_names['id'], col_names['label']]]
             pca_range = range_X[[col_names['id']]]
