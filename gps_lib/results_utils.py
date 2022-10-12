@@ -676,13 +676,13 @@ def run_plots_single(species, antibiotic, criterion, ascending, plots, exp_dir_p
 
     results = results[results['size'] > 100][results['exact_size'] > 50]
     # results = results[results['learned_essential_agreement_test'] > 1.05][results['learned_RMSE_test'] < 0.95]
-    if species.isnumeric():
-        if antibiotic.isnumeric():
+    if type(species) == int:
+        if type(antibiotic) == int:
             i = get_exp_id_by_criterion(results, criterion, ascending, get_next=0)
         else:
             i = get_exp_id_by_criterion([results['antibiotic'] == antibiotic], criterion, ascending, get_next=species)
     else:
-        if antibiotic.isnumeric():
+        if type(antibiotic) == int:
             i = get_exp_id_by_criterion([results['species'] == species], criterion, ascending, get_next=antibiotic)
         else:
             i = results[np.logical_and(results['species'] == species, results['antibiotic'] == antibiotic)].sort_values(
