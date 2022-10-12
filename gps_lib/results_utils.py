@@ -759,7 +759,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # choose data to produce results for
-    parser.add_argument('--criterion', dest='criterion', type=str, default='essential_agreement', nargs='?', required=True)
+    parser.add_argument('--criterion', dest='criterion', type=str, nargs='?', required=True)
 
     parser.add_argument('--species-list', dest='species_list', default=0, nargs='+', required=True)
     parser.add_argument('--anti-list', dest='anti_list', default=0, nargs='+', required=True)
