@@ -658,10 +658,13 @@ def shap_plots(i):
     X = model.get_test()
     explainer = shap.KernelExplainer(model=model.predict, data=X)
     shap_values = explainer.shap_values(X=X)
+    shap_df = pd.DataFrame(shap_values, columns=X.columns, index=X.index)
+    shap_df.to_csv('../experiments/{}/{}/shap_values.csv'.format(exp_name, model_name), index=False)
     shap.initjs()
-
     shap.summary_plot(shap_values=shap_values,
-                      features=X)
+                      features=X, show=False)
+    plt.savefig('../experiments/{}/{}/shap_summery'.format(exp_name, model_name), bbox_inches='tight')
+    plt.show()
     return shap_values
 
 
