@@ -671,54 +671,103 @@ def shap_plots(i):
     return shap_values
 
 
+def run_plots_single(species, antibiotic, criterion, ascending, plots, exp_dir_path):
+    results = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
+
+    results = results[results['size'] > 100][results['exact_size'] > 50]
+    # results = results[results['learned_essential_agreement_test'] > 1.05][results['learned_RMSE_test'] < 0.95]
+    if species.isnumeric():
+        if antibiotic.isnumeric():
+            i = get_exp_id_by_criterion(results, criterion, ascending, get_next=0)
+        else:
+            i = get_exp_id_by_criterion([results['antibiotic'] == antibiotic], criterion, ascending, get_next=species)
+    else:
+        if antibiotic.isnumeric():
+            i = get_exp_id_by_criterion([results['species'] == species], criterion, ascending, get_next=antibiotic)
+        else:
+            i = results[np.logical_and(results['species'] == species, results['antibiotic'] == antibiotic)].sort_values(
+                by=criterion, ascending=ascending).iloc[0].dropna().name
+    for plot_func in plots:
+        plot_func(i)
+
+
+
+def run_plots(species, antibiotic, criterion, ascending, plots, exp_dir_path='../experiments/'):
+    if type(species) == list:
+        for species_j in species:
+            if type(antibiotic) == list:
+                for antibiotic_i in antibiotic:
+                    run_plots(species_j, antibiotic_i, criterion, ascending, plots, exp_dir_path)
+            else:
+                run_plots(species_j, antibiotic, criterion, ascending, plots, exp_dir_path)
+    else:
+        if type(antibiotic) == list:
+            for antibiotic_i in antibiotic:
+                run_plots(species, antibiotic_i, criterion, ascending, plots, exp_dir_path)
+        else:
+            run_plots_single(species, antibiotic, criterion, ascending, plots, exp_dir_path)
+
+
 def main(args):
+    plots = []
+    if args.shap:
+        plots.append(shap_plots)
+    if args.range:
+        plots.append(range_plots)
+    if args.pa:
+        plots.append(PA_plot)
+    if args.exact:
+        plots.append(exact_plots)
 
-    ds_param = {}
-    if args.handle_range:
-        ds_param['handle_range'] = args.handle_range
-    if args.move_range_by:
-        ds_param['move_range_by'] = args.move_range_by
-    if args.pca:
-        ds_param['pca'] = args.pca
-    if args.scalar:
-        ds_param['scalar'] = args.scalar
-    if args.id_thresh:
-        ds_param['id_thresh'] = args.id_thresh
-    if args.cov_thresh:
-        ds_param['cov_thresh'] = args.cov_thresh
-    if ds_param == {}:
-        ds_param = None
+    criterion_ascending = {
+        'accuracy': False,
+        'learned_accuracy': False,
+        'exact_accuracy': False,
+        'exact_accuracy2': False,
+        'range_accuracy': False,
+        'range_accuracy2': False,
+        'essential_agreement': False,
+        'learned_essential_agreement': False,
+        'exact_RMSE': True,
+        'learned_RMSE': True,
+    }
+    if args.criterion:
+        criterion = args.criterion
+        ascending = criterion_ascending[criterion]
 
-    model_param = {}
-    model_param['model'] = args.model
-    model_param['train_time'] = args.train_time
-    model_param['max_models'] = args.max_models
 
     if type(args.anti_list) == list:
         anti_list = [int(anti) if anti.isnumeric() else anti for anti in args.anti_list]
     else:
         if args.anti_list.isnumeric():
             anti_list = int(args.anti_list)
+        else:
+            anti_list = args.anti_list
 
     if type(args.species_list) == list:
         species_list = [int(species) if species.isnumeric() else ' '.join(species.split('_')) for species in args.species_list]
     else:
         if args.species_list.isnumeric():
             species_list = int(args.species_list)
-    # run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
+        else:
+            species_list = args.species_list
+
+    run_plots(species_list, anti_list, criterion, ascending, plots)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # choose data to produce results for
-    parser.add_argument('--criterion', dest='criterion', type=str, default='essential_agreement', nargs='+')
+    parser.add_argument('--criterion', dest='criterion', type=str, default='essential_agreement', nargs='?', required=True)
 
-    parser.add_argument('--species-list', dest='species_list', default=0, nargs='+')
-    parser.add_argument('--anti-list', dest='anti_list', default=0, nargs='+')
+    parser.add_argument('--species-list', dest='species_list', default=0, nargs='+', required=True)
+    parser.add_argument('--anti-list', dest='anti_list', default=0, nargs='+', required=True)
 
-    parser.add_argument('--shap', dest='shap', default=True, type=bool , nargs='?')
-
+    parser.add_argument('--shap', dest='shap', action="store_true")
+    parser.add_argument('--exact', dest='exact', action="store_true")
+    parser.add_argument('--range', dest='range', action="store_true")
+    parser.add_argument('--PA', dest='pa', action="store_true")
 
     args = parser.parse_args()
     main(args)
