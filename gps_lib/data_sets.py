@@ -689,9 +689,9 @@ class MICDataSet(ABC):
                             pca_range = pd.concat([pca_range, pd.DataFrame([], columns=[gene + '->' + suffix[i]])],
                                                   axis=1)
                         new_features.append(gene + '->' + suffix[i])
-            train = pca_train
-            test = pca_test
-            range_X = pca_range
+            train = pca_train.copy()
+            test = pca_test.copy()
+            range_X = pca_range.copy()
             col_names['features'] = new_features
 
         elif ds_param.get('pca') == 'all':
@@ -718,9 +718,9 @@ class MICDataSet(ABC):
                     [pca_range, pd.DataFrame([], columns=new_features)],
                     axis=1)
 
-            train = pca_train
-            test = pca_test
-            range_X = pca_range
+            train = pca_train.copy()
+            test = pca_test.copy()
+            range_X = pca_range.copy()
             col_names['features'] = new_features
 
         if ds_param.get('scalar'):
