@@ -437,7 +437,7 @@ class MICDataSet(ABC):
         except FileNotFoundError:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
             train, test, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
-            # train, test, range_X, range_y, col_names = self._transform_features(ds_param, train, test, range_X, range_y, col_names)
+            train, test, range_X, range_y, col_names = self._transform_features(ds_param, train, test, range_X, range_y, col_names)
             train.to_csv(ds_param_files_path + '/train.csv')
             test.to_csv(ds_param_files_path + '/test.csv')
             range_X.to_csv(ds_param_files_path + '/range_X.csv')
@@ -614,12 +614,9 @@ class MICDataSet(ABC):
         return train_data, test_data, range_X, range_y, col_names
 
     def _transform_features(self, ds_param, train, test, range_X, range_y, col_names):
-        print('Im here')
-        print(test.columns)
         features = [x.split('->') for x in col_names['features']]
         genes = list(dict.fromkeys([x[0] for x in features]))
         if ds_param.get('id_thresh') is not None:
-            print('Entered id_thresh')
             for gene in genes:
                 mask = train[gene + '->seq_id'] < ds_param.get('id_thresh')
                 print(mask)
@@ -642,8 +639,7 @@ class MICDataSet(ABC):
 
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
         col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
-        print(test.columns)
-        test = test[[col_names['id'], col_names['label']]+col_names['features']]
+        test = test[[col_names['label']]+col_names['features']]
         range_X = range_X[col_names['features']]
 
         if ds_param.get('pca') == 'per_gene':
@@ -670,9 +666,9 @@ class MICDataSet(ABC):
                         genes_info[gene]['pca_features_range'] = pca.transform(scaled_range)
                     genes_info[gene]['pca'] = pca
                     genes_info[gene]['scaler'] = scaler
-            pca_train = train[[col_names['id'], col_names['label']]]
-            pca_test = test[[col_names['id'], col_names['label']]]
-            pca_range = range_X[[col_names['id']]]
+            pca_train = train[[col_names['label']]]
+            pca_test = test[[col_names['label']]]
+            pca_range = pd.DataFrame({}, index=range_X.index)
             suffix = ['a', 'b', 'c', 'd', 'e']
             for gene in genes:
                 if len(genes_info[gene]['gene_features']) == 1:
@@ -696,9 +692,9 @@ class MICDataSet(ABC):
             col_names['features'] = new_features
 
         elif ds_param.get('pca') == 'all':
-            pca_train = train[[col_names['id'], col_names['label']]]
-            pca_test = test[[col_names['id'], col_names['label']]]
-            pca_range = range_X[[col_names['id']]]
+            pca_train = train[[col_names['label']]]
+            pca_test = test[[col_names['label']]]
+            pca_range = pd.DataFrame({}, index=range_X.index)
             pca = PCA()
             pca_data = pca.fit_transform(train[col_names['features']])
             new_features = [str(x) for x in np.arange(len(pca_data.T))]
