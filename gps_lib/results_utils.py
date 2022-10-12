@@ -649,6 +649,8 @@ def shap_plots(i):
     data_path = res.loc[i, 'data_path']
     with open(data_path + '/col_names.json') as json_file:
         col_names = json.load(json_file)
+    if os.path.exists('../experiments/{}/{}/shap_summery.png'.format(exp_name, model_name)):
+        return pd.read_csv('../experiments/{}/{}/shap_values.csv'.format(exp_name, model_name))
 
     if model_type == 'h2o':
         model = Model_h2o(exp_name, model_name, data_path)
