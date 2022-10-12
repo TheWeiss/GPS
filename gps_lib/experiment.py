@@ -73,8 +73,14 @@ class Model_axgb(Model):
     def __init__(self, exp_name, model_name, ds_param_files_path, exp_dir_path='../experiments/'):
         super().__init__(exp_name, model_name, ds_param_files_path, exp_dir_path)
 
-    def predict(self, X_test):
+    def convert_X_test(self, X_test):
+        X_test = pd.DataFrame(data=X_test, columns=self.col_names['features'])
+        X_test[self.col_names['id']] = np.arange(len(X_test))
+        X_test[self.col_names['label']] = 0
         X_test.to_csv('{}{}/{}/tmp_test_X.csv'.format(self.exp_dir_path, self.exp_name, self.model_name))
+
+    def predict(self, X_test):
+        self.convert_X_test(X_test)
         PredictAutoXGBCommand('{}{}/{}/model'.format(self.exp_dir_path, self.exp_name, self.model_name),
                               '{}{}/{}/tmp_test_X.csv'.format(self.exp_dir_path, self.exp_name, self.model_name),
                               '{}{}/{}/tmp_test_preds.csv'.format(

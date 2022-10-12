@@ -7,6 +7,7 @@ import seaborn as sns
 import shap
 from sklearn.metrics import confusion_matrix, mean_squared_error, ConfusionMatrixDisplay
 from experiment import Model_h2o, Model_axgb
+import argparse
 
 def parse_results(exp_dir_path):
     exp_list =  []
@@ -668,3 +669,54 @@ def shap_plots(i):
     return shap_values
 
 
+def main(args):
+
+    ds_param = {}
+    if args.handle_range:
+        ds_param['handle_range'] = args.handle_range
+    if args.move_range_by:
+        ds_param['move_range_by'] = args.move_range_by
+    if args.pca:
+        ds_param['pca'] = args.pca
+    if args.scalar:
+        ds_param['scalar'] = args.scalar
+    if args.id_thresh:
+        ds_param['id_thresh'] = args.id_thresh
+    if args.cov_thresh:
+        ds_param['cov_thresh'] = args.cov_thresh
+    if ds_param == {}:
+        ds_param = None
+
+    model_param = {}
+    model_param['model'] = args.model
+    model_param['train_time'] = args.train_time
+    model_param['max_models'] = args.max_models
+
+    if type(args.anti_list) == list:
+        anti_list = [int(anti) if anti.isnumeric() else anti for anti in args.anti_list]
+    else:
+        if args.anti_list.isnumeric():
+            anti_list = int(args.anti_list)
+
+    if type(args.species_list) == list:
+        species_list = [int(species) if species.isnumeric() else ' '.join(species.split('_')) for species in args.species_list]
+    else:
+        if args.species_list.isnumeric():
+            species_list = int(args.species_list)
+    # run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    # choose data to produce results for
+    parser.add_argument('--criterion', dest='criterion', type=str, default='essential_agreement', nargs='+')
+
+    parser.add_argument('--species-list', dest='species_list', default=0, nargs='+')
+    parser.add_argument('--anti-list', dest='anti_list', default=0, nargs='+')
+
+    parser.add_argument('--shap', dest='shap', default=True, type=bool , nargs='?')
+
+
+    args = parser.parse_args()
+    main(args)
