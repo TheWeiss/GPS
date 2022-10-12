@@ -614,6 +614,7 @@ class MICDataSet(ABC):
         return train_data, test_data, range_X, range_y, col_names
 
     def _transform_features(self, ds_param, train, test, range_X, range_y, col_names):
+        print(ds_param)
         features = [x.split('->') for x in col_names['features']]
         genes = list(dict.fromkeys([x[0] for x in features]))
         if ds_param.get('id_thresh') is not None:
