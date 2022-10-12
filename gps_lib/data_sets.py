@@ -642,6 +642,9 @@ class MICDataSet(ABC):
         test = test[[col_names['label']]+col_names['features']]
         range_X = range_X[col_names['features']]
 
+        features = [x.split('->') for x in col_names['features']]
+        genes = list(dict.fromkeys([x[0] for x in features]))
+
         if ds_param.get('pca') == 'per_gene':
             new_features = []
             genes_info = {}
