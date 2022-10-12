@@ -288,6 +288,14 @@ def main(args):
         ds_param['handle_range'] = args.handle_range
     if args.move_range_by:
         ds_param['move_range_by'] = args.move_range_by
+    if args.pca:
+        ds_param['pca'] = args.pca
+    if args.scalar:
+        ds_param['scalar'] = args.scalar
+    if args.id_thresh:
+        ds_param['id_thresh'] = args.id_thresh
+    if args.cov_thresh:
+        ds_param['cov_thresh'] = args.cov_thresh
     if ds_param == {}:
         ds_param = None
 
@@ -326,6 +334,10 @@ if __name__ == "__main__":
     parser.add_argument('--handle-range', dest='handle_range',
                         choices=['remove', 'strip', 'move'])
     parser.add_argument('--move-range-by', dest='move_range_by', type=int, nargs='?')
+    parser.add_argument('--pca', dest='pca', type=str, nargs='?')
+    parser.add_argument('--scalar', dest='scalar', type=str, nargs='?')
+    parser.add_argument('--id-thresh', dest='id_thresh', type=int, nargs='?')
+    parser.add_argument('--cov-thresh', dest='cov_thresh', type=int, nargs='?')
 
     # pre parameters like geno thresholds
 
