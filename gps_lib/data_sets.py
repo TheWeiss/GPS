@@ -437,7 +437,7 @@ class MICDataSet(ABC):
         except FileNotFoundError:
             train_label, test_label, range_label, cv = self._split_train_valid_test(ds_param, filtered)
             train, test, range_X, range_y, col_names = self._merge_geno2pheno(train_label, test_label, range_label)
-            train, test, range_X, range_y, col_names = self._transform_features(ds_param, train, test, range_X, range_y, col_names)
+            # train, test, range_X, range_y, col_names = self._transform_features(ds_param, train, test, range_X, range_y, col_names)
             train.to_csv(ds_param_files_path + '/train.csv')
             test.to_csv(ds_param_files_path + '/test.csv')
             range_X.to_csv(ds_param_files_path + '/range_X.csv')
