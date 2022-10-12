@@ -700,16 +700,16 @@ class MICDataSet(ABC):
             new_features = [str(x) for x in np.arange(len(pca_data.T))]
             pca_train = pd.concat(
                 [pca_train, pd.DataFrame(pca_data, columns=new_features)],
-                axis=1)
+                axis=0)
             pca_test = pd.concat(
-                [pca_test, pd.DataFrame(pca.transform(test[col_names['features']]), columns=new_features)], axis=1)
+                [pca_test, pd.DataFrame(pca.transform(test[col_names['features']]), columns=new_features)], axis=0)
             if len(pca_range) > 1:
                 pca_range = pd.concat(
                     [pca_range, pd.DataFrame(pca.transform(range_X[col_names['features']]), columns=new_features)],
-                    axis=1)
+                    axis=0)
             else:
                 pca_range = pd.concat(
-                    [pca_range, pd.DataFrame([], columns=new_features)], axis=1)
+                    [pca_range, pd.DataFrame([], columns=new_features)], axis=0)
 
             train = pca_train
             test = pca_test
