@@ -95,8 +95,10 @@ class Model_axgb(Model):
 def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     h2o.init()
     # Import a sample binary outcome train/test set into H2O
-    trainH2o = h2o.import_file('{}/train.csv'.format(ds_param_files_path))
-    testH2o = h2o.import_file('{}/test.csv'.format(ds_param_files_path))
+    train = pd.read_csv('{}/train.csv'.format(ds_param_files_path))
+    test = pd.read_csv('{}/test.csv'.format(ds_param_files_path))
+    trainH2o = h2o.H2OFrame(train)
+    testH2o = h2o.H2OFrame(test)
     rangeH2o = h2o.import_file('{}/range_X.csv'.format(ds_param_files_path))
     model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
 
