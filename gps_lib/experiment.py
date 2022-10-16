@@ -6,7 +6,7 @@ import glob
 import numpy as np
 from parse_raw_utils import get_isolate_features
 import data_sets as ds
-import results_utils as r_utils
+from results_utils import results_by
 from data_sets import SpecAntiNotExistError
 from autoxgb import AutoXGB
 from autoxgb.cli.predict import PredictAutoXGBCommand
@@ -292,7 +292,7 @@ def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp
             pd.DataFrame(stacked_param, index=[0]).to_csv('{}/{}/stacked_param.csv'.format(data_base_path, stacked_name))
             res = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
             res = res[res['train_time'] > 100]
-            results = r_utils.results_by(res, stacked_param['metric'], ascending=False)
+            results = results_by(res, stacked_param['metric'], ascending=False)
             if stacked_param.get('filter_small'):
                 results = results[results['size'] > 100][results['exact_size'] > 50]
             if stacked_param.get('filter_learned'):
