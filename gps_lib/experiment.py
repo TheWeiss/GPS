@@ -235,13 +235,13 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
         for species_j in species:
             if type(antibiotic) == list:
                 for antibiotic_i in antibiotic:
-                    run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=False)
+                    run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=run_over)
             else:
-                run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=False)
+                run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=run_over)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc, run_over=False)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc, run_over=run_over)
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
