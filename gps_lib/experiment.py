@@ -6,7 +6,6 @@ import glob
 import numpy as np
 from parse_raw_utils import get_isolate_features
 import data_sets as ds
-from results_utils import results_by
 from data_sets import SpecAntiNotExistError
 from autoxgb import AutoXGB
 from autoxgb.cli.predict import PredictAutoXGBCommand
@@ -292,14 +291,19 @@ def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp
             pd.DataFrame(stacked_param, index=[0]).to_csv('{}/{}/stacked_param.csv'.format(data_base_path, stacked_name))
             res = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
             res = res[res['train_time'] > 100]
-            results = results_by(res, stacked_param['metric'], ascending=False)
+
+            results = res.sort_values(ascending=False, by='{}_test'.format(stacked_param['metric'])).drop_duplicates(
+                subset=['species', 'antibiotic'], keep='first')
+            results = results.sort_values(ascending=False, by='{}_test'.format(stacked_param['metric'])).reset_index(
+                drop=True)
+
             if stacked_param.get('filter_small'):
                 results = results[results['size'] > 100][results['exact_size'] > 50]
             if stacked_param.get('filter_learned'):
                 results = results[results['learned_essential_agreement_test'] > 1.05][results['learned_RMSE_test'] <0.95]
             if stacked_param.get('species_sep'):
                 results = results[results['species']==species]
-            results.sort_values(by=stacked_param['metric']+'_test', inplace=True)
+            results.sort_values(by='{}_test'.format(stacked_param['metric']), inplace=True)
             if not os.path.exists('{}/{}/{}'.format(data_base_path, stacked_name, species)):
                 os.makedirs('{}/{}/{}'.format(data_base_path, stacked_name, species))
             results.to_csv('{}/{}/{}/models_to_stack.csv'.format(data_base_path, stacked_name, species))
