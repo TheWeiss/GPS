@@ -736,6 +736,7 @@ def main(args):
     if args.criterion:
         criterion = args.criterion
         ascending = criterion_ascending[criterion]
+        print('criterion: {}, ascending: {}'.format(criterion, ascending))
 
 
     if type(args.anti_list) == list:
@@ -753,6 +754,8 @@ def main(args):
             species_list = int(args.species_list)
         else:
             species_list = args.species_list
+
+    print('anti_list: {}, species_list: {}'.format(anti_list, species_list))
 
     run_plots(species_list, anti_list, criterion, ascending, plots)
 
