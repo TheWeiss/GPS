@@ -272,19 +272,19 @@ def generate_stacked_dataset(results, data_index):
     return new_train, new_test, new_range, range_y, col_names, ds_param, cv
 
 
-def run_exp_stack(stacked_param, model_param, ds_param=None, species=None, antibiotic=None, exp_desc='',
+def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp_desc='',
             run_over=False, exp_dir_path='../experiments/', data_base_path='../pre_proccesing/base_line/PATAKI_VAMP_PA_PATRIC'):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic) == list:
                 for antibiotic_i in antibiotic:
-                    run_exp(stacked_param, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=run_over)
+                    run_exp(stacked_param, model_param, species_j, antibiotic_i, exp_desc, run_over=run_over)
             else:
-                run_exp(stacked_param, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=run_over)
+                run_exp(stacked_param, model_param, species_j, antibiotic, exp_desc, run_over=run_over)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(stacked_param, model_param, ds_param, species, antibiotic_i, exp_desc, run_over=run_over)
+                run_exp(stacked_param, model_param, species, antibiotic_i, exp_desc, run_over=run_over)
         else:
             stacked_name = '|'.join([':'.join([k, str(v)]) for k, v in stacked_param.items()])
             if not os.path.exists('{}/{}'.format(data_base_path, stacked_name)):
