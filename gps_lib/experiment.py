@@ -322,7 +322,7 @@ def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp
                     pd.DataFrame(ds_param, index=[0]).to_csv('{}/ds_param.csv'.format(ds_param_files_path), index=False)
                     with open('{}/col_names.json'.format(ds_param_files_path), "w") as fp:
                         json.dump(col_names, fp)
-                    with open('/cv.json'.format(ds_param_files_path), "w") as fp:
+                    with open('{}/cv.json'.format(ds_param_files_path), "w") as fp:
                         json.dump(cv, fp)
 
                 except Exception as e:
