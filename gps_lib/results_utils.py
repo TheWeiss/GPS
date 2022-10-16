@@ -680,10 +680,10 @@ def run_plots_single(species, antibiotic, criterion, ascending, plots, exp_dir_p
         if type(antibiotic) == int:
             i = get_exp_id_by_criterion(results, criterion, ascending, get_next=0)
         else:
-            i = get_exp_id_by_criterion([results['antibiotic'] == antibiotic], criterion, ascending, get_next=species)
+            i = get_exp_id_by_criterion(results[results['antibiotic'] == antibiotic], criterion, ascending, get_next=species)
     else:
         if type(antibiotic) == int:
-            i = get_exp_id_by_criterion([results['species'] == species], criterion, ascending, get_next=antibiotic)
+            i = get_exp_id_by_criterion(results[results['species'] == species], criterion, ascending, get_next=antibiotic)
         else:
             i = results[np.logical_and(results['species'] == species, results['antibiotic'] == antibiotic)].sort_values(
                 by=criterion, ascending=ascending).iloc[0].dropna().name
