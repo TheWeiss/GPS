@@ -113,8 +113,6 @@ def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
         max_runtime_secs=model_param['train_time'],
         stopping_metric='RMSE',
     )
-    print('label: {}'.format(y))
-    print(trainH2o)
     aml.train(x=x, y=y, training_frame=trainH2o)
     #
     # View the AutoML Leaderboard
