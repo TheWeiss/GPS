@@ -6,6 +6,7 @@ import glob
 import numpy as np
 from parse_raw_utils import get_isolate_features
 import data_sets as ds
+import results_utils as r_utils
 from data_sets import SpecAntiNotExistError
 from autoxgb import AutoXGB
 from autoxgb.cli.predict import PredictAutoXGBCommand
@@ -227,6 +228,140 @@ def walk_level(some_dir, level=1):
         num_sep_this = root.count(os.path.sep)
         if num_sep + level <= num_sep_this:
             del dirs[:]
+
+
+def generate_stacked_dataset(results, data_index):
+    data_path = results.loc[results.iloc[data_index].name, 'data_path']
+    ds_param = pd.read_csv('{}/ds_param.csv'.format(data_path))
+    with open(data_path + '/col_names.json') as json_file:
+        col_names = json.load(json_file)
+    with open(data_path + '/cv.json') as json_file:
+        cv = json.load(json_file)
+    train = pd.read_csv('{}/train.csv'.format(data_path))
+    test = pd.read_csv('{}/test.csv'.format(data_path))
+    range_X = pd.read_csv('{}/range_X.csv'.format(data_path))
+    range_y = pd.read_csv('{}/range_y.csv'.format(data_path))
+    new_train = train[[col_names['id'], col_names['label']]]
+    new_test = test[[col_names['id'], col_names['label']]]
+    new_range = range_X[[col_names['id']]]
+
+    for model_index in np.arange(len(results)):
+        exp_name = results.loc[results.iloc[model_index].name, 'exp_path']
+        model_type = results.loc[results.iloc[model_index].name, 'model']
+        model_name = results.loc[results.iloc[model_index].name, 'model_path']
+
+        if model_type == 'h2o':
+            model = Model_h2o(exp_name, model_name, data_path)
+            results_col = 0
+        elif model_type == 'autoxgb':
+            model = Model_axgb(exp_name, model_name, data_path)
+            results_col = 1
+        else:
+            print('model_type not supported: {}'.format(model_type))
+
+        train_preds = model.predict(train).iloc[:, results_col]
+        test_preds = model.predict(test).iloc[:, results_col]
+        range_preds = model.predict(range_X).iloc[:, results_col]
+        train_preds.name = '{}_preds'.format(results.loc[results.iloc[model_index].name, 'antibiotic'])
+        test_preds.name = '{}_preds'.format(results.loc[results.iloc[model_index].name, 'antibiotic'])
+        range_preds.name = '{}_preds'.format(results.loc[results.iloc[model_index].name, 'antibiotic'])
+        new_train = pd.concat([new_train, train_preds], axis=1)
+        new_test = pd.concat([new_test, test_preds], axis=1)
+        new_range = pd.concat([new_range, range_preds], axis=1)
+        col_names['features'] = list(set(new_train.columns) - set([col_names['id'], col_names['label']]))
+    return new_train, new_test, new_range, range_y, col_names, ds_param, cv
+
+
+def run_exp_stack(stacked_param, model_param, ds_param=None, species=None, antibiotic=None, exp_desc='',
+            run_over=False, exp_dir_path='../experiments/', data_base_path='../pre_proccesing/base_line/PATAKI_VAMP_PA_PATRIC'):
+    if type(species) == list:
+        for species_j in species:
+            if type(antibiotic) == list:
+                for antibiotic_i in antibiotic:
+                    run_exp(stacked_param, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=run_over)
+            else:
+                run_exp(stacked_param, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=run_over)
+    else:
+        if type(antibiotic) == list:
+            for antibiotic_i in antibiotic:
+                run_exp(stacked_param, model_param, ds_param, species, antibiotic_i, exp_desc, run_over=run_over)
+        else:
+            stacked_name = '|'.join([':'.join([k, str(v)]) for k, v in stacked_param.items()])
+            if not os.path.exists('{}/{}'.format(data_base_path, stacked_name)):
+                os.makedirs('{}/{}'.format(data_base_path, stacked_name))
+            pd.DataFrame(stacked_param, index=[0]).to_csv('{}/{}/stacked_param.csv'.format(data_base_path, stacked_name))
+            res = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
+            res = res[res['train_time'] > 100]
+            results = r_utils.results_by(res, stacked_param['metric'], ascending=False)
+            if stacked_param.get('filter_small'):
+                results = results[results['size'] > 100][results['exact_size'] > 50]
+            if stacked_param.get('filter_learned'):
+                results = results[results['learned_essential_agreement_test'] > 1.05][results['learned_RMSE_test'] <0.95]
+            if stacked_param.get('species_sep'):
+                results = results[results['species']==species]
+            results.sort_values(by=stacked_param['metric']+'_test', inplace=True)
+            if not os.path.exists('{}/{}/{}'.format(data_base_path, stacked_name, species)):
+                os.makedirs('{}/{}/{}'.format(data_base_path, stacked_name, species))
+            results.to_csv('{}/{}/{}/models_to_stack.csv'.format(data_base_path, stacked_name, species))
+
+
+            for data_index in np.arange(len(results)):
+                try:
+                    train, test, range_X, range_y, col_names, ds_param, cv = generate_stacked_dataset(results, data_index)
+                    data_antibiotic = results.loc[results.iloc[data_index].name, 'antibiotic']
+                    ds_param_files_path = '{}/{}/{}/{}'.format(data_base_path, stacked_name, species, data_antibiotic)
+                    if not os.path.exists(ds_param_files_path):
+                        os.makedirs(ds_param_files_path)
+
+                    train.set_index(col_names['id']).to_csv('{}/train.csv'.format(ds_param_files_path))
+                    test.set_index(col_names['id']).to_csv('{}/test.csv'.format(ds_param_files_path))
+                    range_X.set_index(col_names['id']).to_csv('{}/range_X.csv'.format(ds_param_files_path))
+                    range_y.set_index(col_names['id']).to_csv('{}/range_y.csv'.format(ds_param_files_path))
+                    if 'Unnamed: 0' in ds_param.columns:
+                        ds_param.drop('Unnamed: 0', inplace=True, axis=1)
+                    pd.DataFrame(ds_param, index=[0]).to_csv('{}/ds_param.csv'.format(ds_param_files_path), index=False)
+                    with open('{}/col_names.json'.format(ds_param_files_path), "w") as fp:
+                        json.dump(col_names, fp)
+                    with open('/cv.json'.format(ds_param_files_path), "w") as fp:
+                        json.dump(cv, fp)
+
+                except Exception as e:
+                    print(type(e))
+                    print(e)
+                    continue
+                exp_name = '|' + '|'.join(
+                    [ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]]) + '|' + 'PATAKI_VAMP_PA_PATRIC' + '|' + exp_desc
+
+                os.makedirs('{}{}'.format(exp_dir_path, exp_name), exist_ok=True)
+                with open('{}{}/data_path.txt'.format(exp_dir_path, exp_name), "w") as data_path:
+                    data_path.write(ds_param_files_path)
+                if len(train) < 40:
+                    with open('{}{}/tb.txt'.format(exp_dir_path, exp_name), 'w+') as f:
+                        f.write('Training set doesnt have at-least 40 samples reqiered for training')
+                        print('{} is too small, train size - {}'.format(exp_name, len(train)))
+                        continue
+                model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
+                os.makedirs('{}{}/{}'.format(exp_dir_path, exp_name, model_name), exist_ok=True)
+                pd.DataFrame(model_param, index=[0]).to_csv(
+                    '{}{}/{}/model_param.csv'.format(exp_dir_path, exp_name, model_name))
+
+                if not run_over:
+                    if os.path.exists('{}{}/{}/tb.txt'.format(exp_dir_path, exp_name, model_name)) or \
+                            os.path.exists('{}{}/{}/test_preds.csv'.format(exp_dir_path, exp_name, model_name)):
+                        print('{}|{} was already run'.format(exp_name, model_name))
+                        continue
+                try:
+                    if model_param['model'] == 'autoxgb':
+                        run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
+                    elif model_param['model'] == 'h2o':
+                        run_h2o(exp_name, model_param, ds_param_files_path, col_names)
+                    print('{}|{} done running exp'.format(exp_name, model_name))
+                    continue
+                except Exception as e:
+                    with open('{}{}/{}/tb.txt'.format(exp_dir_path, exp_name, model_name), 'w+') as f:
+                        traceback.print_exc(file=f)
+                    print('{}|{} ERROR: {}'.format(exp_name, model_name, e))
+                    continue
 
 
 def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc='',
