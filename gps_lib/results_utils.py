@@ -672,7 +672,6 @@ def shap_plots(i):
 
 
 def run_plots_single(species, antibiotic, criterion, ascending, plots, exp_dir_path):
-    print(exp_dir_path)
     results = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
 
     results = results[results['size'] > 100][results['exact_size'] > 50]
@@ -688,9 +687,10 @@ def run_plots_single(species, antibiotic, criterion, ascending, plots, exp_dir_p
         else:
             i = results[np.logical_and(results['species'] == species, results['antibiotic'] == antibiotic)].sort_values(
                 by=criterion, ascending=ascending).iloc[0].dropna().name
+    print(results.loc[i, 'exp_path'])
     for plot_func in plots:
         plot_func(i)
-    print('Done {}'.format(exp_dir_path))
+    print('Done {}'.format(results.loc[i, 'exp_path']))
 
 
 
