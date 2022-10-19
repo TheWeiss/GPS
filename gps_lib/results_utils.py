@@ -661,6 +661,8 @@ def shap_plots(i):
     X = model.get_test()
     explainer = shap.KernelExplainer(model=model.predict, data=X)
     shap_values = explainer.shap_values(X=X)
+    if len(shap_values.shape) > 2:
+        shap_values = shap_values[1]
     shap_df = pd.DataFrame(shap_values, columns=X.columns, index=X.index)
     shap_df.to_csv('../experiments/{}/{}/shap_values.csv'.format(exp_name, model_name), index=False)
     shap.initjs()
