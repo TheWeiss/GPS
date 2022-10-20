@@ -632,6 +632,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
 
             regression_res['size'] = regression_res['exact_size'] + regression_res['range_size']
             regression_res['exp_done'] = True
+            regression_res['stacked'] = False
         except (FileNotFoundError, OSError):
             regression_res = pd.DataFrame({}, index=[0])
             regression_res['exp_done'] = False
