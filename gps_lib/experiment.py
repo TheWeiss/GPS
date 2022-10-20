@@ -290,6 +290,7 @@ def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp
                 os.makedirs('{}/{}'.format(data_base_path, stacked_name))
             pd.DataFrame(stacked_param, index=[0]).to_csv('{}/{}/stacked_param.csv'.format(data_base_path, stacked_name))
             res = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
+            res = res[res['stacked'] == False]
             res = res[res['train_time'] > 100]
 
             results = res.sort_values(ascending=False, by='{}_test'.format(stacked_param['metric'])).drop_duplicates(
