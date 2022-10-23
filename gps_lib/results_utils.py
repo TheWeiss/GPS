@@ -8,6 +8,7 @@ import shap
 from sklearn.metrics import confusion_matrix, mean_squared_error, ConfusionMatrixDisplay
 from experiment import Model_h2o, Model_axgb
 import argparse
+import pickle
 
 def parse_results(exp_dir_path):
     exp_list =  []
@@ -662,8 +663,10 @@ def shap_plots(i):
     X = model.get_test()
     explainer = shap.KernelExplainer(model=model.predict, data=X)
     shap_values = explainer.shap_values(X=X)
-    if len(shap_values.shape) > 2:
-        shap_values = shap_values[1]
+    with open('../experiments/{}/{}/shap_values.pickle'.format(exp_name, model_name), "w") as pickle_file:
+        pickle.dump(shap_values, pickle_file)
+    with open('../experiments/{}/{}/X.pickle'.format(exp_name, model_name), "w") as pickle_file:
+        pickle.dump(X, pickle_file)
     shap_df = pd.DataFrame(shap_values, columns=X.columns, index=X.index)
     shap_df.to_csv('../experiments/{}/{}/shap_values.csv'.format(exp_name, model_name), index=False)
     shap.initjs()
