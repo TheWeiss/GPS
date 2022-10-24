@@ -447,6 +447,22 @@ def range_plots(i):
         plt.show()
 
 
+def apply_SIR_range(val, sign, s, i, r):
+
+    if np.isnan(s):
+        if np.isnan(i):
+            return ''
+        else:
+            if val <= i:
+                return 'I'
+    elif val <= s:
+        return 'S'
+    if val >= r:
+        return 'R'
+    else:
+        return 'I'
+
+
 def apply_SIR(val, s, i, r):
     if np.isnan(s):
         if np.isnan(i):
@@ -501,6 +517,23 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             y['naive_error'] = y['naive_residual_mode'].abs() < 1
             y['naive_error2'] = y['naive_residual_mode'].abs() < 2
 
+            if SIR:
+                breakpoints = pd.read_csv('../resources/SIR.csv')
+                species = results['species'].iloc[i]
+                antibiotic = results['antibiotic'].iloc[i]
+                if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
+                    s = np.nan
+                    I = np.nan
+                    r = np.nan
+                else:
+                    s = np.log2(breakpoints[breakpoints['species'] == species][
+                                    breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
+                    r = np.log2(breakpoints[breakpoints['species'] == species][
+                                    breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
+                    I = np.log2(breakpoints[breakpoints['species'] == species][
+                                    breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
+                good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
+
             split_res = {}
             for split in ['train', 'test']:
                 split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
@@ -527,25 +560,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 max_true = split_res_i['y_true'].max(axis=0)
                 split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
                 if SIR:
-                    breakpoints = pd.read_csv('../resources/SIR.csv')
-                    species = results['species'].iloc[i]
-                    antibiotic = results['antibiotic'].iloc[i]
-                    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
-                        s = np.nan
-                        I = np.nan
-                        r = np.nan
-                    else:
-                        s = np.log2(breakpoints[breakpoints['species'] == species][
-                                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
-                        r = np.log2(breakpoints[breakpoints['species'] == species][
-                                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
-                        I = np.log2(breakpoints[breakpoints['species'] == species][
-                                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
-
-                    good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
                     split_res_i['SIR_true'] = split_res_i['y_true'].apply(lambda val: apply_SIR(val, s, I, r))
                     split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
-                    good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
 
                 split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
                 split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
@@ -560,21 +576,22 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                        split_res.values()],
                 'exact_accuracy': [split_data['error'].mean() for split_data in split_res.values()],
                 'exact_accuracy2': [split_data['error2'].mean() for split_data in split_res.values()],
-                'CA': [(split_data['SIR_true'] == split_data['SIR_pred']).sum() / len(
-                    split_data) if good_breakpoints else None for split_data in
-                       split_res.values()],
-                'VME': [
-                    np.logical_and(split_data['SIR_true'] == 'R', split_data['SIR_pred'] == 'S').sum() / len(
-                        split_data) if good_breakpoints else None
+                'exact_CA': [(split_data['SIR_true'] == split_data['SIR_pred']).mean() if good_breakpoints else None for
+                             split_data in
+                             split_res.values()],
+                'exact_VME': [
+                    np.logical_and(split_data['SIR_true'] == 'R',
+                                   split_data['SIR_pred'] == 'S').mean() if good_breakpoints else None
                     for split_data in split_res.values()],
-                'ME': [
-                    np.logical_and(split_data['SIR_true'] == 'S', split_data['SIR_pred'] == 'R').sum() / len(
-                        split_data) if good_breakpoints else None
+                'exact_ME': [
+                    np.logical_and(split_data['SIR_true'] == 'S',
+                                   split_data['SIR_pred'] == 'R').mean() if good_breakpoints else None
                     for split_data in split_res.values()],
-                'mE': [np.logical_or(
+                'exact_mE': [np.logical_or(
                     np.logical_and(split_data['SIR_true'] == 'I', split_data['SIR_pred'] != 'I'),
-                    np.logical_and(split_data['SIR_true'] != 'I', split_data['SIR_pred'] == 'I')).sum() / len(
-                    split_data) if good_breakpoints else None for split_data in split_res.values()],
+                    np.logical_and(split_data['SIR_true'] != 'I',
+                                   split_data['SIR_pred'] == 'I')).mean() if good_breakpoints else None for split_data
+                             in split_res.values()],
             }, index=['train', 'test'])
 
             if results['model'].iloc[i] == 'autoxgb':
@@ -611,6 +628,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             range_res.loc[range_res['updated_sign'] == '<', 'error2'] = (
                     range_res['y_pred'] < range_res['updated_y_true'] + 1)
 
+            if SIR:
+                range_res['SIR_true'] = split_res_i.apply(
+                    lambda row: apply_SIR_range(row['updated_y_true'], row['updated_sign'], s, I, r))
+                range_res['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
+
 
             train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
             test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
@@ -644,6 +666,39 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             ]
             regression_res['range_accuracy2'].fillna(0, inplace=True)
 
+            regression_res['range_CA'] = [
+                (train_range_res['SIR_true'] == train_range_res['SIR_pred']).mean() if good_breakpoints else None,
+                (test_range_res['SIR_true'] == test_range_res['SIR_pred']).mean() if good_breakpoints else None,
+            ]
+            regression_res['range_CA'].fillna(0, inplace=True)
+
+            regression_res['range_VME'] = [
+                np.logical_and(train_range_res['SIR_true'] == 'R',
+                               train_range_res['SIR_pred'] == 'S').mean() if good_breakpoints else None,
+                np.logical_and(test_range_res['SIR_true'] == 'R',
+                                 test_range_res['SIR_pred'] == 'S').mean() if good_breakpoints else None,
+            ]
+            regression_res['range_VME'].fillna(0, inplace=True)
+
+            regression_res['range_ME'] = [
+                np.logical_and(train_range_res['SIR_true'] == 'S',
+                               train_range_res['SIR_pred'] == 'R').mean() if good_breakpoints else None,
+                np.logical_and(test_range_res['SIR_true'] == 'S',
+                               test_range_res['SIR_pred'] == 'R').mean() if good_breakpoints else None,
+            ]
+            regression_res['range_ME'].fillna(0, inplace=True)
+
+            regression_res['range_mE'] = [
+                np.logical_or(
+                    np.logical_and(train_range_res['SIR_true'] == 'I', train_range_res['SIR_pred'] != 'I'),
+                    np.logical_and(train_range_res['SIR_true'] != 'I',
+                                   train_range_res['SIR_pred'] == 'I')).mean() if good_breakpoints else None,
+                np.logical_or(
+                    np.logical_and(test_range_res['SIR_true'] == 'I', test_range_res['SIR_pred'] != 'I'),
+                    np.logical_and(test_range_res['SIR_true'] != 'I',
+                                   test_range_res['SIR_pred'] == 'I')).mean() if good_breakpoints else None,
+            ]
+            regression_res['range_mE'].fillna(0, inplace=True)
 
             regression_res['range_size'] = [
                 len(train_range_res),
@@ -662,6 +717,30 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 'exact_size'].fillna(0) \
                                                      + regression_res['range_accuracy2'] * regression_res['range_size']) \
                                                     / (regression_res['range_size'] + regression_res[
+                'exact_size'].fillna(0))
+
+            regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                                     + regression_res['range_CA'] * regression_res['range_size']) \
+                                                    / (regression_res['range_size'] + regression_res[
+                'exact_size'].fillna(0))
+
+            regression_res['VME'] = (regression_res['exact_VME'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                    + regression_res['range_VME'] * regression_res['range_size']) \
+                                   / (regression_res['range_size'] + regression_res[
+                'exact_size'].fillna(0))
+
+            regression_res['ME'] = (regression_res['exact_ME'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                     + regression_res['range_ME'] * regression_res['range_size']) \
+                                    / (regression_res['range_size'] + regression_res[
+                'exact_size'].fillna(0))
+
+            regression_res['mE'] = (regression_res['exact_mE'].fillna(0) * regression_res[
+                'exact_size'].fillna(0) \
+                                    + regression_res['range_mE'] * regression_res['range_size']) \
+                                   / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
 
 
