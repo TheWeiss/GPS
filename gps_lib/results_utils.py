@@ -447,7 +447,22 @@ def range_plots(i):
         plt.show()
 
 
-def add_metrices(res, equal_meaning=True, range_conf=False, SIR=False):
+def apply_SIR(val, s, i, r):
+    if np.isnan(s):
+        if np.isnan(i):
+            return ''
+        else:
+            if val <= i:
+                return 'I'
+    elif val <= s:
+        return 'S'
+    if val >= r:
+        return 'R'
+    else:
+        return 'I'
+
+
+def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
     results = res.copy()
     for i in np.arange(len(results)):
         try:
@@ -512,7 +527,26 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=False):
                 max_true = split_res_i['y_true'].max(axis=0)
                 split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
                 if SIR:
-                    pd.read_csv('../resources/SIR.csv')
+                    breakpoints = pd.read_csv('../resources/SIR.csv')
+                    species = results['species'].iloc[i]
+                    antibiotic = results['antibiotic'].iloc[i]
+                    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
+                        s = np.nan
+                        I = np.nan
+                        r = np.nan
+                    else:
+                        s = np.log2(breakpoints[breakpoints['species'] == species][
+                                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
+                        r = np.log2(breakpoints[breakpoints['species'] == species][
+                                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
+                        I = np.log2(breakpoints[breakpoints['species'] == species][
+                                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
+
+                    good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
+                    split_res_i['SIR_true'] = split_res_i['y_true'].apply(lambda val: apply_SIR(val, s, I, r))
+                    split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
+                    good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
+
                 split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
                 split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
                 split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
@@ -526,6 +560,21 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=False):
                                        split_res.values()],
                 'exact_accuracy': [split_data['error'].mean() for split_data in split_res.values()],
                 'exact_accuracy2': [split_data['error2'].mean() for split_data in split_res.values()],
+                'CA': [(split_data['SIR_true'] == split_data['SIR_pred']).sum() / len(
+                    split_data) if good_breakpoints else None for split_data in
+                       split_res.values()],
+                'VME': [
+                    np.logical_and(split_data['SIR_true'] == 'R', split_data['SIR_pred'] == 'S').sum() / len(
+                        split_data) if good_breakpoints else None
+                    for split_data in split_res.values()],
+                'ME': [
+                    np.logical_and(split_data['SIR_true'] == 'S', split_data['SIR_pred'] == 'R').sum() / len(
+                        split_data) if good_breakpoints else None
+                    for split_data in split_res.values()],
+                'mE': [np.logical_or(
+                    np.logical_and(split_data['SIR_true'] == 'I', split_data['SIR_pred'] != 'I'),
+                    np.logical_and(split_data['SIR_true'] != 'I', split_data['SIR_pred'] == 'I')).sum() / len(
+                    split_data) if good_breakpoints else None for split_data in split_res.values()],
             }, index=['train', 'test'])
 
             if results['model'].iloc[i] == 'autoxgb':
