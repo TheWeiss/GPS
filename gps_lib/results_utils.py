@@ -753,30 +753,30 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                                      + regression_res['range_accuracy2'] * regression_res['range_size']) \
                                                     / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
+            if good_breakpoints:
+                regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
+                    'exact_size'].fillna(0) \
+                                                         + regression_res['range_CA'] * regression_res['range_size']) \
+                                                        / (regression_res['range_size'] + regression_res[
+                    'exact_size'].fillna(0))
 
-            regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                                     + regression_res['range_CA'] * regression_res['range_size']) \
-                                                    / (regression_res['range_size'] + regression_res[
-                'exact_size'].fillna(0))
+                regression_res['VME'] = (regression_res['exact_VME'].fillna(0) * regression_res[
+                    'exact_size'].fillna(0) \
+                                        + regression_res['range_VME'] * regression_res['range_size']) \
+                                       / (regression_res['range_size'] + regression_res[
+                    'exact_size'].fillna(0))
 
-            regression_res['VME'] = (regression_res['exact_VME'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                    + regression_res['range_VME'] * regression_res['range_size']) \
-                                   / (regression_res['range_size'] + regression_res[
-                'exact_size'].fillna(0))
+                regression_res['ME'] = (regression_res['exact_ME'].fillna(0) * regression_res[
+                    'exact_size'].fillna(0) \
+                                         + regression_res['range_ME'] * regression_res['range_size']) \
+                                        / (regression_res['range_size'] + regression_res[
+                    'exact_size'].fillna(0))
 
-            regression_res['ME'] = (regression_res['exact_ME'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                     + regression_res['range_ME'] * regression_res['range_size']) \
-                                    / (regression_res['range_size'] + regression_res[
-                'exact_size'].fillna(0))
-
-            regression_res['mE'] = (regression_res['exact_mE'].fillna(0) * regression_res[
-                'exact_size'].fillna(0) \
-                                    + regression_res['range_mE'] * regression_res['range_size']) \
-                                   / (regression_res['range_size'] + regression_res[
-                'exact_size'].fillna(0))
+                regression_res['mE'] = (regression_res['exact_mE'].fillna(0) * regression_res[
+                    'exact_size'].fillna(0) \
+                                        + regression_res['range_mE'] * regression_res['range_size']) \
+                                       / (regression_res['range_size'] + regression_res[
+                    'exact_size'].fillna(0))
 
 
             regression_res = pd.DataFrame(regression_res.unstack()).T
