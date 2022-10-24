@@ -789,14 +789,14 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             regression_res['exact_accuracy_naive'] = y['naive_error'].mean()
             regression_res['exact_accuracy2_naive'] = y['naive_error2'].mean()
 
-            range_res.loc[range_res['updated_sign'] == '>', 'naive_error'] = (
+            range_res.loc[range_res['updated_sign'] == '>=', 'naive_error'] = (
                     mode >= range_res['updated_y_true'])
-            range_res.loc[range_res['updated_sign'] == '<', 'naive_error'] = (
+            range_res.loc[range_res['updated_sign'] == '<=', 'naive_error'] = (
                     mode <= range_res['updated_y_true'])
             regression_res['range_accuracy_naive'] = range_res['naive_error'].mean()
-            range_res.loc[range_res['updated_sign'] == '>', 'naive_error2'] = (
+            range_res.loc[range_res['updated_sign'] == '>=', 'naive_error2'] = (
                     mode >= range_res['updated_y_true'] - 1)
-            range_res.loc[range_res['updated_sign'] == '<', 'naive_error2'] = (
+            range_res.loc[range_res['updated_sign'] == '<=', 'naive_error2'] = (
                     mode <= range_res['updated_y_true'] + 1)
             regression_res['range_accuracy2_naive'] = range_res['naive_error2'].mean()
             regression_res['exact_size'] = regression_res['exact_size_train'] + regression_res['exact_size_test']
