@@ -64,7 +64,9 @@ def fill_data_set(data_path):
 
 def fill_data_param(row):
     i = row.to_frame().T.index.values[0]
-    data_param = pd.read_csv('{}/ds_param.csv'.format(row['data_path'])).drop('Unnamed: 0',axis=1)
+    data_param = pd.read_csv('{}/ds_param.csv'.format(row['data_path']))
+    if 'Unnamed: 0' in data_param.columns:
+        data_param = data_param.drop('Unnamed: 0',axis=1)
     data_param.index = [i]
     tmp = pd.concat([row.to_frame().T, data_param], axis=1)
     tmp = tmp.iloc[0]
@@ -633,7 +635,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
 
             regression_res['size'] = regression_res['exact_size'] + regression_res['range_size']
             regression_res['exp_done'] = True
-            regression_res['stacked'] = False
+            if 'stacked' not in regression_res.columns:
+                regression_res['stacked'] = False
         except (FileNotFoundError, OSError):
             regression_res = pd.DataFrame({}, index=[0])
             regression_res['exp_done'] = False
