@@ -447,7 +447,7 @@ def range_plots(i):
         plt.show()
 
 
-def add_metrices(res, equal_meaning=True, range_conf=False):
+def add_metrices(res, equal_meaning=True, range_conf=False, SIR=False):
     results = res.copy()
     for i in np.arange(len(results)):
         try:
@@ -511,6 +511,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
                 min_true = split_res_i['y_true'].min()
                 max_true = split_res_i['y_true'].max(axis=0)
                 split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
+                if SIR:
+                    pd.read_csv('../resources/SIR.csv')
                 split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
                 split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
                 split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
@@ -662,7 +664,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False):
 
 
 def shap_plots(i):
-    res = pd.read_csv('../experiments/results_summery.csv')
+    res = pd.read_csv('../experiments/results_summery1.csv')
     exp_name = res.loc[i, 'exp_path']
     model_type = res.loc[i, 'model']
     model_name = res.loc[i, 'model_path']
