@@ -72,6 +72,19 @@ def fill_data_param(row):
     tmp = tmp.iloc[0]
     return tmp
 
+def fill_stack_param(row):
+    i = row.to_frame().T.index.values[0]
+    stakc_path = '/'.join(row['data_path'].split('/')[:-2])
+    stack_param = pd.read_csv('{}/ds_param.csv'.format(stakc_path))
+    if 'Unnamed: 0' in stack_param.columns:
+        stack_param = stack_param.drop('Unnamed: 0', axis=1)
+    if 'species_sep' in stack_param.columns:
+        stack_param.rename(columns={'species_sep': 'stack_species_sep'}, inplace=True)
+    stack_param.index = [i]
+    tmp = pd.concat([row.to_frame().T, stack_param], axis=1)
+    tmp = tmp.iloc[0]
+    return tmp
+
 
 def fix_range_values(res):
     res.loc[res['handle_range']=='remove', 'move_range_by'] = None
@@ -184,6 +197,7 @@ def read_exp_dirs(exp_dir_path):
     results['data_path'] = results['exp_path'].apply(fill_data_path)
     results['dataset'] = results['data_path'].apply(fill_data_set)
     results = results.apply(fill_data_param, axis=1)
+    results = results.apply(fill_stack_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
     results = add_metrices(results, equal_meaning=True)
     results = compare_to_naive(results)
