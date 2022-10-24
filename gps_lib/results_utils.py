@@ -75,7 +75,10 @@ def fill_data_param(row):
 def fill_stack_param(row):
     i = row.to_frame().T.index.values[0]
     stakc_path = '/'.join(row['data_path'].split('/')[:-2])
-    stack_param = pd.read_csv('{}/ds_param.csv'.format(stakc_path))
+    if os.path.exists('{}/stacked_param.csv'.format(stakc_path)):
+        stack_param = pd.read_csv('{}/stacked_param.csv'.format(stakc_path))
+    else:
+        stack_param = pd.read_csv({'stacked': [False]}, index=[0])
     if 'Unnamed: 0' in stack_param.columns:
         stack_param = stack_param.drop('Unnamed: 0', axis=1)
     if 'species_sep' in stack_param.columns:
