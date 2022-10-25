@@ -421,6 +421,7 @@ class MICDataSet(ABC):
                             breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
             I = np.log2(breakpoints[breakpoints['species'] == species][
                             breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
+            print(s, r)
         if np.isnan(s):
             s = None
         if np.isnan(r):
