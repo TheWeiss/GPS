@@ -536,12 +536,17 @@ class MICDataSet(ABC):
             exact_y.name='measurement'
 
         if ds_param['task'] == 'regression':
-            if ds_param['handle_range'] == 'strip':
-                range_y = range_label['measurement'].copy()
-            elif ds_param['handle_range'] == 'move':
+            if ds_param['handle_range'] != 'remove':
                 range_y = range_label['measurement'].copy().mask(
+                    range_label['sign'].apply(lambda x: x == '>'),
+                    range_label['measurement'] + 1)
+                range_y = range_y.mask(
+                    range_label['sign'].apply(lambda x: x == '<'),
+                    range_y - 1)
+            if ds_param['handle_range'] == 'move':
+                range_y = range_y.mask(
                     range_label['sign'].apply(lambda x: '>' in x),
-                    range_label['measurement'] + ds_param['move_range_by'])
+                    range_y + ds_param['move_range_by'])
                 range_y = range_y.mask(
                     range_label['sign'].apply(lambda x: '<' in x),
                     range_y - ds_param['move_range_by'])

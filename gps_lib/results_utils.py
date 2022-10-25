@@ -194,7 +194,7 @@ def get_exp_id_by_criterion(results, sort_metric, ascending=False, get_next=0):
     return i
 
 
-def read_exp_dirs(exp_dir_path):
+def read_exp_dirs(exp_dir_path, equal_meaning=True):
     results = parse_results(exp_dir_path)
     results['exp_path'].apply(align_model_params_files)
     results['data_path'] = results['exp_path'].apply(fill_data_path)
@@ -202,7 +202,7 @@ def read_exp_dirs(exp_dir_path):
     results = results.apply(fill_data_param, axis=1)
     results = results.apply(fill_stack_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
-    results = add_metrices(results, equal_meaning=True)
+    results = add_metrices(results, equal_meaning=equal_meaning)
     results = compare_to_naive(results)
     results = fix_range_values(results)
     results.to_csv('{}/results_summery.csv'.format(exp_dir_path), index=True)
