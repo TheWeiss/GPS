@@ -409,6 +409,7 @@ class MICDataSet(ABC):
         saved_path = '{}/exp/{}'.format(self.saved_files_path, species)
 
         breakpoints = pd.read_csv('../resources/SIR.csv')
+        print(breakpoints)
         if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
             s = np.nan
             I = np.nan
