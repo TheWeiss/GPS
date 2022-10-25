@@ -107,7 +107,8 @@ def print_anti_measure(all_ASR, species, anti_index, need_log=False, path=None):
         print(s, r)
     if not np.isnan(s):
         print(hist_range[:-1]+0.5)
-        plt.axvline(x=np.where(hist_range == s), color='g', ls=':', label='S breakpoint')
+        print(np.where(hist_range[:-1]+0.5 == s)
+        plt.axvline(x=np.where(hist_range[:-1]+0.5 == s), color='g', ls=':', label='S breakpoint')
     if not np.isnan(r):
         plt.axvline(x=np.where(hist_range == r), color='r', ls=':', label='R breakpoint')
 
