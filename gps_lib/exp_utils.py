@@ -104,7 +104,6 @@ def print_anti_measure(all_ASR, species, anti_index, need_log=False, path=None):
                         breakpoints['Antibiotic'] == anti].iloc[0]['R'])
         I = np.log2(breakpoints[breakpoints['species'] == species][
                         breakpoints['Antibiotic'] == anti].iloc[0]['I'])
-        print(s, r)
     if not np.isnan(s):
         plt.axvline(x=np.where(hist_range[:-1]+0.5 == s)[0][0], color='g', ls=':', label='S breakpoint')
     if not np.isnan(r):
