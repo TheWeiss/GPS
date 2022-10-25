@@ -404,10 +404,10 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(filtered, 'test_standard', path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'units', path = saved_path)
 
-    def print_pheno_exp_anti_measure(self, species, antibiotic):
+    def print_pheno_exp_anti_measure(self, species, antibiotic, s=None, r=None):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
         saved_path = '{}/exp/{}'.format(self.saved_files_path, species)
-        e_utils.print_anti_measure(filtered, antibiotic, path = saved_path)
+        e_utils.print_anti_measure(filtered, antibiotic, path = saved_path, s=s, r=r)
 
 
     def generate_dataset(self, ds_param=None, species=None, antibiotic=None):

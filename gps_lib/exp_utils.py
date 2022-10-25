@@ -76,7 +76,7 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None, path=None):
     plt.show()
 
     
-def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
+def print_anti_measure(all_ASR, anti_index, s=None, r=None, need_log=False, path=None):
     if type(anti_index) == str:
         anti = anti_index
     else:
@@ -91,6 +91,10 @@ def print_anti_measure(all_ASR, anti_index, need_log=False, path=None):
     bins_count = bins_count.merge(pd.DataFrame({'fill': [np.zeros(len(hist_range)-1)]}, index=['=', '<=', '>=', '<', '>']), left_index=True, right_index=True, how='right')
     bins_count['measurement'].fillna(bins_count['fill'], inplace=True)
     pd.DataFrame(bins_count['measurement'].tolist(), index= bins_count.index, columns=hist_range[:-1]+0.5).T.plot.bar(stacked=True, figsize=(10,6))
+    if s is not None:
+        plt.axvline(x=s, color='g', ls=':', label='S breakpoint')
+    if r is not None:
+        plt.axvline(x=r, color='r', ls=':', label='R breakpoint')
     plt.title(anti)
     plt.xlabel('log2(mg//L)')
     plt.ylabel('#')
