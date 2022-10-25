@@ -404,9 +404,27 @@ class MICDataSet(ABC):
         e_utils.look_at_anti_dist(filtered, 'test_standard', path = saved_path)
         e_utils.look_at_anti_dist(filtered, 'units', path = saved_path)
 
-    def print_pheno_exp_anti_measure(self, species, antibiotic, s=None, r=None):
+    def print_pheno_exp_anti_measure(self, species, antibiotic):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
         saved_path = '{}/exp/{}'.format(self.saved_files_path, species)
+
+        breakpoints = pd.read_csv('../resources/SIR.csv')
+        if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
+            s = np.nan
+            I = np.nan
+            r = np.nan
+        else:
+            s = np.log2(breakpoints[breakpoints['species'] == species][
+                            breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
+            r = np.log2(breakpoints[breakpoints['species'] == species][
+                            breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
+            I = np.log2(breakpoints[breakpoints['species'] == species][
+                            breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
+        if np.isnan(s):
+            s = None
+        if np.isnan(r):
+            r = None
+
         e_utils.print_anti_measure(filtered, antibiotic, path = saved_path, s=s, r=r)
 
 
