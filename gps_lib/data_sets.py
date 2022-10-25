@@ -408,27 +408,7 @@ class MICDataSet(ABC):
         filtered = self.all_ASR[self.all_ASR['species_fam'] == species]
         saved_path = '{}/exp/{}'.format(self.saved_files_path, species)
 
-        breakpoints = pd.read_csv('../resources/SIR.csv')
-        print(breakpoints)
-        if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
-            s = np.nan
-            I = np.nan
-            r = np.nan
-        else:
-            s = np.log2(breakpoints[breakpoints['species'] == species][
-                            breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
-            r = np.log2(breakpoints[breakpoints['species'] == species][
-                            breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
-            I = np.log2(breakpoints[breakpoints['species'] == species][
-                            breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
-            print(s, r)
-        if np.isnan(s):
-            s = None
-        if np.isnan(r):
-            r = None
-        print(s,r)
-
-        e_utils.print_anti_measure(filtered, antibiotic, path = saved_path, s=s, r=r)
+        e_utils.print_anti_measure(filtered, species, antibiotic, path = saved_path)
 
 
     def generate_dataset(self, ds_param=None, species=None, antibiotic=None):

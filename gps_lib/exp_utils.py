@@ -76,7 +76,7 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None, path=None):
     plt.show()
 
     
-def print_anti_measure(all_ASR, anti_index, s=None, r=None, need_log=False, path=None):
+def print_anti_measure(all_ASR, species, anti_index, need_log=False, path=None):
     if type(anti_index) == str:
         anti = anti_index
     else:
@@ -91,10 +91,25 @@ def print_anti_measure(all_ASR, anti_index, s=None, r=None, need_log=False, path
     bins_count = bins_count.merge(pd.DataFrame({'fill': [np.zeros(len(hist_range)-1)]}, index=['=', '<=', '>=', '<', '>']), left_index=True, right_index=True, how='right')
     bins_count['measurement'].fillna(bins_count['fill'], inplace=True)
     pd.DataFrame(bins_count['measurement'].tolist(), index= bins_count.index, columns=hist_range[:-1]+0.5).T.plot.bar(stacked=True, figsize=(10,6))
-    if s is not None:
+
+    breakpoints = pd.read_csv('../resources/SIR.csv')
+    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == anti]) < 1:
+        s = np.nan
+        I = np.nan
+        r = np.nan
+    else:
+        s = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == anti].iloc[0]['S'])
+        r = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == anti].iloc[0]['R'])
+        I = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == anti].iloc[0]['I'])
+        print(s, r)
+    if not np.isnan(s):
         plt.axvline(x=s, color='g', ls=':', label='S breakpoint')
-    if r is not None:
+    if not np.isnan(r):
         plt.axvline(x=r, color='r', ls=':', label='R breakpoint')
+
     plt.title(anti)
     plt.xlabel('log2(mg//L)')
     plt.ylabel('#')
