@@ -424,7 +424,7 @@ class MICDataSet(ABC):
             s = None
         if np.isnan(r):
             r = None
-            print(s,r)
+        print(s,r)
 
         e_utils.print_anti_measure(filtered, antibiotic, path = saved_path, s=s, r=r)
 
