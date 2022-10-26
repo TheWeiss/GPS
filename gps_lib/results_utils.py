@@ -292,6 +292,145 @@ def exact_plots(i):
     plt.show()
 
 
+def SIR_plots(i, equal_meaning=False):
+    res = pd.read_csv('../experiments/results_summery.csv')
+    exp_name = res.loc[i, 'exp_path']
+    model_path = res.loc[i, 'model_path']
+    model = res.loc[i, 'model']
+    data_path = res.loc[i, 'data_path']
+    with open(data_path + '/col_names.json') as json_file:
+        col_names = json.load(json_file)
+
+    good_breakpoints = False
+    breakpoints = pd.read_csv('../resources/SIR.csv')
+    species = res.loc[i, 'species']
+    antibiotic = res.loc[i, 'antibiotic']
+    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
+        s = np.nan
+        I = np.nan
+        r = np.nan
+    else:
+        s = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
+        r = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
+        I = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
+    good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
+    if good_breakpoints:
+        range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
+        range_y.columns = ['y_true', 'sign']
+
+        split_res = {}
+        for split in ['train', 'test']:
+            split_y = pd.read_csv('{}/{}.csv'.format(data_path, split)).rename(columns={"Unnamed: 0": col_names['id']})[
+                [
+                    col_names['id'],
+                    col_names['label'],
+                ]].set_index(col_names['id'])
+            split_y.columns = ['y_true']
+
+            if model == 'autoxgb':
+                split_preds = pd.read_csv(
+                    '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).set_index(col_names['id'])
+                split_preds.columns = ['y_pred']
+                split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
+            elif model == 'h2o':
+                split_preds = pd.read_csv(
+                    '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
+                split_preds.columns = ['y_pred']
+                split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
+                                                how='inner').set_index(col_names['id'])
+            if split == 'train':
+                train_indexs = split_res_i.index
+            split_res_i = split_res_i.loc[set(split_res_i.index) - set(range_y.index)]
+
+            split_res_i['y_true'] = np.round(split_res_i['y_true'])
+            min_true = split_res_i['y_true'].min()
+            max_true = split_res_i['y_true'].max(axis=0)
+            split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
+            split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
+            split_res_i['SIR_true'] = split_res_i['y_true'].apply(lambda val: apply_SIR(val, s, I, r))
+            split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
+            split_res[split] = split_res_i
+
+        if model == 'autoxgb':
+            range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path))
+            if len(range_preds) == 0:
+                range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
+            range_preds = range_preds.set_index(col_names['id'])
+            range_preds.columns = ['y_pred']
+            range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
+        elif model == 'h2o':
+            range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path)).drop(
+                'Unnamed: 0', axis=1)
+            if len(range_preds) == 0:
+                range_preds = pd.DataFrame({'measurment': []}, index=[])
+            range_preds.columns = ['y_pred']
+            range_res = range_preds.merge(range_y.reset_index(), left_index=True, right_index=True,
+                                          how='inner').set_index(col_names['id'])
+
+        range_res['y_true'] = np.round(range_res['y_true'])
+        range_res['updated_y_true'] = np.nan
+        range_res['updated_sign'] = np.nan
+        if not equal_meaning:
+            range_res.loc[range_res['sign'] == '>', 'updated_y_true'] = range_res['y_true'] + 1
+            range_res.loc[range_res['sign'] == '<', 'updated_y_true'] = range_res['y_true'] - 1
+        range_res.loc[range_res['sign'] == '>', 'updated_sign'] = '>='
+        range_res.loc[range_res['sign'] == '<', 'updated_sign'] = '<='
+        range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
+        range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
+
+        range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
+            lambda row: apply_SIR_range(row, s, I, r), axis=1)
+        range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
+
+        train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
+        split_res['train']
+        test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
+
+        tics = ['S', 'I', 'R', 'I->S', 'I->R', '?']
+
+        N = len(tics)
+
+        for key, fold in split_res.items():
+            title = 'SIR confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'],
+                                                                          res.loc[i, 'antibiotic'], key)
+            # for title, normalize in titles_options:
+            plt.figure(figsize=(13, 13))
+
+            # Generate the confusion matrix
+            cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], labels=tics)
+            group_counts = ["{0:0.0f}".format(value) for value in cf_matrix.flatten()]
+
+            cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], normalize='true',
+                                         labels=tics)
+            group_percentages = ["{0:.2%}".format(value) for value in cf_matrix.flatten()]
+
+            labels = [f"{v1}\n({v2})" for v1, v2 in
+                      zip(group_percentages, group_counts)]
+
+            labels = np.asarray(labels).reshape(N, N)
+
+            ax = sns.heatmap(cf_matrix, annot=labels, fmt='', cmap='Blues')
+            # ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
+
+            ax.set_title(title);
+            ax.set_xlabel('\nPredicted Values')
+            ax.set_ylabel('Actual Values ')
+
+            ## Ticket labels - List must be in alphabetical order
+            ax.xaxis.set_ticklabels(tics)
+            ax.yaxis.set_ticklabels(tics)
+            plt.savefig('../experiments/{}/{}/SIR_conf_mat_{}'.format(exp_name, model_path, key))
+            ## Display the visualization of the Confusion Matrix.
+            plt.show()
+
+        plt.show()
+    else:
+        print('Not valid breakpoints data')
+
+
 def PA_plot(i, threshold):
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
@@ -456,14 +595,14 @@ def apply_SIR_range(row, s, i, r):
                 return ''
             else:
                 if val < r:
-                    return 'I'
+                    return 'I->S'
                 else:
                     return '?'
         else:
             if val <= s:
                 return 'S'
             elif val < r:
-                return 'I'
+                return 'I->S'
             else:
                 return '?'
     elif sign == '>=':
@@ -472,14 +611,14 @@ def apply_SIR_range(row, s, i, r):
                 return ''
             else:
                 if val > s:
-                    return 'I'
+                    return 'I->R'
                 else:
                     return '?'
         else:
             if val >= r:
                 return 'R'
             elif val > s:
-                return 'I'
+                return 'I->R'
             else:
                 return '?'
     else:
@@ -696,10 +835,13 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 test_range_res_SIR = test_range_res[test_range_res['SIR_true'] != '?']
 
                 regression_res['range_CA_?'] = [
-                    (train_range_res['SIR_true'] == '?').mean() if good_breakpoints else None,
-                    (test_range_res['SIR_true'] == '?').mean() if good_breakpoints else None,
+                    (train_range_res['SIR_true'] in ['?', 'I->R', 'I->S']).mean() if good_breakpoints else None,
+                    (test_range_res['SIR_true']  in ['?', 'I->R', 'I->S']).mean() if good_breakpoints else None,
                 ]
                 regression_res['range_CA_?'].fillna(0, inplace=True)
+
+                train_range_res = train_range_res[train_range_res['SIR_true'] not in ['?', 'I->R', 'I->S']]
+                test_range_res_SIR = test_range_res_SIR[test_range_res_SIR['SIR_true'] not in ['?', 'I->R', 'I->S']]
 
                 regression_res['range_CA'] = [
                     (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean() if good_breakpoints else None,
@@ -846,6 +988,8 @@ def shap_plots(i):
     X = model.get_test()
     explainer = shap.KernelExplainer(model=model.predict, data=X)
     shap_values = explainer.shap_values(X=X)
+    if len(shap_values) == 2:
+        shap_values = shap_values[1]
     with open('../experiments/{}/{}/shap_values.pickle'.format(exp_name, model_name), "wb") as pickle_file:
         pickle.dump(shap_values, pickle_file)
     with open('../experiments/{}/{}/X.pickle'.format(exp_name, model_name), "wb") as pickle_file:
