@@ -386,8 +386,9 @@ def SIR_plots(i, equal_meaning=False):
         range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
 
         train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
-        split_res['train']
+        split_res['train'] = pd.concat([split_res['train'], train_range_res], axis=0)
         test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
+        split_res['test'] = pd.concat([split_res['test'], test_range_res], axis=0)
 
         tics = ['S', 'I', 'R', 'I->S', 'I->R', '?']
 
