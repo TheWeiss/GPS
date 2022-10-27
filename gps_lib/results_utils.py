@@ -858,8 +858,10 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
                 regression_res['range_CA_?'].fillna(0, inplace=True)
 
-                train_range_res = train_range_res[train_range_res['SIR_true'] not in ['?', 'I->R', 'I->S']]
-                test_range_res_SIR = test_range_res_SIR[test_range_res_SIR['SIR_true'] not in ['?', 'I->R', 'I->S']]
+                train_range_res = train_range_res[
+                    train_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
+                test_range_res_SIR = test_range_res_SIR[
+                    test_range_res_SIR['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
 
                 regression_res['range_CA'] = [
                     (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean() if good_breakpoints else None,
