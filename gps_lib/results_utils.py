@@ -814,10 +814,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
                     lambda row: apply_SIR_range(row, s, I, r), axis=1)
                 range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
-
-
-
+            print(range_res)
             train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
+            print(train_range_res)
             test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
 
             if range_conf:
