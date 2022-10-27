@@ -307,6 +307,7 @@ def exact_plots(i):
 
 
 def SIR_plots(i, equal_meaning=False):
+    equal_meaning = False
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
@@ -401,12 +402,14 @@ def SIR_plots(i, equal_meaning=False):
 
         train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
         split_res['train'] = pd.concat([split_res['train'], train_range_res], axis=0)
+        # print(split_res['train'][['SIR_true', 'SIR_pred', 'updated_y_true', 'updated_sign']])
         test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
         split_res['test'] = pd.concat([split_res['test'], test_range_res], axis=0)
 
         tics = ['S', 'I', 'R', 'I->S', 'I->R', '?']
 
         N = len(tics)
+        n = 3
 
         for key, fold in split_res.items():
             title = 'SIR confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'],
@@ -415,17 +418,17 @@ def SIR_plots(i, equal_meaning=False):
             plt.figure(figsize=(13, 13))
 
             # Generate the confusion matrix
-            cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], labels=tics)
+            cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], labels=tics)[:, :3]
             group_counts = ["{0:0.0f}".format(value) for value in cf_matrix.flatten()]
 
             cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], normalize='true',
-                                         labels=tics)
+                                         labels=tics)[:, :3]
             group_percentages = ["{0:.2%}".format(value) for value in cf_matrix.flatten()]
 
             labels = [f"{v1}\n({v2})" for v1, v2 in
                       zip(group_percentages, group_counts)]
 
-            labels = np.asarray(labels).reshape(N, N)
+            labels = np.asarray(labels).reshape(N, n)
 
             ax = sns.heatmap(cf_matrix, annot=labels, fmt='', cmap='Blues')
             # ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
@@ -435,7 +438,7 @@ def SIR_plots(i, equal_meaning=False):
             ax.set_ylabel('Actual Values ')
 
             ## Ticket labels - List must be in alphabetical order
-            ax.xaxis.set_ticklabels(tics)
+            ax.xaxis.set_ticklabels(tics[:n])
             ax.yaxis.set_ticklabels(tics)
             plt.savefig('../experiments/{}/{}/SIR_conf_mat_{}'.format(exp_name, model_path, key))
             ## Display the visualization of the Confusion Matrix.
@@ -892,7 +895,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                        train_range_res_SIR['SIR_pred'] == 'I')).mean() if good_breakpoints else None,
                     np.logical_or(
                         np.logical_and(test_range_res_SIR['SIR_true'] == 'I', test_range_res['SIR_pred'] != 'I'),
-                        np.logical_and(test_range_res_SIR['SIR_true'] != 'I',
+                        np.logical_and(train_range_res_SIR['SIR_true'] != 'I',
                                        test_range_res_SIR['SIR_pred'] == 'I')).mean() if good_breakpoints else None,
                 ]
                 regression_res['range_mE'].fillna(0, inplace=True)
@@ -900,6 +903,10 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             regression_res['range_size'] = [
                 len(train_range_res),
                 len(test_range_res),
+            ]
+            regression_res['range_CA_size'] = [
+                len(train_range_res_SIR),
+                len(train_range_res_SIR),
             ]
             regression_res['range_size'].fillna(0, inplace=True)
             regression_res['exact_size'] = [len(split_data) for split_data in split_res.values()]
@@ -918,26 +925,26 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             if good_breakpoints:
                 regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
-                                                         + regression_res['range_CA'] * regression_res['range_size']) \
-                                                        / (regression_res['range_size'] + regression_res[
+                                                         + regression_res['range_CA'] * regression_res['range_CA_size']) \
+                                                        / (regression_res['range_CA_size'] + regression_res[
                     'exact_size'].fillna(0))
 
                 regression_res['VME'] = (regression_res['exact_VME'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
-                                        + regression_res['range_VME'] * regression_res['range_size']) \
-                                       / (regression_res['range_size'] + regression_res[
+                                        + regression_res['range_VME'] * regression_res['range_CA_size']) \
+                                       / (regression_res['range_CA_size'] + regression_res[
                     'exact_size'].fillna(0))
 
                 regression_res['ME'] = (regression_res['exact_ME'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
-                                         + regression_res['range_ME'] * regression_res['range_size']) \
-                                        / (regression_res['range_size'] + regression_res[
+                                         + regression_res['range_ME'] * regression_res['range_CA_size']) \
+                                        / (regression_res['range_CA_size'] + regression_res[
                     'exact_size'].fillna(0))
 
                 regression_res['mE'] = (regression_res['exact_mE'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
-                                        + regression_res['range_mE'] * regression_res['range_size']) \
-                                       / (regression_res['range_size'] + regression_res[
+                                        + regression_res['range_mE'] * regression_res['range_CA_size']) \
+                                       / (regression_res['range_CA_size'] + regression_res[
                     'exact_size'].fillna(0))
 
 
