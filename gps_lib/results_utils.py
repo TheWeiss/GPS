@@ -848,12 +848,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 test_range_res['error2'].mean(),
             ]
             regression_res['range_accuracy2'].fillna(0, inplace=True)
-
             if good_breakpoints:
-                train_range_res_SIR = train_range_res[
-                    train_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
-                test_range_res_SIR = test_range_res[
-                    test_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
+                train_range_res_SIR = train_range_res[train_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
+                test_range_res_SIR = test_range_res[test_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
 
                 regression_res['range_CA_?'] = [
                     (train_range_res['SIR_true'].apply(
