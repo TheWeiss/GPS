@@ -138,6 +138,19 @@ def fill_model_param(row):
     return tmp
 
 
+def fill_shap_exist(row):
+    i = row.to_frame().T.index.values[0]
+    exp_name = row['exp_path']
+    model_path = row['model_path']
+    shap_flag = pd.DataFrame({'shap_done': [False]})
+    if os.path.exists('../experiments/{}/{}/shap_summery.png'.format(exp_name, model_path)):
+        shap = pd.DataFrame({'shap_done': [True]})
+    shap_flag.index = [i]
+    tmp = pd.concat([row.to_frame().T, shap_flag], axis=1)
+    tmp = tmp.iloc[0]
+    return tmp
+
+
 def results_by(results, metric, ascending=False):
     filtered_res = results.sort_values(ascending=ascending, by='{}_test'.format(metric)).drop_duplicates(subset=['species', 'antibiotic'], keep='first')
     filtered_res = filtered_res.sort_values(ascending=ascending, by='{}_test'.format(metric)).reset_index(drop=True)
@@ -201,6 +214,7 @@ def read_exp_dirs(exp_dir_path, equal_meaning=True):
     results['dataset'] = results['data_path'].apply(fill_data_set)
     results = results.apply(fill_data_param, axis=1)
     results = results.apply(fill_stack_param, axis=1)
+    results = results.apply(fill_shap_exist, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
     results = add_metrices(results, equal_meaning=equal_meaning)
     results = compare_to_naive(results)
