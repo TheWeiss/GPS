@@ -854,31 +854,34 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
                 regression_res['range_CA_?'] = [
                     (train_range_res['SIR_true'].apply(
-                        lambda x: x in ['?', 'I->R', 'I->S'])).mean() if good_breakpoints else None,
+                        lambda x: x in ['?', 'I->R', 'I->S'])).mean(),
                     (test_range_res['SIR_true'].apply(
-                        lambda x: x in ['?', 'I->R', 'I->S'])).mean() if good_breakpoints else None,
+                        lambda x: x in ['?', 'I->R', 'I->S'])).mean(),
                 ]
                 regression_res['range_CA_?'].fillna(0, inplace=True)
 
+                print(train_range_res_SIR)
+                print(train_range_res_SIR.columns)
+                print((train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean())
                 regression_res['range_CA'] = [
-                    (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean() if good_breakpoints else None,
-                    (test_range_res_SIR['SIR_true'] == test_range_res_SIR['SIR_pred']).mean() if good_breakpoints else None,
+                    (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean(),
+                    (test_range_res_SIR['SIR_true'] == test_range_res_SIR['SIR_pred']).mean(),
                 ]
                 regression_res['range_CA'].fillna(0, inplace=True)
 
                 regression_res['range_VME'] = [
                     np.logical_and(train_range_res_SIR['SIR_true'] == 'R',
-                                   train_range_res_SIR['SIR_pred'] == 'S').mean() if good_breakpoints else None,
+                                   train_range_res_SIR['SIR_pred'] == 'S').mean(),
                     np.logical_and(test_range_res_SIR['SIR_true'] == 'R',
-                                   test_range_res_SIR['SIR_pred'] == 'S').mean() if good_breakpoints else None,
+                                   test_range_res_SIR['SIR_pred'] == 'S').mean(),
                 ]
                 regression_res['range_VME'].fillna(0, inplace=True)
 
                 regression_res['range_ME'] = [
                     np.logical_and(train_range_res_SIR['SIR_true'] == 'S',
-                                   train_range_res_SIR['SIR_pred'] == 'R').mean() if good_breakpoints else None,
+                                   train_range_res_SIR['SIR_pred'] == 'R').mean(),
                     np.logical_and(test_range_res_SIR['SIR_true'] == 'S',
-                                   test_range_res_SIR['SIR_pred'] == 'R').mean() if good_breakpoints else None,
+                                   test_range_res_SIR['SIR_pred'] == 'R').mean(),
                 ]
                 regression_res['range_ME'].fillna(0, inplace=True)
 
@@ -886,11 +889,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                     np.logical_or(
                         np.logical_and(train_range_res_SIR['SIR_true'] == 'I', train_range_res_SIR['SIR_pred'] != 'I'),
                         np.logical_and(train_range_res_SIR['SIR_true'] != 'I',
-                                       train_range_res_SIR['SIR_pred'] == 'I')).mean() if good_breakpoints else None,
+                                       train_range_res_SIR['SIR_pred'] == 'I')).mean(),
                     np.logical_or(
                         np.logical_and(test_range_res_SIR['SIR_true'] == 'I', test_range_res['SIR_pred'] != 'I'),
                         np.logical_and(train_range_res_SIR['SIR_true'] != 'I',
-                                       test_range_res_SIR['SIR_pred'] == 'I')).mean() if good_breakpoints else None,
+                                       test_range_res_SIR['SIR_pred'] == 'I')).mean(),
                 ]
                 regression_res['range_mE'].fillna(0, inplace=True)
 
