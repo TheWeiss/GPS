@@ -904,10 +904,13 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 len(train_range_res),
                 len(test_range_res),
             ]
-            regression_res['range_CA_size'] = [
-                len(train_range_res_SIR),
-                len(train_range_res_SIR),
-            ]
+
+            if good_breakpoints:
+                regression_res['range_CA_size'] = [
+                    len(train_range_res_SIR),
+                    len(test_range_res_SIR),
+                ]
+
             regression_res['range_size'].fillna(0, inplace=True)
             regression_res['exact_size'] = [len(split_data) for split_data in split_res.values()]
             regression_res['exact_size'].fillna(0, inplace=True)
