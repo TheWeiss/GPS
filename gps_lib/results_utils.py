@@ -144,7 +144,7 @@ def fill_shap_exist(row):
     model_path = row['model_path']
     shap_flag = pd.DataFrame({'shap_done': [False]})
     if os.path.exists('../experiments/{}/{}/shap_summery.png'.format(exp_name, model_path)):
-        shap = pd.DataFrame({'shap_done': [True]})
+        shap_flag = pd.DataFrame({'shap_done': [True]})
     shap_flag.index = [i]
     tmp = pd.concat([row.to_frame().T, shap_flag], axis=1)
     tmp = tmp.iloc[0]
