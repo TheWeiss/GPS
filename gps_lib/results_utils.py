@@ -852,7 +852,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 print(train_range_res)
                 train_range_res_SIR = train_range_res[train_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
                 print(train_range_res_SIR)
+                print(test_range_res)
                 test_range_res_SIR = test_range_res[test_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
+                print(test_range_res_SIR)
 
                 regression_res['range_CA_?'] = [
                     (train_range_res['SIR_true'].apply(
@@ -872,17 +874,21 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
                 regression_res['range_VME'] = [
                     np.logical_and(train_range_res_SIR['SIR_true'] == 'R',
-                                   train_range_res_SIR['SIR_pred'] == 'S').mean(),
+                                   train_range_res_SIR['SIR_pred'] == 'S').mean() if len(
+                        train_range_res_SIR) > 0 else np.nan,
                     np.logical_and(test_range_res_SIR['SIR_true'] == 'R',
-                                   test_range_res_SIR['SIR_pred'] == 'S').mean(),
+                                   test_range_res_SIR['SIR_pred'] == 'S').mean() if len(
+                        test_range_res_SIR) > 0 else np.nan,
                 ]
                 regression_res['range_VME'].fillna(0, inplace=True)
 
                 regression_res['range_ME'] = [
                     np.logical_and(train_range_res_SIR['SIR_true'] == 'S',
-                                   train_range_res_SIR['SIR_pred'] == 'R').mean(),
+                                   train_range_res_SIR['SIR_pred'] == 'R').mean() if len(
+                        train_range_res_SIR) > 0 else np.nan,
                     np.logical_and(test_range_res_SIR['SIR_true'] == 'S',
-                                   test_range_res_SIR['SIR_pred'] == 'R').mean(),
+                                   test_range_res_SIR['SIR_pred'] == 'R').mean() if len(
+                        test_range_res_SIR) > 0 else np.nan,
                 ]
                 regression_res['range_ME'].fillna(0, inplace=True)
 
@@ -890,11 +896,13 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                     np.logical_or(
                         np.logical_and(train_range_res_SIR['SIR_true'] == 'I', train_range_res_SIR['SIR_pred'] != 'I'),
                         np.logical_and(train_range_res_SIR['SIR_true'] != 'I',
-                                       train_range_res_SIR['SIR_pred'] == 'I')).mean(),
+                                       train_range_res_SIR['SIR_pred'] == 'I')).mean() if len(
+                        train_range_res_SIR) > 0 else np.nan,
                     np.logical_or(
                         np.logical_and(test_range_res_SIR['SIR_true'] == 'I', test_range_res['SIR_pred'] != 'I'),
                         np.logical_and(train_range_res_SIR['SIR_true'] != 'I',
-                                       test_range_res_SIR['SIR_pred'] == 'I')).mean(),
+                                       test_range_res_SIR['SIR_pred'] == 'I')).mean() if len(
+                        test_range_res_SIR) > 0 else np.nan,
                 ]
                 regression_res['range_mE'].fillna(0, inplace=True)
 
