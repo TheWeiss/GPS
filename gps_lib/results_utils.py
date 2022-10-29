@@ -307,7 +307,6 @@ def exact_plots(i):
 
 
 def SIR_plots(i, equal_meaning=False):
-    equal_meaning = False
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
@@ -369,6 +368,25 @@ def SIR_plots(i, equal_meaning=False):
             split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
             split_res[split] = split_res_i
 
+        regression_res = pd.DataFrame({
+            'exact_CA': [(split_data['SIR_true'] == split_data['SIR_pred']).mean() if good_breakpoints else None for
+                         split_data in
+                         split_res.values()],
+            'exact_VME': [
+                np.logical_and(split_data['SIR_true'] == 'R',
+                               split_data['SIR_pred'] == 'S').mean() if good_breakpoints else None
+                for split_data in split_res.values()],
+            'exact_ME': [
+                np.logical_and(split_data['SIR_true'] == 'S',
+                               split_data['SIR_pred'] == 'R').mean() if good_breakpoints else None
+                for split_data in split_res.values()],
+            'exact_mE': [np.logical_or(
+                np.logical_and(split_data['SIR_true'] == 'I', split_data['SIR_pred'] != 'I'),
+                np.logical_and(split_data['SIR_true'] != 'I',
+                               split_data['SIR_pred'] == 'I')).mean() if good_breakpoints else None for split_data
+                         in split_res.values()],
+        }, index=['train', 'test'])
+
         if model == 'autoxgb':
             range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path))
             if len(range_preds) == 0:
@@ -395,8 +413,6 @@ def SIR_plots(i, equal_meaning=False):
         range_res.loc[range_res['sign'] == '<', 'updated_sign'] = '<='
         range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
         range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
-        range_res['y_pred'] = range_res['y_pred'].clip(lower=min_true, upper=max_true)
-        range_res['y_pred'] = np.round(range_res['y_pred'])
 
         range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
             lambda row: apply_SIR_range(row, s, I, r), axis=1)
@@ -411,7 +427,6 @@ def SIR_plots(i, equal_meaning=False):
 
         N = len(tics)
         n = 3
-
         for key, fold in split_res.items():
             title = 'SIR confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'],
                                                                           res.loc[i, 'antibiotic'], key)
@@ -432,7 +447,6 @@ def SIR_plots(i, equal_meaning=False):
             labels = np.asarray(labels).reshape(N, n)
 
             ax = sns.heatmap(cf_matrix, annot=labels, fmt='', cmap='Blues')
-            # ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
 
             ax.set_title(title);
             ax.set_xlabel('\nPredicted Values')
