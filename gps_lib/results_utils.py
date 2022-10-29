@@ -368,25 +368,6 @@ def SIR_plots(i, equal_meaning=False):
             split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
             split_res[split] = split_res_i
 
-        regression_res = pd.DataFrame({
-            'exact_CA': [(split_data['SIR_true'] == split_data['SIR_pred']).mean() if good_breakpoints else None for
-                         split_data in
-                         split_res.values()],
-            'exact_VME': [
-                np.logical_and(split_data['SIR_true'] == 'R',
-                               split_data['SIR_pred'] == 'S').mean() if good_breakpoints else None
-                for split_data in split_res.values()],
-            'exact_ME': [
-                np.logical_and(split_data['SIR_true'] == 'S',
-                               split_data['SIR_pred'] == 'R').mean() if good_breakpoints else None
-                for split_data in split_res.values()],
-            'exact_mE': [np.logical_or(
-                np.logical_and(split_data['SIR_true'] == 'I', split_data['SIR_pred'] != 'I'),
-                np.logical_and(split_data['SIR_true'] != 'I',
-                               split_data['SIR_pred'] == 'I')).mean() if good_breakpoints else None for split_data
-                         in split_res.values()],
-        }, index=['train', 'test'])
-
         if model == 'autoxgb':
             range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path))
             if len(range_preds) == 0:
@@ -404,6 +385,8 @@ def SIR_plots(i, equal_meaning=False):
                                           how='inner').set_index(col_names['id'])
 
         range_res['y_true'] = np.round(range_res['y_true'])
+        range_res['y_pred'] = range_res['y_pred'].clip(lower=min_true, upper=max_true)
+        range_res['y_pred'] = np.round(range_res['y_pred'])
         range_res['updated_y_true'] = np.nan
         range_res['updated_sign'] = np.nan
         if not equal_meaning:
