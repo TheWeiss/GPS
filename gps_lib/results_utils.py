@@ -310,6 +310,8 @@ def SIR_plots(i, equal_meaning=False):
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
+    print(exp_name)
+    print(model_path)
     model = res.loc[i, 'model']
     data_path = res.loc[i, 'data_path']
     with open(data_path + '/col_names.json') as json_file:
