@@ -864,12 +864,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 ]
                 regression_res['range_CA_?'].fillna(0, inplace=True)
 
-                print(train_range_res_SIR)
-                print(train_range_res_SIR.columns)
-                print((train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean())
                 regression_res['range_CA'] = [
-                    (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean(),
-                    (test_range_res_SIR['SIR_true'] == test_range_res_SIR['SIR_pred']).mean(),
+                    (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean() if len(
+                        train_range_res_SIR) > 0 else np.nan,
+                    (test_range_res_SIR['SIR_true'] == test_range_res_SIR['SIR_pred']).mean() if len(
+                        test_range_res_SIR) > 0 else np.nan,
                 ]
                 regression_res['range_CA'].fillna(0, inplace=True)
 
