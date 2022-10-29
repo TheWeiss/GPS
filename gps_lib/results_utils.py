@@ -395,6 +395,8 @@ def SIR_plots(i, equal_meaning=False):
         range_res.loc[range_res['sign'] == '<', 'updated_sign'] = '<='
         range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
         range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
+        range_res['y_pred'] = range_res['y_pred'].clip(lower=min_true, upper=max_true)
+        range_res['y_pred'] = np.round(range_res['y_pred'])
 
         range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
             lambda row: apply_SIR_range(row, s, I, r), axis=1)
@@ -402,7 +404,6 @@ def SIR_plots(i, equal_meaning=False):
 
         train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
         split_res['train'] = pd.concat([split_res['train'], train_range_res], axis=0)
-        # print(split_res['train'][['SIR_true', 'SIR_pred', 'updated_y_true', 'updated_sign']])
         test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
         split_res['test'] = pd.concat([split_res['test'], test_range_res], axis=0)
 
@@ -532,7 +533,7 @@ def range_plots(i):
     model_path = res.loc[i, 'model_path']
     data_path = res.loc[i, 'data_path']
 
-    equal_meaning = True
+    equal_meaning = False
     with open(data_path + '/col_names.json') as json_file:
         col_names = json.load(json_file)
     range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
@@ -567,10 +568,10 @@ def range_plots(i):
     range_res['updated_y_true'] = np.nan
     range_res['updated_sign'] = np.nan
     if not equal_meaning:
-        range_res.loc[range_res['sign'] == '>=', 'updated_y_true'] = range_res['y_true'] - 1
-        range_res.loc[range_res['sign'] == '<=', 'updated_y_true'] = range_res['y_true'] + 1
-    range_res.loc[range_res['sign'] == '>=', 'updated_sign'] = '>'
-    range_res.loc[range_res['sign'] == '<=', 'updated_sign'] = '<'
+        range_res.loc[range_res['sign'] == '>', 'updated_y_true'] = range_res['y_true'] + 1
+        range_res.loc[range_res['sign'] == '<', 'updated_y_true'] = range_res['y_true'] - 1
+    range_res.loc[range_res['sign'] == '>', 'updated_sign'] = '>='
+    range_res.loc[range_res['sign'] == '<', 'updated_sign'] = '<='
     range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
     range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
 
@@ -800,6 +801,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             range_res.loc[range_res['sign'] == '<', 'updated_sign'] = '<='
             range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
             range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
+
+            range_res['y_pred'] = range_res['y_pred'].clip(lower=min_true, upper=max_true)
+            range_res['y_pred'] = np.round(range_res['y_pred'])
 
             range_res.loc[range_res['updated_sign'] == '>=', 'error'] = (
                     range_res['y_pred'] >= range_res['updated_y_true'])
