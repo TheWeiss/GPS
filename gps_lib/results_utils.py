@@ -740,13 +740,13 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 min_true = split_res_i['y_true'].min()
                 max_true = split_res_i['y_true'].max(axis=0)
                 split_res_i['y_pred'] = split_res_i['y_pred'].clip(lower=min_true, upper=max_true)
+                split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
+                split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
 
                 if good_breakpoints:
                     split_res_i['SIR_true'] = split_res_i['y_true'].apply(lambda val: apply_SIR(val, s, I, r))
                     split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
 
-                split_res_i['residual'] = split_res_i['y_true'] - split_res_i['y_pred']
-                split_res_i['y_pred'] = np.round(split_res_i['y_pred'])
                 split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
                 split_res_i['error'] = split_res_i['round_residual'].abs() < 1
                 split_res_i['error2'] = split_res_i['round_residual'].abs() < 2
