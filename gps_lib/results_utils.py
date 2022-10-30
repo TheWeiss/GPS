@@ -7,6 +7,7 @@ import seaborn as sns
 import shap
 from sklearn.metrics import confusion_matrix, mean_squared_error, ConfusionMatrixDisplay
 from experiment import Model_h2o, Model_axgb
+from parse_raw_utils import get_breakpoints
 import argparse
 import pickle
 
@@ -306,6 +307,8 @@ def exact_plots(i):
     plt.show()
 
 
+
+
 def SIR_plots(i, equal_meaning=False):
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
@@ -314,23 +317,10 @@ def SIR_plots(i, equal_meaning=False):
     data_path = res.loc[i, 'data_path']
     with open(data_path + '/col_names.json') as json_file:
         col_names = json.load(json_file)
-
-    good_breakpoints = False
-    breakpoints = pd.read_csv('../resources/SIR.csv')
     species = res.loc[i, 'species']
     antibiotic = res.loc[i, 'antibiotic']
-    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
-        s = np.nan
-        I = np.nan
-        r = np.nan
-    else:
-        s = np.log2(breakpoints[breakpoints['species'] == species][
-                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
-        r = np.log2(breakpoints[breakpoints['species'] == species][
-                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
-        I = np.log2(breakpoints[breakpoints['species'] == species][
-                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
-    good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
+    s,I,r,good_breakpoints = get_breakpoints(species, antibiotic)
+
     if good_breakpoints:
         range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
         range_y.columns = ['y_true', 'sign']
@@ -697,21 +687,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
             good_breakpoints = False
             if SIR:
-                breakpoints = pd.read_csv('../resources/SIR.csv')
                 species = results['species'].iloc[i]
                 antibiotic = results['antibiotic'].iloc[i]
-                if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
-                    s = np.nan
-                    I = np.nan
-                    r = np.nan
-                else:
-                    s = np.log2(breakpoints[breakpoints['species'] == species][
-                                    breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
-                    r = np.log2(breakpoints[breakpoints['species'] == species][
-                                    breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
-                    I = np.log2(breakpoints[breakpoints['species'] == species][
-                                    breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
-                good_breakpoints = not (np.isnan(s) and (np.isnan(I) and np.isnan(r)))
+                s, I, r, good_breakpoints = get_breakpoints(species, antibiotic)
 
             split_res = {}
             for split in ['train', 'test']:

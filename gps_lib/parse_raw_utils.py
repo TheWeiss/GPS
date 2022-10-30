@@ -22,6 +22,27 @@ import json
 ################################## Parse functions ##################################
 ####################################################################################
 
+
+def get_breakpoints(species, antibiotic):
+    good_breakpoints = False
+    breakpoints = pd.read_csv('../resources/SIR.csv')
+    if species in ['Klebsiella pneumoniae', 'Escherichia coli', 'Enterobacter sp.']:
+        species = 'Enterobacterales'
+    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == antibiotic]) < 1:
+        s = np.nan
+        i = np.nan
+        r = np.nan
+    else:
+        s = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['S'])
+        r = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['R'])
+        i = np.log2(breakpoints[breakpoints['species'] == species][
+                        breakpoints['Antibiotic'] == antibiotic].iloc[0]['I'])
+    good_breakpoints = not (np.isnan(s) and (np.isnan(i) and np.isnan(r)))
+    return s,i,r,good_breakpoints
+
+
 def save_filtered_metadata(tot_data, all_ASR, ds_name):
     full_ds_path = '../resources/{}'.format(ds_name)
     os.makedirs(full_ds_path, exist_ok=True)
