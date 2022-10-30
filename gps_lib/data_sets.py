@@ -468,6 +468,7 @@ class MICDataSet(ABC):
             'scalar': False,
             'id_thresh': None,
             'cov_thresh': None,
+            'not_equal_meaning': False,
         }
         full_ds_param = {}
         for key, value in default_values.items():
@@ -537,12 +538,13 @@ class MICDataSet(ABC):
 
         if ds_param['task'] == 'regression':
             if ds_param['handle_range'] != 'remove':
-                range_y = range_label['measurement'].copy().mask(
-                    range_label['sign'].apply(lambda x: x == '>'),
-                    range_label['measurement'] + 1)
-                range_y = range_y.mask(
-                    range_label['sign'].apply(lambda x: x == '<'),
-                    range_y - 1)
+                if ds_param['not_equal_meaning']:
+                    range_y = range_label['measurement'].copy().mask(
+                        range_label['sign'].apply(lambda x: x == '>'),
+                        range_label['measurement'] + 1)
+                    range_y = range_y.mask(
+                        range_label['sign'].apply(lambda x: x == '<'),
+                        range_y - 1)
             if ds_param['handle_range'] == 'move':
                 range_y = range_y.mask(
                     range_label['sign'].apply(lambda x: '>' in x),
