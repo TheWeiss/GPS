@@ -751,7 +751,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                    split_data['SIR_pred'] == 'I')).mean() if good_breakpoints else None for split_data
                              in split_res.values()],
             }, index=['train', 'test'])
-            print(regression_res)
 
             if results['model'].iloc[i] == 'autoxgb':
                 range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
@@ -794,6 +793,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
                     lambda row: apply_SIR_range(row, s, I, r), axis=1)
                 range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
+                print(range_res['SIR_true'])
+                print(range_res['SIR_pred'])
             print(exp_name)
             train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
             test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
