@@ -690,6 +690,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 species = results['species'].iloc[i]
                 antibiotic = results['antibiotic'].iloc[i]
                 s, I, r, good_breakpoints = get_breakpoints(species, antibiotic)
+                print(s, I, r, good_breakpoints)
 
             split_res = {}
             for split in ['train', 'test']:
