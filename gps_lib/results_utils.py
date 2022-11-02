@@ -723,6 +723,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 if good_breakpoints:
                     split_res_i['SIR_true'] = split_res_i['y_true'].apply(lambda val: apply_SIR(val, s, I, r))
                     split_res_i['SIR_pred'] = split_res_i['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
+                    print(split_res_i['SIR_true'])
+                    print(split_res_i['SIR_pred'])
 
                 split_res_i['round_residual'] = split_res_i['y_true'] - split_res_i['y_pred']
                 split_res_i['error'] = split_res_i['round_residual'].abs() < 1
