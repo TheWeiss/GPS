@@ -793,8 +793,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
                     lambda row: apply_SIR_range(row, s, I, r), axis=1)
                 range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
-                print(range_res['SIR_true'])
-                print(range_res['SIR_pred'])
             print(exp_name)
             train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
             test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
@@ -830,6 +828,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             if good_breakpoints:
                 train_range_res_SIR = train_range_res[train_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
                 test_range_res_SIR = test_range_res[test_range_res['SIR_true'].apply(lambda x: x not in ['?', 'I->R', 'I->S'])]
+                print(train_range_res_SIR)
+                print(test_range_res_SIR)
 
                 regression_res['range_CA_?'] = [
                     (train_range_res['SIR_true'].apply(
