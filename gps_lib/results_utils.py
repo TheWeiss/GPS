@@ -791,7 +791,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
             if good_breakpoints:
                 print(exp_name, model_name)
-                print(range_res)
                 if len(range_res)==0:
                     range_res['SIR_true'] = range_res['updated_y_true']
                     range_res['SIR_pred'] = range_res['y_pred']
