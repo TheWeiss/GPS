@@ -973,11 +973,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
             regression_res['size'] = regression_res['exact_size'] + regression_res['range_size']
             regression_res['exp_done'] = True
-            print(regression_res)
         except (FileNotFoundError, OSError):
             regression_res = pd.DataFrame({}, index=[0])
             regression_res['exp_done'] = False
         regression_res.index = [i]
+        print(regression_res)
         results = pd.concat([results, pd.DataFrame(columns=regression_res.columns)])
         results.update(regression_res)
     return results
