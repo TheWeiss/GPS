@@ -911,7 +911,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                                     / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
             if good_breakpoints:
-                print(regression_res)
                 regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
                                                          + regression_res['range_CA'] * regression_res['range_CA_size']) \
@@ -936,7 +935,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                        / (regression_res['range_CA_size'] + regression_res[
                     'exact_size'].fillna(0))
 
-            print(regression_res)
             regression_res = pd.DataFrame(regression_res.unstack()).T
 
             regression_res.columns = ['{}_{}'.format(col[0], col[1])
@@ -975,6 +973,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
             regression_res['size'] = regression_res['exact_size'] + regression_res['range_size']
             regression_res['exp_done'] = True
+            print(regression_res)
         except (FileNotFoundError, OSError):
             regression_res = pd.DataFrame({}, index=[0])
             regression_res['exp_done'] = False
