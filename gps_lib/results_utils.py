@@ -790,7 +790,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                     range_res['y_pred'] <= range_res['updated_y_true'] + 1)
 
             if good_breakpoints:
-                print(range_res[['updated_y_true', 'updated_sign']])
+                print(range_res[['updated_y_true', 'updated_sign']].columns)
                 range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
                     lambda row: apply_SIR_range(row, s, I, r), axis=1)
                 range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
