@@ -648,12 +648,12 @@ def apply_SIR(val, s, i, r):
 
 def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
     results = res.copy()
-    for i in np.arange(len(results)):
+    for i in results.index:
         try:
-            exp_name = results['exp_path'].iloc[i]
-            model_name = results['model_path'].iloc[i]
-            data_path = results['data_path'].iloc[i]
-            if results['error'].iloc[i]:
+            exp_name = results.loc[i, 'exp_path']
+            model_name = results.loc[i, 'model_path']
+            data_path = results.loc[i, 'data_path']
+            if results.loc[i, 'error']:
                 continue
             with open(data_path + '/col_names.json') as json_file:
                 col_names = json.load(json_file)
@@ -687,8 +687,8 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
             good_breakpoints = False
             if SIR:
-                species = results['species'].iloc[i]
-                antibiotic = results['antibiotic'].iloc[i]
+                species = results.loc[i, 'species']
+                antibiotic = results.loc[i, 'antibiotic']
                 s, I, r, good_breakpoints = get_breakpoints(species, antibiotic)
 
             split_res = {}
@@ -699,12 +699,12 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                         col_names['label'],
                     ]].set_index(col_names['id'])
                 split_y.columns = ['y_true']
-                if results['model'].iloc[i] == 'autoxgb':
+                if results.loc[i, 'model'] == 'autoxgb':
                     split_preds = pd.read_csv(
                         '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).set_index(col_names['id'])
                     split_preds.columns = ['y_pred']
                     split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
-                elif results['model'].iloc[i] == 'h2o':
+                elif results.loc[i, 'model'] == 'h2o':
                     split_preds = pd.read_csv(
                         '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).drop('Unnamed: 0', axis=1)
                     split_preds.columns = ['y_pred']
@@ -752,14 +752,14 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                              in split_res.values()],
             }, index=['train', 'test'])
 
-            if results['model'].iloc[i] == 'autoxgb':
+            if results.loc[i, 'model'] == 'autoxgb':
                 range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
                 if len(range_preds) == 0:
                     range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
                 range_preds = range_preds.set_index(col_names['id'])
                 range_preds.columns = ['y_pred']
                 range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
-            elif results['model'].iloc[i] == 'h2o':
+            elif results.loc[i, 'model'] == 'h2o':
                 range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).drop('Unnamed: 0', axis=1)
                 if len(range_preds) == 0:
                     range_preds = pd.DataFrame({'measurment': []}, index=[])
