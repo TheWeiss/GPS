@@ -899,7 +899,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             regression_res['range_size'].fillna(0, inplace=True)
             regression_res['exact_size'] = [len(split_data) for split_data in split_res.values()]
             regression_res['exact_size'].fillna(0, inplace=True)
-            print(regression_res)
             regression_res['accuracy'] = (regression_res['exact_accuracy'].fillna(0) * regression_res[
                 'exact_size'].fillna(0) \
                                           + regression_res['range_accuracy'] * regression_res['range_size']) \
@@ -912,6 +911,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                                     / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
             if good_breakpoints:
+                print(regression_res)
                 regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
                                                          + regression_res['range_CA'] * regression_res['range_CA_size']) \
@@ -936,7 +936,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                        / (regression_res['range_CA_size'] + regression_res[
                     'exact_size'].fillna(0))
 
-
+            print(regression_res)
             regression_res = pd.DataFrame(regression_res.unstack()).T
 
             regression_res.columns = ['{}_{}'.format(col[0], col[1])
