@@ -793,7 +793,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
                     lambda row: apply_SIR_range(row, s, I, r), axis=1)
                 range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
-            print(exp_name)
             train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
             test_range_res = range_res.loc[set(range_res.index) - set(train_indexs)]
 
@@ -979,7 +978,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
         regression_res.index = [i]
         print(regression_res)
         results = pd.concat([results, pd.DataFrame(columns=regression_res.columns)])
+
         results.update(regression_res)
+        print(results)
     return results
 
 
