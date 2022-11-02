@@ -3,6 +3,7 @@ import matplotlib
 import pandas as pd
 import numpy as np
 import os
+import parse_raw_utils as pr_utils
 
 ########################################################################################
 ################################## Printing functions ##################################
@@ -92,18 +93,7 @@ def print_anti_measure(all_ASR, species, anti_index, need_log=False, path=None):
     bins_count['measurement'].fillna(bins_count['fill'], inplace=True)
     pd.DataFrame(bins_count['measurement'].tolist(), index= bins_count.index, columns=hist_range[:-1]+0.5).T.plot.bar(stacked=True, figsize=(10,6))
 
-    breakpoints = pd.read_csv('../resources/SIR.csv')
-    if len(breakpoints[breakpoints['species'] == species][breakpoints['Antibiotic'] == anti]) < 1:
-        s = np.nan
-        I = np.nan
-        r = np.nan
-    else:
-        s = np.log2(breakpoints[breakpoints['species'] == species][
-                        breakpoints['Antibiotic'] == anti].iloc[0]['S'])
-        r = np.log2(breakpoints[breakpoints['species'] == species][
-                        breakpoints['Antibiotic'] == anti].iloc[0]['R'])
-        I = np.log2(breakpoints[breakpoints['species'] == species][
-                        breakpoints['Antibiotic'] == anti].iloc[0]['I'])
+    s, i, r, good_breakpoints = pr_utils.get_breakpoints(species, anti)
     if not np.isnan(s):
         if s >= low and s <= high:
             plt.axvline(x=np.where(hist_range[:-1]+0.5 == s)[0][0], color='g', ls=':', label='S breakpoint')
