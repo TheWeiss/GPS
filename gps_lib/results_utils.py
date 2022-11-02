@@ -886,7 +886,6 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                     range_mE_test,
                 ]
                 regression_res['range_mE'].fillna(0, inplace=True)
-                print(regression_res)
 
             regression_res['range_size'] = [
                 len(train_range_res),
@@ -902,6 +901,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             regression_res['range_size'].fillna(0, inplace=True)
             regression_res['exact_size'] = [len(split_data) for split_data in split_res.values()]
             regression_res['exact_size'].fillna(0, inplace=True)
+            print(regression_res)
             regression_res['accuracy'] = (regression_res['exact_accuracy'].fillna(0) * regression_res[
                 'exact_size'].fillna(0) \
                                           + regression_res['range_accuracy'] * regression_res['range_size']) \
