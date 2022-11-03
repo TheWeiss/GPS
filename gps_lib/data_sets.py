@@ -553,6 +553,7 @@ class MICDataSet(ABC):
                 range_y = range_y.mask(
                     range_label['sign'].apply(lambda x: '<' in x),
                     range_y - ds_param['move_range_by'])
+
             if ds_param['handle_range'] == 'remove':
                 range_y = pd.Series([], name='measurement')
                 range_y.index.name = filtered.index.name
