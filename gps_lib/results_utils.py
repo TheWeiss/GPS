@@ -835,10 +835,11 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
                 regression_res['range_CA_?'] = [
                     (train_range_res['SIR_true'].apply(
-                        lambda x: x in ['?', 'I->R', 'I->S'])).mean().fillna(0),
+                        lambda x: x in ['?', 'I->R', 'I->S'])).mean(),
                     (test_range_res['SIR_true'].apply(
-                        lambda x: x in ['?', 'I->R', 'I->S'])).mean().fillna(0),
+                        lambda x: x in ['?', 'I->R', 'I->S'])).mean(),
                 ]
+                regression_res['range_CA_'].fillna(0, inplace=True)
 
                 regression_res['range_CA'] = [
                     (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean() if len(
