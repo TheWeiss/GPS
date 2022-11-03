@@ -538,10 +538,11 @@ class MICDataSet(ABC):
 
         if ds_param['task'] == 'regression':
             if ds_param['handle_range'] != 'remove':
+                range_y = range_label['measurement']
                 if ds_param['not_equal_meaning']:
-                    range_y = range_label['measurement'].copy().mask(
+                    range_y = range_y.mask(
                         range_label['sign'].apply(lambda x: x == '>'),
-                        range_label['measurement'] + 1)
+                        range_y + 1)
                     range_y = range_y.mask(
                         range_label['sign'].apply(lambda x: x == '<'),
                         range_y - 1)
@@ -552,7 +553,7 @@ class MICDataSet(ABC):
                 range_y = range_y.mask(
                     range_label['sign'].apply(lambda x: '<' in x),
                     range_y - ds_param['move_range_by'])
-            else:
+            if ds_param['handle_range'] == 'remove':
                 range_y = pd.Series([], name='measurement')
                 range_y.index.name = filtered.index.name
         else:
