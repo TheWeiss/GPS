@@ -600,8 +600,8 @@ def apply_SIR_range(row, s, i, r):
             if np.isnan(i):
                 return ''
             else:
-                if val < r:
-                    return 'I->S'
+                if val <= i:
+                    return 'I'
                 else:
                     return '?'
         else:
@@ -616,8 +616,8 @@ def apply_SIR_range(row, s, i, r):
             if np.isnan(i):
                 return ''
             else:
-                if val > s:
-                    return 'I->R'
+                if val >= i:
+                    return 'I'
                 else:
                     return '?'
         else:
@@ -835,11 +835,10 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
 
                 regression_res['range_CA_?'] = [
                     (train_range_res['SIR_true'].apply(
-                        lambda x: x in ['?', 'I->R', 'I->S'])).mean(),
+                        lambda x: x in ['?', 'I->R', 'I->S'])).mean().fillna(0),
                     (test_range_res['SIR_true'].apply(
-                        lambda x: x in ['?', 'I->R', 'I->S'])).mean(),
+                        lambda x: x in ['?', 'I->R', 'I->S'])).mean().fillna(0),
                 ]
-                regression_res['range_CA_?'].fillna(0, inplace=True)
 
                 regression_res['range_CA'] = [
                     (train_range_res_SIR['SIR_true'] == train_range_res_SIR['SIR_pred']).mean() if len(
@@ -903,6 +902,7 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             regression_res['range_size'].fillna(0, inplace=True)
             regression_res['exact_size'] = [len(split_data) for split_data in split_res.values()]
             regression_res['exact_size'].fillna(0, inplace=True)
+            regression_res['range_CA_size'].fillna(0, inplace=True)
             regression_res['accuracy'] = (regression_res['exact_accuracy'].fillna(0) * regression_res[
                 'exact_size'].fillna(0) \
                                           + regression_res['range_accuracy'] * regression_res['range_size']) \
@@ -915,6 +915,9 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                                                     / (regression_res['range_size'] + regression_res[
                 'exact_size'].fillna(0))
             if good_breakpoints:
+                regression_res['CA_?'] = (regression_res['range_CA_?'] * regression_res['range_size']) \
+                                                        / (regression_res['range_size'] + regression_res[
+                    'exact_size'].fillna(0))
                 regression_res['CA'] = (regression_res['exact_CA'].fillna(0) * regression_res[
                     'exact_size'].fillna(0) \
                                                          + regression_res['range_CA'] * regression_res['range_CA_size']) \
