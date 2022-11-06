@@ -575,22 +575,23 @@ def range_plots(i):
     test_range_res = range_res.loc[set(range_res.index) - set(split_idx['train'])]
 
     for key, split_res in {'train': train_range_res, 'test': test_range_res}.items():
+        print(split_res)
         range_confusion = split_res.groupby(by=['y_true', 'sign'])['error'].agg(['count', 'sum']).replace(True, 1)
         print(range_confusion)
-        range_confusion['perc'] = 100 * range_confusion['sum'] / range_confusion['count']
-        range_confusion.columns = ['range_total', 'correctly_classified', 'range_accuracy']
-        range_confusion['correctly_classified'] = range_confusion['correctly_classified'].astype(int)
-        range_confusion['misclassified'] = range_confusion['range_total'] - range_confusion['correctly_classified']
-
-        ax = range_confusion[['correctly_classified', 'misclassified']].plot.bar(stacked=True, figsize=(10, 6),
-                                                                                 color=['g', 'r'])
-        ax.set_ylabel("#Isolates")
-        ax2 = range_confusion[['range_accuracy']].plot(ax=ax.twinx(), color='blue', marker="o")
-        ax2.set_title('Range results of the pair ({},{}) - {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], key))
-        ax2.set_ylabel("Accuracy [%]", color="blue", fontsize=14)
-        ax2.set_ylim((0, 101))
-        plt.savefig('../experiments/{}/{}/range_conf_mat_{}'.format(exp_name, model_path, key))
-        plt.show()
+        # range_confusion['perc'] = 100 * range_confusion['sum'] / range_confusion['count']
+        # range_confusion.columns = ['range_total', 'correctly_classified', 'range_accuracy']
+        # range_confusion['correctly_classified'] = range_confusion['correctly_classified'].astype(int)
+        # range_confusion['misclassified'] = range_confusion['range_total'] - range_confusion['correctly_classified']
+        #
+        # ax = range_confusion[['correctly_classified', 'misclassified']].plot.bar(stacked=True, figsize=(10, 6),
+        #                                                                          color=['g', 'r'])
+        # ax.set_ylabel("#Isolates")
+        # ax2 = range_confusion[['range_accuracy']].plot(ax=ax.twinx(), color='blue', marker="o")
+        # ax2.set_title('Range results of the pair ({},{}) - {}'.format(res.loc[i, 'species'], res.loc[i, 'antibiotic'], key))
+        # ax2.set_ylabel("Accuracy [%]", color="blue", fontsize=14)
+        # ax2.set_ylim((0, 101))
+        # plt.savefig('../experiments/{}/{}/range_conf_mat_{}'.format(exp_name, model_path, key))
+        # plt.show()
 
 
 def apply_SIR_range(row, s, i, r):
