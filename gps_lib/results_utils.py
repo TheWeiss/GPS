@@ -513,14 +513,14 @@ def PA_plot(i, threshold):
         plt.show()
 
 
-def range_plots(i):
+def range_plots(i, equal_meaning=False):
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
     model = res.loc[i, 'model']
     model_path = res.loc[i, 'model_path']
     data_path = res.loc[i, 'data_path']
 
-    equal_meaning = False
+
     with open(data_path + '/col_names.json') as json_file:
         col_names = json.load(json_file)
     range_y = pd.read_csv('{}/range_y.csv'.format(data_path)).set_index(col_names['id'])
@@ -562,14 +562,16 @@ def range_plots(i):
     range_res.loc[:, 'updated_y_true'].fillna(range_res['y_true'], inplace=True)
     range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
 
-    range_res.loc[range_res['updated_sign'] == '>', 'error'] = (
-            range_res['y_pred'] > range_res['updated_y_true'])
-    range_res.loc[range_res['updated_sign'] == '<', 'error'] = (
-            range_res['y_pred'] < range_res['updated_y_true'])
-    range_res.loc[range_res['updated_sign'] == '>', 'error2'] = (
-            range_res['y_pred'] > range_res['updated_y_true'] - 1)
-    range_res.loc[range_res['updated_sign'] == '<', 'error2'] = (
-            range_res['y_pred'] < range_res['updated_y_true'] + 1)
+    range_res['y_pred'] = np.round(range_res['y_pred'])
+
+    range_res.loc[range_res['updated_sign'] == '>=', 'error'] = (
+            range_res['y_pred'] >= range_res['updated_y_true'])
+    range_res.loc[range_res['updated_sign'] == '<=', 'error'] = (
+            range_res['y_pred'] <= range_res['updated_y_true'])
+    range_res.loc[range_res['updated_sign'] == '>=', 'error2'] = (
+            range_res['y_pred'] >= range_res['updated_y_true'] - 1)
+    range_res.loc[range_res['updated_sign'] == '<=', 'error2'] = (
+            range_res['y_pred'] <= range_res['updated_y_true'] + 1)
 
     train_range_res = range_res.loc[set(range_res.index).intersection(set(split_idx['train']))]
     test_range_res = range_res.loc[set(range_res.index) - set(split_idx['train'])]
