@@ -740,12 +740,10 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                              split_data in
                              split_res.values()],
                 'exact_VME': [
-                    np.logical_and(split_data['SIR_true'] == 'R',
-                                   split_data['SIR_pred'] == 'S').mean() if good_breakpoints else None
+                    (split_data[split_data['SIR_true'] == 'R']['SIR_pred'] == 'S').mean() if good_breakpoints else None
                     for split_data in split_res.values()],
                 'exact_ME': [
-                    np.logical_and(split_data['SIR_true'] == 'S',
-                                   split_data['SIR_pred'] == 'R').mean() if good_breakpoints else None
+                    (split_data[split_data['SIR_true'] == 'S']['SIR_pred'] == 'R').mean() if good_breakpoints else None
                     for split_data in split_res.values()],
                 'exact_mE': [np.logical_or(
                     np.logical_and(split_data['SIR_true'] == 'I', split_data['SIR_pred'] != 'I'),
@@ -852,21 +850,17 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 regression_res['range_CA'].fillna(0, inplace=True)
 
                 regression_res['range_VME'] = [
-                    np.logical_and(train_range_res_SIR['SIR_true'] == 'R',
-                                   train_range_res_SIR['SIR_pred'] == 'S').mean() if len(
+                    (train_range_res_SIR[train_range_res_SIR['SIR_true'] == 'R']['SIR_pred'] == 'S').mean() if len(
                         train_range_res_SIR) > 0 else np.nan,
-                    np.logical_and(test_range_res_SIR['SIR_true'] == 'R',
-                                   test_range_res_SIR['SIR_pred'] == 'S').mean() if len(
+                    (test_range_res_SIR[test_range_res_SIR['SIR_true'] == 'R']['SIR_pred'] == 'S').mean() if len(
                         test_range_res_SIR) > 0 else np.nan,
                 ]
                 regression_res['range_VME'].fillna(0, inplace=True)
 
                 regression_res['range_ME'] = [
-                    np.logical_and(train_range_res_SIR['SIR_true'] == 'S',
-                                   train_range_res_SIR['SIR_pred'] == 'R').mean() if len(
+                    (train_range_res_SIR[train_range_res_SIR['SIR_true'] == 'S']['SIR_pred'] == 'R').mean() if len(
                         train_range_res_SIR) > 0 else np.nan,
-                    np.logical_and(test_range_res_SIR['SIR_true'] == 'S',
-                                   test_range_res_SIR['SIR_pred'] == 'R').mean() if len(
+                    (test_range_res_SIR[test_range_res_SIR['SIR_true'] == 'S']['SIR_pred'] == 'R').mean() if len(
                         test_range_res_SIR) > 0 else np.nan,
                 ]
                 regression_res['range_ME'].fillna(0, inplace=True)
