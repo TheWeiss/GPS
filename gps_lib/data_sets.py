@@ -27,12 +27,26 @@ from abc import ABC, abstractmethod
 class MICDataSet(ABC):
 
     def __init__(self, name, pre_params=None, saved_files_path='../pre_proccesing/',
-                 species_dict_path="../resources/species_dict.json", resources_dict_path = "../resources/resources_dict.json"):
+                 species_dict_path="../resources/species_dict.json", resources_dict_path = "../resources/resources_dict.json", ):
         super().__init__()
         
         self.name = name
         with open(species_dict_path) as json_file:
             self.species_dict = json.load(json_file)
+
+        self.pre_params = pre_params
+        if self.pre_params is None:
+            pre_params_name = 'base_line'
+        else:
+            pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_param.items()]))
+
+        if self.pre_params is not None:
+            if self.pre_params.get('filter_genome_size'):
+                resources_dict_path = p_utils.parse_genome_size_filtering(
+                    path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221122.xlsx',
+                    resources_dict_path=resources_dict_path,
+                )
+
         with open(resources_dict_path) as json_file:
             resources_dict = json.load(json_file)
             if '_' in name:
@@ -40,12 +54,8 @@ class MICDataSet(ABC):
             else:
                 self.path_dict = resources_dict[name]
 
-        self.pre_params = pre_params
         
-        if self.pre_params is None:
-            pre_params_name = 'base_line'
-        else:
-            pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_param.items()]))
+
         self.saved_files_path = saved_files_path + pre_params_name + '/' + name
         if not os.path.exists(self.saved_files_path):
             os.makedirs(self.saved_files_path)
@@ -923,6 +933,10 @@ class PATRICDataSet(MICDataSet):
         run2bio.columns = ['run_id', 'genome_id', 'biosample_id', 'species_fam']
         run2bio.drop(['species_fam'], axis=1, inplace=True)
         run2bio['genome_id'] = run2bio['genome_id'].astype(str)
+        if len(self.path_dict['filter_list']) > 0:
+            filtered_data = pd.read_excel(self.path_dict['filter_list'])
+            filtered_data.columns = ['species_fam', 'run_id']
+            run2bio = run2bio.merge(right=filtered_data, how='inner', on='run_id')
         self.all_ASR = self.all_ASR.merge(right=run2bio, how='inner', on='genome_id')
 
     @staticmethod

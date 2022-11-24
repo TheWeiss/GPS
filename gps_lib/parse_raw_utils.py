@@ -473,6 +473,30 @@ def save_species_dict(path="../resources/species_dict.json"):
     with open(path, "w") as fp:
         json.dump(species_dict, fp)
 
+def parse_filtering(
+        name='filter_genome_size:True',
+        path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221122.xlsx',
+        resources_dict_path='../resources/resources_dict.json',
+    ):
+    if name == 'filter_genome_size:True':
+        with open(resources_dict_path) as json_file:
+            resources_dict = json.load(json_file)
+            new_resource_path_list = "../resources/resources_dict_{}.json".format(name)
+
+            new_filtered = pd.read_excel(path)
+            filter_list = {}
+            for db in resources_dict.keys():
+                filter_list[db] = new_filtered[new_filtered['Database'] == db][['species', 'file']].drop_duplicates()
+                filter_list[db].columns = ['Species', 'SRR_ID']
+                if len(filter_list[db]) > 0:
+                    resources_dict[db]['filter_list'] = '../resources/{}_filtered_list_{}.csv'.format(db, name)
+                    filter_list[db].to_csv(resources_dict[db]['filter_list'], index=False)
+                else:
+                    resources_dict[db]['filter_list'] = ''
+            with open(new_resource_path_list, "w") as fp:
+                json.dump(resources_dict, fp)
+    return new_resource_path_list
+
 
 def save_resources_dict(path="../resources/resources_dict.json"):
     resources_dict = {
