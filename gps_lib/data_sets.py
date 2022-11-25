@@ -42,7 +42,8 @@ class MICDataSet(ABC):
 
         if self.pre_params is not None:
             if self.pre_params.get('filter_genome_size'):
-                resources_dict_path = p_utils.parse_genome_size_filtering(
+                resources_dict_path = p_utils.parse_filtering(
+                    name=pre_params_name,
                     path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221122.xlsx',
                     resources_dict_path=resources_dict_path,
                 )
