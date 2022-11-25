@@ -51,7 +51,7 @@ class MICDataSet(ABC):
         with open(resources_dict_path) as json_file:
             resources_dict = json.load(json_file)
             if '_' in name:
-                self.path_dict = None
+                self.path_dict = resources_dict
             else:
                 self.path_dict = resources_dict[name]
 
