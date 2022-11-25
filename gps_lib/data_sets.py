@@ -35,6 +35,7 @@ class MICDataSet(ABC):
             self.species_dict = json.load(json_file)
 
         self.pre_params = pre_params
+        a = self.pre_params
         if self.pre_params is None:
             pre_params_name = 'base_line'
         else:
