@@ -262,6 +262,24 @@ def get_genotype_per_db(path):
     return genotypic, error_id
 
 
+def get_isolate_gene_depth(
+    path,
+    cov_thresh=60,
+    id_thresh=60,
+):
+    run_id = re.findall("(.RR\\d+)\.", path)[0]
+    try:
+        csv_file = glob.glob(path + '/*.csv')[0]
+    except:
+        print(run_id + ': is missing csv file')
+        return run_id
+    gene_df = pd.read_csv(csv_file)
+    if cov_thresh is not None:
+        gene_df = gene_df[gene_df['SeqCov']>cov_thresh]
+    if id_thresh is not None:
+        gene_df = gene_df[gene_df['SeqID']>id_thresh]
+    gene_df['run_id'] = run_id
+    return gene_df[['Gene', 'Depth', 'run_id']]
 '''
 A function that parse the raw WGS matching output and turns it to model features per sample.
 '''
