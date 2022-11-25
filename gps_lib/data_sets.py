@@ -35,11 +35,10 @@ class MICDataSet(ABC):
             self.species_dict = json.load(json_file)
 
         self.pre_params = pre_params
-        a = self.pre_params
         if self.pre_params is None:
             pre_params_name = 'base_line'
         else:
-            pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_param.items()]))
+            pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_params.items()]))
 
         if self.pre_params is not None:
             if self.pre_params.get('filter_genome_size'):
