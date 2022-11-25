@@ -937,7 +937,7 @@ class PATRICDataSet(MICDataSet):
         if len(self.path_dict['filter_list']) > 0:
             filtered_data = pd.read_excel(self.path_dict['filter_list'])
             filtered_data.columns = ['species_fam', 'run_id']
-            run2bio = run2bio.merge(right=filtered_data, how='inner', on='run_id')
+            run2bio = run2bio.merge(right=filtered_data[['run_id']], how='inner', on='run_id')
         self.all_ASR = self.all_ASR.merge(right=run2bio, how='inner', on='genome_id')
 
     @staticmethod
