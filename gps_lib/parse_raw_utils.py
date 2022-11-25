@@ -475,7 +475,7 @@ def save_species_dict(path="../resources/species_dict.json"):
 
 def parse_filtering(
         name='filter_genome_size:True',
-        path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221122.xlsx',
+        path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221125.xlsx',
         resources_dict_path='../resources/resources_dict.json',
     ):
     if name == 'filter_genome_size:True':
