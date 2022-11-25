@@ -489,8 +489,8 @@ def parse_filtering(
                 filter_list[db] = new_filtered[new_filtered['Database'] == db][['species', 'file']].drop_duplicates()
                 filter_list[db].columns = ['Species', 'SRR_ID']
                 if len(filter_list[db]) > 0:
-                    resources_dict[db]['filter_list'] = '../resources/{}_filtered_list_{}.csv'.format(db, name)
-                    filter_list[db].to_csv(resources_dict[db]['filter_list'], index=False)
+                    resources_dict[db]['filter_list'] = '../resources/{}_filtered_list_{}.xlxs'.format(db, name)
+                    filter_list[db].to_excel(resources_dict[db]['filter_list'], index=False)
                 else:
                     resources_dict[db]['filter_list'] = ''
             with open(new_resource_path_list, "w") as fp:
