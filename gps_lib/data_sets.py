@@ -82,6 +82,8 @@ class MICDataSet(ABC):
             for path in self.path_dict['geno']:
                 genotypic_per_path, error_id_per_path = p_utils.get_genotype_per_db(path)
                 genotypic = pd.concat([genotypic, genotypic_per_path], axis=0)
+                if error_id_per_path is None:
+                    error_id_per_path = []
                 error_id += error_id_per_path
             if len(error_id) == 0:
                 error_id = None
