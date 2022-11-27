@@ -77,6 +77,7 @@ class MICDataSet(ABC):
         if type(self.path_dict['geno']) == str:
             genotypic, error_id = p_utils.get_genotype_per_db(self.path_dict['geno'])
         elif type(self.path_dict['geno']) == list:
+            print('loading list of genos path {}'.format(self.path_dict['geno']))
             genotypic = pd.DataFrame({})
             error_id = []
             for path in self.path_dict['geno']:
