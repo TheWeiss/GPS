@@ -300,7 +300,13 @@ def get_isolate_features(
         sortby = 'SeqCov'
     if with_confidence is None:
         with_confidence = False
-    run_id = re.findall("(.RR\\d+)\.", path)[0]
+
+    found_list = re.findall("(.RR\\d+)\.", path)
+    if len(found_list) > 0:
+        run_id = found_list[0]
+    else:
+        print(path + ': is not a run_id directory')
+        return path
     try:
         csv_file = glob.glob(path+'/*.csv')[0]
     except:
