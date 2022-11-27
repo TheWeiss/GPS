@@ -79,7 +79,7 @@ class MICDataSet(ABC):
         elif type(self.path_dict['geno']) == list:
             genotypic = pd.DataFrame({})
             error_id = []
-            for path in self.path_dict['geno']
+            for path in self.path_dict['geno']:
                 genotypic_per_path, error_id_per_path = p_utils.get_genotype_per_db(path)
                 genotypic = pd.concat([genotypic, genotypic_per_path], axis=0)
                 error_id += error_id_per_path
