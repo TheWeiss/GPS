@@ -538,8 +538,8 @@ def save_resources_dict(path="../resources/resources_dict.json"):
         },
         'PATRIC': {
             'geno': [
-                '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.passed.spades.20220313',
                 '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.failed.spades.QC.passed.skesa.20220410',
+                '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.passed.spades.20220313',
             ],
             'pheno': '../resources/data/PATRIC_AMR_ESKAPE_etal_with_numericalAST_only.xlsx',
             'run2bio': '../resources/data/PATRIC_genome_final_db.20220223.xlsx',
