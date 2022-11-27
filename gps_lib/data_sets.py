@@ -74,6 +74,7 @@ class MICDataSet(ABC):
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
     def _load_all_geno_data(self):
+        print(self.path_dict['geno'])
         if type(self.path_dict['geno']) == str:
             genotypic, error_id = p_utils.get_genotype_per_db(self.path_dict['geno'])
         elif type(self.path_dict['geno']) == list:
