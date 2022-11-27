@@ -74,17 +74,20 @@ class MICDataSet(ABC):
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
     def _load_all_geno_data(self):
-        genotypic = pd.DataFrame({})
-        error_id = []
-        for SRR_dir in tqdm(os.listdir(self.path_dict['geno'])):
-            srr_features = p_utils.get_isolate_features(self.path_dict['geno'] + '/' + SRR_dir)
-            if type(srr_features) is not str:
-                genotypic = pd.concat([genotypic, srr_features], axis=0)
-            else:
-                error_id += [srr_features]
-        if len(error_id) == 0:
-            error_id = None
+        if type(self.path_dict['geno']) == str:
+            genotypic, error_id = p_utils.get_genotype_per_db(self.path_dict['geno'])
+        elif type(self.path_dict['geno']) == list:
+            genotypic = pd.DataFrame({})
+            error_id = []
+            for path in self.path_dict['geno']
+                genotypic_per_path, error_id_per_path = p_utils.get_genotype_per_db(path)
+                genotypic = pd.concat([genotypic, genotypic_per_path], axis=0)
+                error_id += error_id_per_path
+            if len(error_id) == 0:
+                error_id = None
         self.geno = genotypic
+
+
 
     def _load_pheno(self):
         try:
