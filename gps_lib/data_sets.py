@@ -98,24 +98,24 @@ class MICDataSet(ABC):
         try:
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
         except FileNotFoundError:
-            self._load_all_phan_data()
-            print('length of pheno '+len(self.all_ASR['genome_id'].unique()))
+            self._load_all_phen_data()
+            print('length of pheno '+str(len(self.all_ASR['genome_id'].unique())))
             self._align_ASR()
-            print('length of pheno '+len(self.all_ASR['genome_id'].unique()))
+            print('length of pheno '+str(len(self.all_ASR['genome_id'].unique())))
             self._merge_all_meta()
-            print('length of pheno '+len(self.all_ASR['run_id'].unique()))
+            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
-            print('length of pheno '+len(self.all_ASR['run_id'].unique()))
+            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
             self._fix_general_values()
-            print('length of pheno '+len(self.all_ASR['run_id'].unique()))
+            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
             self._calculate_multi_mic_aid()
-            print('length of pheno '+len(self.all_ASR['run_id'].unique()))
+            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
             
             self._test_phen()
-            print('length of pheno '+len(self.all_ASR['run_id'].unique()))
+            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
     
-    def _load_all_phan_data(self):
+    def _load_all_phen_data(self):
         self.all_ASR = pd.DataFrame({})
         error_id = []
         for sam_dir in tqdm(os.listdir(self.path_dict['pheno'])):
@@ -866,7 +866,7 @@ class PADataSet(MICDataSet):
         super().__init__(name='PA', pre_params=pre_params)
         
 
-    def _load_all_phan_data(self):
+    def _load_all_phen_data(self):
         anti_list = ['tobramycin', 'ciprofloxacin', 'meropenem', 'ceftazidime']
         anti_list_mic = [x + ' MIC' for x in anti_list]
         self.all_ASR = pd.read_excel(self.path_dict['pheno'], sheet_name='Strain and MIC', header=1, nrows=414).set_index(
@@ -917,7 +917,7 @@ class PATRICDataSet(MICDataSet):
     def __init__(self, pre_params=None):
         super().__init__(name='PATRIC', pre_params=pre_params)
     
-    def _load_all_phan_data(self):
+    def _load_all_phen_data(self):
         self.all_ASR = pd.read_excel(self.path_dict['pheno'])
         self.all_ASR['genome_id'] = self.all_ASR['genome_id'].astype(str)
         self.all_ASR['DB'] = self.name
@@ -1028,7 +1028,7 @@ class CollectionDataSet(MICDataSet):
                 self.geno = pd.concat([self.geno, db.geno], axis=0)
 
 
-    def _load_all_phan_data(self):
+    def _load_all_phen_data(self):
         self.all_ASR = None
         for db in self.dbs_list:
             if self.all_ASR is None:
