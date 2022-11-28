@@ -71,6 +71,7 @@ class MICDataSet(ABC):
         except (FileNotFoundError, Exception):
             self._load_all_geno_data()
             self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
+            print('length of geno ' + len(self.geno))
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
     def _load_all_geno_data(self):
@@ -96,20 +97,20 @@ class MICDataSet(ABC):
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
         except FileNotFoundError:
             self._load_all_phan_data()
-            print(len(self.all_ASR['genome_id'].unique()))
+            print('length of pheno '+len(self.all_ASR['genome_id'].unique()))
             self._align_ASR()
-            print(len(self.all_ASR['genome_id'].unique()))
+            print('length of pheno 'len(self.all_ASR['genome_id'].unique()))
             self._merge_all_meta()
-            print(len(self.all_ASR['run_id'].unique()))
+            print('length of pheno 'len(self.all_ASR['run_id'].unique()))
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
-            print(len(self.all_ASR['run_id'].unique()))
+            print('length of pheno 'len(self.all_ASR['run_id'].unique()))
             self._fix_general_values()
-            print(len(self.all_ASR['run_id'].unique()))
+            print('length of pheno 'len(self.all_ASR['run_id'].unique()))
             self._calculate_multi_mic_aid()
-            print(len(self.all_ASR['run_id'].unique()))
+            print('length of pheno 'len(self.all_ASR['run_id'].unique()))
             
             self._test_phen()
-            print(len(self.all_ASR['run_id'].unique()))
+            print('length of pheno 'len(self.all_ASR['run_id'].unique()))
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
     
     def _load_all_phan_data(self):
