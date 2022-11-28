@@ -187,6 +187,9 @@ class MICDataSet(ABC):
 
         self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
         self.all_ASR = self.all_ASR[~self.all_ASR['species_fam'].isin(['Salmonella enterica', 'Streptococcus pneumoniae'])]
+        print('dropping_Senterica+Streptococcus pneumoniae')
+        print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
+        print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
 
         def fix_ambiguse_sign(df):
             if len(df) > 1:
