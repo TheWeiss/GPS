@@ -68,6 +68,7 @@ class MICDataSet(ABC):
     def _load_geno(self):
         try:
             genotypic = pd.read_csv(self.saved_files_path + '/geno.csv')
+            print('loaded geno from file' + self.name)
             self.geno = genotypic
         except (FileNotFoundError, Exception):
             self._load_all_geno_data()
