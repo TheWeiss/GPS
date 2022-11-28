@@ -391,6 +391,9 @@ class MICDataSet(ABC):
     def get_pheno(self):
         return self.all_ASR
 
+    def print_QC_geno_depth(self):
+        e_utils.genes_depth_per_species_hist(self)
+
     def print_geno_exp(self):
         e_utils.gene_presence_in_isolate_figure(self.geno, self.name, path = '{}/exp'.format(self.saved_files_path))
         e_utils.gene_num_in_isolate_figure(self.geno, self.name, path = '{}/exp'.format(self.saved_files_path))

@@ -3,11 +3,59 @@ import matplotlib
 import pandas as pd
 import numpy as np
 import os
-import parse_raw_utils as pr_utils
+import parse_raw_utils as p_utils
 
 ########################################################################################
 ################################## Printing functions ##################################
 ########################################################################################
+
+
+def _genes_depth_per_species(data):
+    genes_depth_df = pd.DataFrame({})
+    error_id = []
+    if '_' in data.name:
+        name_list = data.name.split('_')
+        single_db = False
+    else:
+        name_list = [data.name]
+        single_db = True
+    for db in name_list:
+        if single_db:
+            geno_path = data.path_dict['geno']
+        else:
+            geno_path = data.path_dict[db]['geno']
+        if type(geno_path) == str:
+            for run_id in tqdm(list(data.all_ASR[data.all_ASR['DB'] == db]['run_id'].unique())):
+                genes_depth = p_utils.get_isolate_gene_depth(data.path_dict[db]['geno'] + '/' + run_id + '.results')
+                if type(genes_depth) is not str:
+                    genes_depth_df = pd.concat([genes_depth_df, genes_depth], axis=0)
+                else:
+                    error_id += [genes_depth]
+        elif type(geno_path) == list:
+            for path in geno_path:
+                for run_id in tqdm(list(data.all_ASR[data.all_ASR['DB'] == db]['run_id'].unique())):
+                    genes_depth = p_utils.get_isolate_gene_depth(path + '/' + run_id + '.results')
+                    if type(genes_depth) is not str:
+                        genes_depth_df = pd.concat([genes_depth_df, genes_depth], axis=0)
+                    else:
+                        error_id += [genes_depth]
+
+
+def genes_depth_per_species_hist(data):
+    genes_depth = _genes_depth_per_species(data)
+    genes_depth = genes_depth.merge(right=data.all_ASR[['run_id', 'species_fam']].drop_duplicates(), on='run_id',
+                                          how='inner')
+
+    def depth_hist(df):
+        if len(df) > 20:
+            plt.figure(figsize=(10, 5))
+            plt.title('{} -> {} tot#:{} iso#:{}'.format(df['species_fam'].unique()[0], df['Gene'].unique()[0], len(df),
+                                                        len(df['run_id'].drop_duplicates())))
+            plt.xlabel('Depth of Coverage [_x]')
+            plt.ylabel('#')
+            df['Depth'].hist()
+            plt.show()
+    genes_depth.groupby(by=['species_fam', 'Gene']).apply(depth_hist)
 
 
 def gene_presence_in_isolate_figure(genotype, db_name, path=None):
