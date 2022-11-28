@@ -99,20 +99,31 @@ class MICDataSet(ABC):
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
         except FileNotFoundError:
             self._load_all_phen_data()
+            print('_load_all_phen_data')
             print('length of pheno '+str(len(self.all_ASR['genome_id'].unique())))
             self._align_ASR()
+            print('_align_ASR')
             print('length of pheno '+str(len(self.all_ASR['genome_id'].unique())))
             self._merge_all_meta()
-            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
+            print('_merge_all_meta')
+            print('length of bio '+str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
-            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
+            print('_merge_with_geno')
+            print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
             self._fix_general_values()
-            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
+            print('_fix_general_values')
+            print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
             self._calculate_multi_mic_aid()
-            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
+            print('_calculate_multi_mic_aid')
+            print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
             
             self._test_phen()
-            print('length of pheno '+str(len(self.all_ASR['run_id'].unique())))
+            print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
     
     def _load_all_phen_data(self):
@@ -170,6 +181,9 @@ class MICDataSet(ABC):
                 df['run_id'] = df.iloc[0]['run_id']
             return df
         self.all_ASR = self.all_ASR.groupby(by='biosample_id', as_index=False).apply(choose_one_run_id)
+        print('choose_one_run_id')
+        print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
+        print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
 
         self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
         self.all_ASR = self.all_ASR[~self.all_ASR['species_fam'].isin(['Salmonella enterica', 'Streptococcus pneumoniae'])]
