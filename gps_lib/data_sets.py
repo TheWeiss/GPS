@@ -62,6 +62,7 @@ class MICDataSet(ABC):
             os.makedirs(self.saved_files_path)
             
         self._load_geno()
+        print('running pheno for ' + self.name)
         self._load_pheno()
 
     def _load_geno(self):
