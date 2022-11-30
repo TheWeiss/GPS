@@ -69,7 +69,7 @@ class MICDataSet(ABC):
     def _load_geno(self):
         try:
             genotypic = pd.read_csv(self.saved_files_path + '/geno.csv')
-            print('loaded geno from file' + self.name)
+            print('loaded geno from file ' + self.name)
             self.geno = genotypic
         except (FileNotFoundError, Exception):
             self._load_all_geno_data()
@@ -100,31 +100,27 @@ class MICDataSet(ABC):
             self.all_ASR = pd.read_csv(self.saved_files_path + '/all_ASR.csv')
         except FileNotFoundError:
             self._load_all_phen_data()
-            print('_load_all_phen_data')
-            print('length of pheno '+str(len(self.all_ASR['genome_id'].unique())))
             self._align_ASR()
-            print('_align_ASR')
-            print('length of pheno '+str(len(self.all_ASR['genome_id'].unique())))
             self._merge_all_meta()
             print('_merge_all_meta')
             print('length of bio '+str(len(self.all_ASR['biosample_id'].unique())))
-            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
             self.all_ASR = self.all_ASR.merge(right=self.geno['run_id'], how='inner', on='run_id')
             print('_merge_with_geno')
             print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
-            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
             self._fix_general_values()
             print('_fix_general_values')
             print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
-            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
             self._calculate_multi_mic_aid()
             print('_calculate_multi_mic_aid')
             print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
-            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
             
             self._test_phen()
             print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
-            print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
+            print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
     
     def _load_all_phen_data(self):
