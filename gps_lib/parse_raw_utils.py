@@ -510,7 +510,7 @@ def parse_filtering(
     if name == 'filter_genome_size:True':
         with open(resources_dict_path) as json_file:
             resources_dict = json.load(json_file)
-            new_resource_path_list = "../resources/resources_dict_{}.json".format(name)
+            new_resource_dict_path = "../resources/resources_dict_{}.json".format(name)
 
             new_filtered = pd.read_excel(path)
             filter_list = {}
@@ -522,9 +522,11 @@ def parse_filtering(
                     filter_list[db].to_excel(resources_dict[db]['filter_list'], index=False)
                 else:
                     resources_dict[db]['filter_list'] = ''
-            with open(new_resource_path_list, "w") as fp:
+            with open(new_resource_dict_path, "w") as fp:
                 json.dump(resources_dict, fp)
-    return new_resource_path_list
+    if name == 'filter_genome_size:True|filter_contig_num:True':
+        new_resource_dict_path = resources_dict_path
+    return new_resource_dict_path
 
 
 def save_resources_dict(path="../resources/resources_dict.json"):
@@ -552,10 +554,12 @@ def save_resources_dict(path="../resources/resources_dict.json"):
                 '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.failed.spades.QC.passed.skesa.20220410',
                 '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.passed.spades.20220313',
             ],
-            # 'geno': '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.passed.spades.20220313',
             'pheno': '../resources/data/PATRIC_AMR_ESKAPE_etal_with_numericalAST_only.xlsx',
             'run2bio': '../resources/data/PATRIC_genome_final_db.20220223.xlsx',
-            'filter_list': '',
+            'filter_list': [
+                "/sise/home/amitdanw/GPS/resources/data/QC_analysis_20220313.csv",
+                "/sise/home/amitdanw/GPS/resources/data/all_QC_passed_upto_20220306.csv",
+            ],
         },
     }
     with open(path, "w") as fp:

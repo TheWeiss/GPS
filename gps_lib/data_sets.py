@@ -37,6 +37,7 @@ class MICDataSet(ABC):
         self.pre_params = pre_params
         if self.pre_params is None:
             pre_params_name = 'base_line'
+            resources_dict_path = "../resources/resources_dict_base_line.json"
         else:
             pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_params.items()]))
 
