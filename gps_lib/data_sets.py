@@ -74,7 +74,7 @@ class MICDataSet(ABC):
         except (FileNotFoundError, Exception):
             self._load_all_geno_data()
             self.geno.drop_duplicates(subset=['run_id'], keep='first', inplace=True)
-            print('length of geno ' + len(self.geno))
+            print('length of geno ' + str(len(self.geno)))
             self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
     def _load_all_geno_data(self):
@@ -970,10 +970,17 @@ class PATRICDataSet(MICDataSet):
         run2bio.columns = ['run_id', 'genome_id', 'biosample_id', 'species_fam']
         run2bio.drop(['species_fam'], axis=1, inplace=True)
         run2bio['genome_id'] = run2bio['genome_id'].astype(str)
-        if len(self.path_dict['filter_list']) > 0:
-            filtered_data = pd.read_excel(self.path_dict['filter_list'])
-            filtered_data.columns = ['species_fam', 'run_id']
-            run2bio = run2bio.merge(right=filtered_data[['run_id']], how='inner', on='run_id')
+        if type(self.path_dict['filter_list']) == str:
+            if len(self.path_dict['filter_list']) > 0:
+                filtered_data = pd.read_excel(self.path_dict['filter_list'])
+                filtered_data.columns = ['species_fam', 'run_id']
+                run2bio = run2bio.merge(right=filtered_data[['run_id']], how='inner', on='run_id')
+        elif type(self.path_dict['filter_list']) == list:
+            filter_1 = pd.read_csv(self.path_dict['filter_list'][0])['file']
+            filter_2 = pd.read_csv(self.path_dict['filter_list'][1])['SRR_ID']
+            filtered_data = pd.DataFrame(pd.concat([filter_1, filter_2]).reset_index(drop=True))
+            filtered_data.columns = ['run_id']
+            run2bio = run2bio.merge(right=filtered_data, how='inner', on='run_id')
         self.all_ASR = self.all_ASR.merge(right=run2bio, how='inner', on='genome_id')
 
     @staticmethod
