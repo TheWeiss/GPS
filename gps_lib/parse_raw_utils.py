@@ -503,11 +503,11 @@ def save_species_dict(path="../resources/species_dict.json"):
         json.dump(species_dict, fp)
 
 def parse_filtering(
-        name='filter_genome_size:True',
+        name='filter_genome_size:20',
         path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221125.xlsx',
         resources_dict_path='../resources/resources_dict.json',
     ):
-    if name == 'filter_genome_size:True':
+    if name == 'filter_genome_size:20':
         with open(resources_dict_path) as json_file:
             resources_dict = json.load(json_file)
             new_resource_dict_path = "../resources/resources_dict_{}.json".format(name)
@@ -524,8 +524,6 @@ def parse_filtering(
                     resources_dict[db]['filter_list'] = ''
             with open(new_resource_dict_path, "w") as fp:
                 json.dump(resources_dict, fp)
-    if name == 'filter_genome_size:True|filter_contig_num:True':
-        new_resource_dict_path = resources_dict_path
     return new_resource_dict_path
 
 
@@ -535,13 +533,19 @@ def save_resources_dict(path="../resources/resources_dict.json"):
             'geno': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/Pataki.results.for.Amit',
             'pheno': '../resources/26.12.21/Pataki_paper/AST_2548_all',
             'run2bio': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_full_SAM_and_SRR_list.xlsx',
-            'filter_list': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_filtered_SRR_list_for_Amit.xlsx',
+            'filter_list': {
+                'filter_genome_size:20|filter_contig_num:True': '../resources/28.12.21/Pataki_paper/PATAKI_final_for_Amit.2021.12.28/PATAKI_filtered_SRR_list_for_Amit.xlsx',
+                'filter_genome_size:20': '../resources/new_threshold_filter_genome_size:20_PATAKI_20221206.xlsx',
+            }
         },
         'VAMP': {
             'geno': '../resources/28.12.21/VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMPr.results.for.Amit',
             'pheno': '../resources/28.12.21/VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_full_AST_data',
             'run2bio': '../resources/28.12.21//VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_full_SAM_and_SRR_list.csv',
-            'filter_list': '../resources/28.12.21//VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_filtered_SRR_list.20211228.xlsx',
+            'filter_list': {
+                'filter_genome_size:20|filter_contig_num:True': '../resources/28.12.21//VAMPr_3400samples/VAMP_final_for_Amit.2021.12.28/VAMP_filtered_SRR_list.20211228.xlsx',
+                'filter_genome_size:20': '../resources/new_threshold_filter_genome_size:20_VAMP_20221206.xlsx',
+            }
         },
         'PA': {
             'geno': "../resources/data/PA.dataset.400.for.Amit/",
@@ -550,16 +554,16 @@ def save_resources_dict(path="../resources/resources_dict.json"):
             'filter_list': '',
         },
         'PATRIC': {
-            'geno': [
-                '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.failed.spades.QC.passed.skesa.20220410',
-                '/sise/liorrk-group/AmitdanwMaranoMotroy/all.QC.passed.spades.20220313',
-            ],
+            'geno': "/sise/liorrk-group/AmitdanwMaranoMotroy/new.directory.all.QC.passed.combined.forAmit.20221205/",
             'pheno': '../resources/data/PATRIC_AMR_ESKAPE_etal_with_numericalAST_only.xlsx',
             'run2bio': '../resources/data/PATRIC_genome_final_db.20220223.xlsx',
-            'filter_list': [
-                "/sise/home/amitdanw/GPS/resources/data/QC_analysis_20220313.csv",
-                "/sise/home/amitdanw/GPS/resources/data/all_QC_passed_upto_20220306.csv",
-            ],
+            'filter_list': {
+                'filter_genome_size:20|filter_contig_num:True': [
+                    "/sise/home/amitdanw/GPS/resources/data/QC_analysis_20220313.csv",
+                    "/sise/home/amitdanw/GPS/resources/data/all_QC_passed_upto_20220306.csv",
+                ],
+                'filter_genome_size:20': '../resources/new_threshold_filter_genome_size:20_PATRIC_20221206.xlsx',
+            },
         },
     }
     with open(path, "w") as fp:
