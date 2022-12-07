@@ -964,8 +964,8 @@ class PATRICDataSet(MICDataSet):
                 filtered_data.columns = ['species_fam', 'run_id']
                 run2bio = run2bio.merge(right=filtered_data[['run_id']], how='inner', on='run_id')
         elif type(self.path_dict['filter_list'][self.pre_params_name]) == list:
-            filter_1 = pd.read_csv(self.path_dict['filter_list'][0])['file']
-            filter_2 = pd.read_csv(self.path_dict['filter_list'][1])['SRR_ID']
+            filter_1 = pd.read_csv(self.path_dict['filter_list'][self.pre_params_name][0])['file']
+            filter_2 = pd.read_csv(self.path_dict['filter_list'][self.pre_params_name][1])['SRR_ID']
             filtered_data = pd.DataFrame(pd.concat([filter_1, filter_2]).reset_index(drop=True))
             filtered_data.columns = ['run_id']
             run2bio = run2bio.merge(right=filtered_data, how='inner', on='run_id')
