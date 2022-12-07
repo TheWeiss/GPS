@@ -41,14 +41,6 @@ class MICDataSet(ABC):
         else:
             self.pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_params.items()]))
 
-        if self.pre_params is not None:
-            if self.pre_params.get('filter_genome_size'):
-                resources_dict_path = p_utils.parse_filtering(
-                    name=self.pre_params_name,
-                    path='../resources/new_threshold_trim_20only_VAMP_PATAKI_Pseudo_PATRIC_20221122.xlsx',
-                    resources_dict_path=resources_dict_path,
-                )
-
         with open(resources_dict_path) as json_file:
             resources_dict = json.load(json_file)
             if '_' in name:
