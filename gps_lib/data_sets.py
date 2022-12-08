@@ -175,8 +175,8 @@ class MICDataSet(ABC):
         print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
 
         self.all_ASR['species_fam'].replace(self.species_dict, inplace=True)
-        self.all_ASR = self.all_ASR[~self.all_ASR['species_fam'].isin(['Salmonella enterica', 'Streptococcus pneumoniae'])]
-        print('dropping_Senterica+Streptococcus pneumoniae')
+        self.all_ASR = self.all_ASR[~self.all_ASR['species_fam'].isin(['Mycobacterium tuberculosis'])]
+        print('dropping_"Mycobacterium tuberculosis"')
         print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
         print('length of run ' + str(len(self.all_ASR['biosample_id'].unique())))
 

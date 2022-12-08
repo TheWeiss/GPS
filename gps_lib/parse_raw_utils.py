@@ -498,6 +498,7 @@ def save_species_dict(path="../resources/species_dict.json"):
         'Enterobacter bugandensis': 'Enterobacter sp.',
         'Enterobacter sichuanensis': 'Enterobacter sp.',
         'Enterobacter kobei': 'Enterobacter sp.',
+        'mycobacteria': 'Mycobacterium tuberculosis',
     }
     with open(path, "w") as fp:
         json.dump(species_dict, fp)
@@ -554,7 +555,7 @@ def save_resources_dict(path="../resources/resources_dict.json"):
             'filter_list': '',
         },
         'PATRIC': {
-            'geno': "/sise/liorrk-group/AmitdanwMaranoMotroy/new.directory.all.QC.passed.combined.forAmit.20221205/",
+            'geno': "../resources/data/new.directory.all.QC.passed.combined.forAmit.20221205/",
             'pheno': '../resources/data/PATRIC_AMR_ESKAPE_etal_with_numericalAST_only.xlsx',
             'run2bio': '../resources/data/PATRIC_genome_final_db.20220223.xlsx',
             'filter_list': {
