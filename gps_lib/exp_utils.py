@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import parse_raw_utils as p_utils
+from tqdm import tqdm
 
 ########################################################################################
 ################################## Printing functions ##################################
