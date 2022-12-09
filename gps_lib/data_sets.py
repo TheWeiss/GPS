@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 class MICDataSet(ABC):
 
     def __init__(self, name, pre_params=None, saved_files_path='../pre_proccesing/',
-                 species_dict_path="../resources/species_dict.json", resources_dict_path = "../resources/resources_dict.json", ):
+                 species_dict_path="../resources/species_dict.json", resources_dict_path="../resources/resources_dict.json"):
         super().__init__()
         
         self.name = name
@@ -457,7 +457,7 @@ class MICDataSet(ABC):
         ds_param_name = str('|'.join([str(key) + ':' + str(value) for key, value in ds_param.items()]))
         ds_param = MICDataSet._add_default_ds_param(ds_param)
         filtered, species_name, antibiotic_name = self._filter_data(ds_param, species, antibiotic)
-        ds_param_files_path = self.saved_files_path + '/' + ds_param_name + '/' + str(species_name) + '/' + str(antibiotic_name)
+        ds_param_files_path = '{}/{}/{}/{}'.format(self.saved_files_path, ds_param_name, str(species_name), str(antibiotic_name))
         if not os.path.exists(ds_param_files_path):
             os.makedirs(ds_param_files_path)
 
@@ -1008,7 +1008,7 @@ class PATRICDataSet(MICDataSet):
     
 class CollectionDataSet(MICDataSet):
 
-    def __init__(self, dbs_name_list: list=None, dbs_list: list=None, pre_params=None, resources_dict_path = "../resources/resources_dict.json"):
+    def __init__(self, dbs_name_list: list=None, dbs_list: list=None, pre_params=None, resources_dict_path="../resources/resources_dict.json"):
         if dbs_list is not None:
             self._normal_init(dbs_list, pre_params)
         elif dbs_name_list is not None:
@@ -1020,17 +1020,17 @@ class CollectionDataSet(MICDataSet):
                 'PA': PADataSet,
             }
             for name in dbs_name_list:
-                dbs_list.append(name2class[name](pre_params=pre_params))
+                dbs_list.append(name2class[name](pre_params=pre_params, resources_dict_path=resources_dict_path))
 
-            self._normal_init(dbs_list, pre_params)
+            self._normal_init(dbs_list, pre_params, resources_dict_path)
         else:
             raise(Exception('not enough arguments to construct the class'))
 
 
-    def _normal_init(self, dbs_list: list, pre_params=None):
+    def _normal_init(self, dbs_list: list, pre_params=None, resources_dict_path="../resources/resources_dict.json"):
         name = '_'.join([db.name for db in dbs_list])
         self.dbs_list = dbs_list
-        super().__init__(name, pre_params)
+        super().__init__(name, pre_params=pre_params, resources_dict_path=resources_dict_path)
 
     def _load_all_geno_data(self):
         self.geno = None

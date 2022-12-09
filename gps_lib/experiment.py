@@ -26,7 +26,7 @@ class Model(ABC):
         self.exp_name = exp_name
         self.model_name = model_name
         self.ds_param_files_path = ds_param_files_path
-        with open(self.ds_param_files_path + '/col_names.json') as json_file:
+        with open('{}/col_names.json'.format(self.ds_param_files_path)) as json_file:
             self.col_names = json.load(json_file)
         self.exp_dir_path = exp_dir_path
 
@@ -92,7 +92,7 @@ class Model_axgb(Model):
             self.exp_name, self.model_name))
         return test_preds
 
-def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
+def run_h2o(exp_path, model_param, ds_param_files_path, col_names):
     h2o.init()
     # Import a sample binary outcome train/test set into H2O
     train = pd.read_csv('{}/train.csv'.format(ds_param_files_path))
@@ -120,26 +120,27 @@ def run_h2o(exp_name, model_param, ds_param_files_path, col_names):
     lb.head(rows=lb.nrows)  # Print all rows instead of default (10 rows)
     #
     model = aml.leader
-    model_path = h2o.save_model(model=model, path='../experiments/{}/{}/model'.format(exp_name, model_name), force=True)
-    lb.as_data_frame().to_csv('../experiments/{}/{}/leader_board.csv'.format(exp_name, model_name))
+    model_path = h2o.save_model(model=model, path='{}/{}/model'.format(exp_path, model_name), force=True)
+    lb.as_data_frame().to_csv('{}/{}/leader_board.csv'.format(exp_path, model_name))
     test_preds = model.predict(testH2o).as_data_frame()
     range_preds = model.predict(rangeH2o).as_data_frame()
     train_preds = model.predict(trainH2o).as_data_frame()
-    test_preds.to_csv('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name))
-    range_preds.to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
-    train_preds.to_csv('../experiments/{}/{}/train_preds.csv'.format(exp_name, model_name))
+    test_preds.to_csv('{}/{}/test_preds.csv'.format(exp_path, model_name))
+    range_preds.to_csv('{}/{}/range_preds.csv'.format(exp_path, model_name))
+    train_preds.to_csv('{}/{}/train_preds.csv'.format(exp_path, model_name))
     # h2o.shutdown()
     return aml
 
 
-def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
+def run_autoxgb(exp_path, model_param, ds_param_files_path, col_names):
     model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
     # required parameters:
     train_filename = '{}/train.csv'.format(ds_param_files_path)
-    output = '../experiments/{}/{}/model'.format(exp_name, model_name)
-    if os.path.exists('/sise/home/amitdanw/GPS/experiments/{}/{}/model'.format(exp_name, model_name)):
-        os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}/model'".format(exp_name, model_name))
-        os.system("rm -R " + "'/sise/home/amitdanw/GPS/experiments/{}/{}'".format(exp_name, model_name))
+    output = '{}/{}/model'.format(exp_path, model_name)
+    full_exp_path = '/sise/home/amitdanw/GPS/{}'.format(exp_path[3:])
+    if os.path.exists('{}/{}/model'.format(full_exp_path, model_name)):
+        os.system("rm -R " + "'{}/{}/model'".format(full_exp_path, model_name))
+        os.system("rm -R " + "'{}/{}'".format(full_exp_path, model_name))
 
     # optional parameters
     test_filename = '{}/test.csv'.format(ds_param_files_path)
@@ -179,15 +180,15 @@ def run_autoxgb(exp_name, model_param, ds_param_files_path, col_names):
     )
     axgb.train()
     try:
-        PredictAutoXGBCommand('../experiments/{}/{}/model'.format(exp_name, model_name),
+        PredictAutoXGBCommand('{}/{}/model'.format(exp_path, model_name),
                               '{}/range_X.csv'.format(ds_param_files_path),
-                              '../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).execute()
+                              '{}/{}/range_preds.csv'.format(exp_path, model_name)).execute()
     except ValueError:
-        pd.DataFrame({}).to_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
-    os.rename("../experiments/{}/{}/model/oof_predictions.csv".format(exp_name, model_name),
-              "../experiments/{}/{}/train_preds.csv".format(exp_name, model_name))
-    os.rename("../experiments/{}/{}/model/test_predictions.csv".format(exp_name, model_name),
-              "../experiments/{}/{}/test_preds.csv".format(exp_name, model_name))
+        pd.DataFrame({}).to_csv('{}/{}/range_preds.csv'.format(exp_path, model_name))
+    os.rename("{}/{}/model/oof_predictions.csv".format(exp_path, model_name),
+              "{}/{}/train_preds.csv".format(exp_path, model_name))
+    os.rename("{}/{}/model/test_predictions.csv".format(exp_path, model_name),
+              "{}/{}/test_preds.csv".format(exp_path, model_name))
 
 
 def fill_all_results():
@@ -272,7 +273,7 @@ def generate_stacked_dataset(results, data_index):
 
 
 def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp_desc='',
-            run_over=False, exp_dir_path='../experiments/', data_base_path='../pre_proccesing/base_line/PATAKI_VAMP_PA_PATRIC'):
+            run_over=False, exp_dir_path='../experiments', data_base_path='../pre_proccesing/base_line/PATAKI_VAMP_PA_PATRIC'):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic) == list:
@@ -289,7 +290,7 @@ def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp
             if not os.path.exists('{}/{}'.format(data_base_path, stacked_name)):
                 os.makedirs('{}/{}'.format(data_base_path, stacked_name))
             pd.DataFrame(stacked_param, index=[0]).to_csv('{}/{}/stacked_param.csv'.format(data_base_path, stacked_name))
-            res = pd.read_csv('{}results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
+            res = pd.read_csv('{}/results_summery.csv'.format(exp_dir_path)).drop('Unnamed: 0', axis=1)
             res = res[res['stacked'] == False]
             res = res[res['train_time'] > 100]
 
@@ -369,19 +370,19 @@ def run_exp_stack(stacked_param, model_param, species=None, antibiotic=None, exp
                     continue
 
 
-def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None, exp_desc='',
+def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, antibiotic=None,
             run_over=False):
     if type(species) == list:
         for species_j in species:
             if type(antibiotic) == list:
                 for antibiotic_i in antibiotic:
-                    run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, exp_desc, run_over=run_over)
+                    run_exp(dataset, model_param, ds_param, species_j, antibiotic_i, run_over=run_over)
             else:
-                run_exp(dataset, model_param, ds_param, species_j, antibiotic, exp_desc, run_over=run_over)
+                run_exp(dataset, model_param, ds_param, species_j, antibiotic, run_over=run_over)
     else:
         if type(antibiotic) == list:
             for antibiotic_i in antibiotic:
-                run_exp(dataset, model_param, ds_param, species, antibiotic_i, exp_desc, run_over=run_over)
+                run_exp(dataset, model_param, ds_param, species, antibiotic_i, run_over=run_over)
         else:
             try:
                 train, test, range_X, range_y, col_names, ds_param_files_path, species_name, antibiotic_name, cv = dataset.generate_dataset(
@@ -391,38 +392,37 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
                 print(type(e))
                 print(e)
                 return -1
-            exp_name = '|' + '|'.join(
-                [ds_param_files_path.split('/')[-3::][i] for i in [1, 2, 0]]) + '|' + dataset.name + '|' + exp_desc
 
-            os.makedirs('../experiments/{}'.format(exp_name), exist_ok=True)
-            with open('../experiments/{}/data_path.txt'.format(exp_name), "w") as data_path:
+            exp_path = '../experiments/{}/{}/{}'.format(dataset.pre_params_name, dataset.name, '/'.join(ds_param_files_path.split('/')[-3::]))
+            os.makedirs(exp_path, exist_ok=True)
+            with open('{}/data_path.txt'.format(exp_path), "w") as data_path:
                 data_path.write(ds_param_files_path)
             if len(train) < 40:
-                with open('../experiments/{}/tb.txt'.format(exp_name), 'w+') as f:
+                with open('{}/tb.txt'.format(exp_path), 'w+') as f:
                     f.write('Training set doesnt have at-least 40 samples reqiered for training')
-                    print('{} is too small, train size - {}'.format(exp_name, len(train)))
+                    print('{} is too small, train size - {}'.format(exp_path, len(train)))
                     return -1
             model_name = '|'.join([':'.join([k, str(v)]) for k, v in model_param.items()])
-            os.makedirs('../experiments/{}/{}'.format(exp_name, model_name), exist_ok=True)
+            os.makedirs('{}/{}'.format(exp_path, model_name), exist_ok=True)
             pd.DataFrame(model_param, index=[0]).to_csv(
-                '../experiments/{}/{}/model_param.csv'.format(exp_name, model_name))
+                '{}/{}/model_param.csv'.format(exp_path, model_name))
 
             if not run_over:
-                if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_name, model_name)) or \
-                        os.path.exists('../experiments/{}/{}/test_preds.csv'.format(exp_name, model_name)):
-                    print('{}|{} was already run'.format(exp_name, model_name))
+                if os.path.exists('{}/{}/tb.txt'.format(exp_path, model_name)) or \
+                        os.path.exists('{}/{}/test_preds.csv'.format(exp_path, model_name)):
+                    print('{}|{} was already run'.format(exp_path, model_name))
                     return 0
             try:
                 if model_param['model'] == 'autoxgb':
-                    run_autoxgb(exp_name, model_param, ds_param_files_path, col_names)
+                    run_autoxgb(exp_path, model_param, ds_param_files_path, col_names)
                 elif model_param['model'] == 'h2o':
-                    run_h2o(exp_name, model_param, ds_param_files_path, col_names)
-                print('{}|{} done running exp'.format(exp_name, model_name))
+                    run_h2o(exp_path, model_param, ds_param_files_path, col_names)
+                print('{}|{} done running exp'.format(exp_path, model_name))
                 return 0
             except Exception as e:
-                with open('../experiments/{}/{}/tb.txt'.format(exp_name, model_name), 'w+') as f:
+                with open('{}/{}/tb.txt'.format(exp_path, model_name), 'w+') as f:
                     traceback.print_exc(file=f)
-                print('{}|{} ERROR: {}'.format(exp_name, model_name, e))
+                print('{}|{} ERROR: {}'.format(exp_path, model_name, e))
                 return -1
 
 
