@@ -1010,7 +1010,7 @@ class CollectionDataSet(MICDataSet):
 
     def __init__(self, dbs_name_list: list=None, dbs_list: list=None, pre_params=None, resources_dict_path="../resources/resources_dict.json"):
         if dbs_list is not None:
-            self._normal_init(dbs_list, pre_params)
+            self._normal_init(dbs_list, pre_params, resources_dict_path)
         elif dbs_name_list is not None:
             dbs_list = []
             name2class = {
