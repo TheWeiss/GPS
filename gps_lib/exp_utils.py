@@ -40,6 +40,7 @@ def _genes_depth_per_species(data):
                         genes_depth_df = pd.concat([genes_depth_df, genes_depth], axis=0)
                     else:
                         error_id += [genes_depth]
+    return genes_depth_df
 
 
 def genes_depth_per_species_hist(data):
