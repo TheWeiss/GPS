@@ -778,8 +778,11 @@ class MICDataSet(ABC):
 
 class PATAKICDataSet(MICDataSet):
     
-    def __init__(self, pre_params=None):
-        super().__init__(name='PATAKI', pre_params=pre_params)
+    def __init__(self, pre_params=None, resources_dict_path=None):
+        if resources_dict_path is None:
+            super().__init__(name='PATAKI', pre_params=pre_params)
+        else:
+            super().__init__(name='PATAKI', pre_params=pre_params, resources_dict_path=resources_dict_path)
 
     def _load_all_phen_data_per_file(self, path):
         return super()._load_all_phen_data_per_file(
@@ -824,9 +827,12 @@ class PATAKICDataSet(MICDataSet):
 
 
 class VAMPDataSet(MICDataSet):
-    
-    def __init__(self, pre_params=None):
-        super().__init__(name='VAMP', pre_params=pre_params)
+
+    def __init__(self, pre_params=None, resources_dict_path=None):
+        if resources_dict_path is None:
+            super().__init__(name='VAMP', pre_params=pre_params)
+        else:
+            super().__init__(name='VAMP', pre_params=pre_params, resources_dict_path=resources_dict_path)
         
 
     def _load_all_phen_data_per_file(self, path):
@@ -867,9 +873,12 @@ class VAMPDataSet(MICDataSet):
         
         
 class PADataSet(MICDataSet):
-    
-    def __init__(self, pre_params=None):
-        super().__init__(name='PA', pre_params=pre_params)
+
+    def __init__(self, pre_params=None, resources_dict_path=None):
+        if resources_dict_path is None:
+            super().__init__(name='PA', pre_params=pre_params)
+        else:
+            super().__init__(name='PA', pre_params=pre_params, resources_dict_path=resources_dict_path)
         
 
     def _load_all_phen_data(self):
@@ -920,8 +929,11 @@ class PADataSet(MICDataSet):
 
 class PATRICDataSet(MICDataSet):
 
-    def __init__(self, pre_params=None):
-        super().__init__(name='PATRIC', pre_params=pre_params)
+    def __init__(self, pre_params=None, resources_dict_path=None):
+        if resources_dict_path is None:
+            super().__init__(name='PATRIC', pre_params=pre_params)
+        else:
+            super().__init__(name='PATRIC', pre_params=pre_params, resources_dict_path=resources_dict_path)
     
     def _load_all_phen_data(self):
         self.all_ASR = pd.read_excel(self.path_dict['pheno'])
