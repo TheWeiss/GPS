@@ -67,6 +67,7 @@ def genes_depth_per_species_hist(data, species=None, gene=None):
             genes_depth[genes_depth['species_fam']==species].groupby(by=['Gene']).apply(depth_hist)
         else:
             depth_hist(genes_depth[genes_depth['Gene'] == gene][genes_depth['species_fam']==species])
+    return genes_depth
 
 
 
