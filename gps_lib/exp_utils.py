@@ -43,7 +43,7 @@ def _genes_depth_per_species(data):
     return genes_depth_df
 
 
-def genes_depth_per_species_hist(data):
+def genes_depth_per_species_hist(data, species=None, gene=None):
     genes_depth = _genes_depth_per_species(data)
     genes_depth = genes_depth.merge(right=data.all_ASR[['run_id', 'species_fam']].drop_duplicates(), on='run_id',
                                           how='inner')
@@ -57,7 +57,17 @@ def genes_depth_per_species_hist(data):
             plt.ylabel('#')
             df['Depth'].hist()
             plt.show()
-    genes_depth.groupby(by=['species_fam', 'Gene']).apply(depth_hist)
+    if species is None:
+        if gene is None:
+            genes_depth.groupby(by=['species_fam', 'Gene']).apply(depth_hist)
+        else:
+            genes_depth[genes_depth['Gene']==gene].groupby(by=['species_fam']).apply(depth_hist)
+    else:
+        if gene is None:
+            genes_depth[genes_depth['species_fam']==species].groupby(by=['Gene']).apply(depth_hist)
+        else:
+            depth_hist(genes_depth[genes_depth['Gene'] == gene][genes_depth['species_fam']==species])
+
 
 
 def gene_presence_in_isolate_figure(genotype, db_name, path=None):
