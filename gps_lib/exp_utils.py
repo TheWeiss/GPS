@@ -43,10 +43,11 @@ def _genes_depth_per_species(data):
     return genes_depth_df
 
 
-def genes_depth_per_species_hist(data, species=None, gene=None):
-    genes_depth = _genes_depth_per_species(data)
-    genes_depth = genes_depth.merge(right=data.all_ASR[['run_id', 'species_fam']].drop_duplicates(), on='run_id',
-                                          how='inner')
+def genes_depth_per_species_hist(data, species=None, gene=None, genes_depth=None):
+    if genes_depth is None:
+        genes_depth = _genes_depth_per_species(data)
+        genes_depth = genes_depth.merge(right=data.all_ASR[['run_id', 'species_fam']].drop_duplicates(), on='run_id',
+                                              how='inner')
 
     def depth_hist(df):
         if len(df) > 20:
