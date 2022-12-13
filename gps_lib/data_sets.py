@@ -143,7 +143,7 @@ class MICDataSet(ABC):
         geno = self.geno.merge(right=self.all_ASR[['run_id', 'species_fam']], on='run_id',
                                how='inner').drop_duplicates()
         print(geno.columns)
-        self.geno = geno.groupby(by='species_fam').apply(remove_card)
+        self.geno = geno.groupby(by='species_fam').apply(remove_card).drop('species_fam', axis=1)
         self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
     
