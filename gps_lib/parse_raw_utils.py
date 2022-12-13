@@ -22,6 +22,11 @@ import json
 ################################## Parse functions ##################################
 ####################################################################################
 
+def get_card_prevelance(card_path='../resources/card'):
+    prevalence = pd.read_csv("{}/card_prevalence.txt".format(card_path), sep="\t")
+    genomes = pd.read_csv("{}/card-genomes.txt".format(card_path), sep="\t")
+    index_model = pd.read_csv("{}/index-for-model-sequences.txt".format(card_path), sep="\t")
+    return prevalence, genomes, index_model
 
 def get_breakpoints(species, antibiotic):
     good_breakpoints = False

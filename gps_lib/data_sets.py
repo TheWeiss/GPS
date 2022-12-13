@@ -113,7 +113,24 @@ class MICDataSet(ABC):
             self._test_phen()
             print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
             print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
+
+            self._remove_low_depth_non_card()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
+
+    def _remove_low_depth_non_card(self):
+        pass
+        # prevalence, _, _ = p_utils.get_card_prevelance()
+        # prevalence = prevalence[['Pathogen', 'Name']].drop_duplicates()
+        # geno = self.geno.merge(right=self.all_ASR[['run_id', 'species_fam']], on='run_id',
+        #                        how='inner').drop_duplicates()
+        #
+        # if species[i] == 'Enterobacter sp.':
+        #     all_species = [x for x in prevalence['Pathogen'].unique() if 'Enterobacter' in x]
+        #     card_species_geno = set(
+        #         ['_'.join(x.split(' ')) for x in prevalence[prevalence['Pathogen'].isin(all_species)]['Name'].values])
+        # else:
+        #     card_species_geno = set(
+        #         ['_'.join(x.split(' ')) for x in prevalence[prevalence['Pathogen'] == species[i]]['Name'].values])
     
     def _load_all_phen_data(self):
         self.all_ASR = pd.DataFrame({})
