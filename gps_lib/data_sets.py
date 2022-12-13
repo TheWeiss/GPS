@@ -118,20 +118,33 @@ class MICDataSet(ABC):
             self._remove_low_depth_non_card()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
 
-    def _remove_low_depth_non_card(self):
-        pass
-        # prevalence, _, _ = p_utils.get_card_prevelance()
-        # prevalence = prevalence[['Pathogen', 'Name']].drop_duplicates()
-        # geno = self.geno.merge(right=self.all_ASR[['run_id', 'species_fam']], on='run_id',
-        #                        how='inner').drop_duplicates()
-        #
-        # if species[i] == 'Enterobacter sp.':
-        #     all_species = [x for x in prevalence['Pathogen'].unique() if 'Enterobacter' in x]
-        #     card_species_geno = set(
-        #         ['_'.join(x.split(' ')) for x in prevalence[prevalence['Pathogen'].isin(all_species)]['Name'].values])
-        # else:
-        #     card_species_geno = set(
-        #         ['_'.join(x.split(' ')) for x in prevalence[prevalence['Pathogen'] == species[i]]['Name'].values])
+    def _remove_low_depth_non_card(self, non_card_depth_thresh=10):
+        def remove_card(df):
+            species = df['species_fam'].iloc[0]
+            print(species)
+            if species == 'Enterobacter sp.':
+                all_species = [x for x in prevalence['Pathogen'].unique() if 'Enterobacter' in x]
+                card_species_genes = set(['_'.join(x.split(' ')) for x in
+                                          prevalence[prevalence['Pathogen'].isin(all_species)]['Name'].values])
+            else:
+                card_species_genes = set(
+                    ['_'.join(x.split(' ')) for x in prevalence[prevalence['Pathogen'] == species]['Name'].values])
+            species_geno = df[df['species_fam'] == species].dropna(how='all', axis=1)
+            species_genes = set(
+                [x.split('->')[0] for x in species_geno.drop(['run_id', 'species_fam'], axis=1).columns.values])
+            not_card_compatible_genes = list(species_genes - card_species_genes)
+            for gene in not_card_compatible_genes:
+                df.loc[df[gene + '->depth'] < non_card_depth_thresh, [gene + '->seq_id', gene + '->seq_cov', gene + '->depth',
+                                                   gene + '->copy_number']] = None
+            return df
+
+        prevalence, _, _ = p_utils.get_card_prevelance()
+        prevalence = prevalence[['Pathogen', 'Name']].drop_duplicates()
+        geno = self.geno.merge(right=self.all_ASR[['run_id', 'species_fam']], on='run_id',
+                               how='inner').drop_duplicates()
+        self.geno = geno.groupby(by='species_fam').apply(remove_card)
+
+
     
     def _load_all_phen_data(self):
         self.all_ASR = pd.DataFrame({})
