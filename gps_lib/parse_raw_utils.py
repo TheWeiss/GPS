@@ -342,6 +342,9 @@ def get_isolate_features(
         new_df['Copy_number'] = len(df)
         return new_df
     gene_df = gene_df.groupby(by='Gene').apply(get_max_and_copy)
+    if 'Copy_number' not in gene_df.columns:
+        print(path)
+        print(gene_df)
     gene_df = gene_df[['Contig', 'Start', 'End', 'Depth', 'SeqID', 'SeqCov', 'Match_Start', 'Match_End', 'Ref_Gene_Size', 'Copy_number']].reset_index()
     
     try:
