@@ -248,11 +248,22 @@ def get_phenotype_per_db(AST_dir, db_name='PATAKI'):
 
 '''
 '''
-def get_genotype_per_db(path):
+def get_genotype_per_db(path, pre_params=None):
+    if pre_params is None:
+        pre_params = {}
+    cov_thresh = pre_params.get('cov_thresh', None)
+    id_thresh = pre_params.get('id_thresh', None)
+    depth_thresh = pre_params.get('depth_thresh', None)
+
     genotypic = pd.DataFrame({})
     error_id = []
     for SRR_dir in tqdm(os.listdir(path)):
-        srr_features = get_isolate_features(path+'/'+SRR_dir)
+        srr_features = get_isolate_features(
+            path+'/'+SRR_dir,
+            cov_thresh=cov_thresh,
+            id_thresh=id_thresh,
+            depth_thresh=depth_thresh,
+        )
         if type(srr_features) is not str:
             genotypic = pd.concat([genotypic, srr_features], axis=0)
         else:
