@@ -291,7 +291,7 @@ A function that parse the raw WGS matching output and turns it to model features
 def get_isolate_features(
     path, 
     with_confidence=False, 
-    sortby='SeqCov', 
+    sortby='SeqCov',
     cov_thresh=None, 
     id_thresh=None, 
     depth_thresh=None, 
@@ -321,8 +321,12 @@ def get_isolate_features(
     if depth_thresh is not None:
         gene_df = gene_df[gene_df['Depth']>depth_thresh]
         
-    gene_df = gene_df.groupby(by='Gene').apply(lambda x: x.iloc[x[sortby].argmax()])
-    gene_df = gene_df[['Contig', 'Start', 'End', 'Depth', 'SeqID', 'SeqCov', 'Match_Start', 'Match_End', 'Ref_Gene_Size']].reset_index()
+    def get_max_and_copy(df):
+        new_df = df.iloc[df[sortby].argmax()]
+        new_df['Copy_number'] = len(df)
+        return new_df
+    gene_df = gene_df.groupby(by='Gene').apply(get_max_and_copy)
+    gene_df = gene_df[['Contig', 'Start', 'End', 'Depth', 'SeqID', 'SeqCov', 'Match_Start', 'Match_End', 'Ref_Gene_Size', 'Copy_number']].reset_index()
     
     try:
         txt_file = glob.glob(path+'/*.txt')[0]
@@ -340,10 +344,10 @@ def get_isolate_features(
     features['dist_contig_end'] = np.minimum(features['Start'], features['contig_size']-features['End'])
     features['contig_end_partition'] = features['dist_contig_end'] / features['contig_size']
     features['relative_depth'] = features['Depth'] / features['avg_depth']
-    features = features[['Gene', 'Depth', 'avg_depth', 'relative_depth', 'dist_contig_end', 'contig_end_partition', 'SeqID', 'SeqCov']]
-    features.columns = ['gene', 'depth', 'avg_depth', 'relative_depth', 'dist_contig_end', 'contig_end_partition', 'seq_id', 'seq_cov']
+    features = features[['Gene', 'Depth', 'avg_depth', 'relative_depth', 'dist_contig_end', 'contig_end_partition', 'SeqID', 'SeqCov', 'Copy_number']]
+    features.columns = ['gene', 'depth', 'avg_depth', 'relative_depth', 'dist_contig_end', 'contig_end_partition', 'seq_id', 'seq_cov', 'copy_number']
     if not with_confidence:
-        features = features.drop(['relative_depth', 'depth', 'avg_depth', 'dist_contig_end', 'contig_end_partition'], axis=1)
+        features = features.drop(['relative_depth', 'avg_depth', 'dist_contig_end', 'contig_end_partition'], axis=1)
     features = features.set_index('gene').stack().reset_index()
     features['col_name'] = features['gene'].values + '->' + features['level_1'].values
     features = features.set_index('col_name').loc[:, 0].to_frame().T
