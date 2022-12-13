@@ -58,6 +58,7 @@ class MICDataSet(ABC):
         self._load_geno()
         print('running pheno for ' + self.name)
         self._load_pheno()
+        self._remove_low_depth_non_card()
 
     def _load_geno(self):
         try:
@@ -115,7 +116,6 @@ class MICDataSet(ABC):
             print('length of bio ' + str(len(self.all_ASR['biosample_id'].unique())))
             print('length of run ' + str(len(self.all_ASR['run_id'].unique())))
 
-            self._remove_low_depth_non_card()
             self.all_ASR.to_csv(self.saved_files_path + '/all_ASR.csv', index=False)
 
     def _remove_low_depth_non_card(self, non_card_depth_thresh=10):
@@ -143,7 +143,7 @@ class MICDataSet(ABC):
         geno = self.geno.merge(right=self.all_ASR[['run_id', 'species_fam']], on='run_id',
                                how='inner').drop_duplicates()
         self.geno = geno.groupby(by='species_fam').apply(remove_card)
-
+        self.geno.to_csv(self.saved_files_path + '/geno.csv', index=False)
 
     
     def _load_all_phen_data(self):
