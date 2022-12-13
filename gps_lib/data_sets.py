@@ -40,6 +40,7 @@ class MICDataSet(ABC):
             resources_dict_path = "../resources/resources_dict_base_line.json"
         else:
             self.pre_params_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_params.items()]))
+            self.filter_name = str('|'.join([str(key) + ':' + str(value) for key, value in self.pre_params.items() if 'filter' in key]))
 
         with open(resources_dict_path) as json_file:
             resources_dict = json.load(json_file)
@@ -835,7 +836,7 @@ class PATAKICDataSet(MICDataSet):
     def _merge_all_meta(self):
         run2bio = pd.read_excel(self.path_dict['run2bio'])
         run2bio.columns = ['run_id', 'biosample_id']
-        filtered_data = pd.read_excel(self.path_dict['filter_list'][self.pre_params_name])
+        filtered_data = pd.read_excel(self.path_dict['filter_list'][self.filter_name])
         filtered_data.columns = ['species_fam', 'run_id']
         filtered_data.drop(['species_fam'], axis=1, inplace=True)
 
@@ -882,7 +883,7 @@ class VAMPDataSet(MICDataSet):
     def _merge_all_meta(self):
         run2bio = pd.read_csv(self.path_dict['run2bio'])
         run2bio.columns = ['run_id', 'biosample_id']
-        filtered_data = pd.read_excel(self.path_dict['filter_list'][self.pre_params_name])
+        filtered_data = pd.read_excel(self.path_dict['filter_list'][self.filter_name])
         filtered_data.columns = ['species_fam', 'run_id']
 
         filtered_data = filtered_data.merge(right=run2bio, how='inner', on='run_id')
@@ -987,14 +988,14 @@ class PATRICDataSet(MICDataSet):
         run2bio.columns = ['run_id', 'genome_id', 'biosample_id', 'species_fam']
         run2bio.drop(['species_fam'], axis=1, inplace=True)
         run2bio['genome_id'] = run2bio['genome_id'].astype(str)
-        if type(self.path_dict['filter_list'][self.pre_params_name]) == str:
-            if len(self.path_dict['filter_list'][self.pre_params_name]) > 0:
-                filtered_data = pd.read_excel(self.path_dict['filter_list'][self.pre_params_name])
+        if type(self.path_dict['filter_list'][self.filter_name]) == str:
+            if len(self.path_dict['filter_list'][self.filter_name]) > 0:
+                filtered_data = pd.read_excel(self.path_dict['filter_list'][self.filter_name])
                 filtered_data.columns = ['species_fam', 'run_id']
                 run2bio = run2bio.merge(right=filtered_data[['run_id']], how='inner', on='run_id')
-        elif type(self.path_dict['filter_list'][self.pre_params_name]) == list:
-            filter_1 = pd.read_csv(self.path_dict['filter_list'][self.pre_params_name][0])['file']
-            filter_2 = pd.read_csv(self.path_dict['filter_list'][self.pre_params_name][1])['SRR_ID']
+        elif type(self.path_dict['filter_list'][self.filter_name]) == list:
+            filter_1 = pd.read_csv(self.path_dict['filter_list'][self.filter_name][0])['file']
+            filter_2 = pd.read_csv(self.path_dict['filter_list'][self.filter_name][1])['SRR_ID']
             filtered_data = pd.DataFrame(pd.concat([filter_1, filter_2]).reset_index(drop=True))
             filtered_data.columns = ['run_id']
             run2bio = run2bio.merge(right=filtered_data, how='inner', on='run_id')
