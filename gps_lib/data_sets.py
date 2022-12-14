@@ -532,7 +532,7 @@ class MICDataSet(ABC):
             'pca': None,  # None/per_gene/all
             'scalar': False,
             'not_equal_meaning': False,
-            'per_gene_features': ['seq_cov', 'seq_id'], # a list that may contain [seq_id, seq_cov, depth, copy_number]
+            'per_gene_features': 'seq_cov|seq_id', # a string with | that may contain [seq_id, seq_cov, depth, copy_number]
         }
         full_ds_param = {}
         for key, value in default_values.items():
@@ -694,7 +694,7 @@ class MICDataSet(ABC):
         genes = list(dict.fromkeys([x[0] for x in features]))
         if ds_param.get('per_gene_features') is not None:
             filtered_features = []
-            for per_gene_feature in ds_param.get('per_gene_features'):
+            for per_gene_feature in ds_param.get('per_gene_features').split('|'):
                 filtered_features = filtered_features + [gene+'->'+per_gene_feature for gene in genes]
         train = train[filtered_features]
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
