@@ -427,32 +427,40 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
 
 
 def main(args):
-    pre_params = None
+    pre_params = {}
+    if args.id_thresh:
+        pre_params['id_thresh'] = args.id_thresh
+    if args.cov_thresh:
+        pre_params['cov_thresh'] = args.cov_thresh
+    if args.filter_genome_size:
+        pre_params['filter_genome_size'] = args.filter_genome_size
+    if args.filter_contig_num:
+        pre_params['filter_contig_num'] = args.filter_contig_num
+    if pre_params == {}:
+        pre_params = None
 
     data = ds.CollectionDataSet(dbs_name_list=args.data_sets, pre_params=pre_params)
 
-    ds_param = {}
+    ds_params = {}
     if args.handle_range:
-        ds_param['handle_range'] = args.handle_range
+        ds_params['handle_range'] = args.handle_range
     if args.move_range_by:
-        ds_param['move_range_by'] = args.move_range_by
+        ds_params['move_range_by'] = args.move_range_by
+    if args.per_gene_features:
+        ds_params['per_gene_features'] = args.per_gene_features
     if args.pca:
-        ds_param['pca'] = args.pca
+        ds_params['pca'] = args.pca
     if args.scalar:
-        ds_param['scalar'] = args.scalar
-    if args.id_thresh:
-        ds_param['id_thresh'] = args.id_thresh
-    if args.cov_thresh:
-        ds_param['cov_thresh'] = args.cov_thresh
+        ds_params['scalar'] = args.scalar
     if args.not_equal_meaning:
-        ds_param['not_equal_meaning'] = args.not_equal_meaning
-    if ds_param == {}:
-        ds_param = None
+        ds_params['not_equal_meaning'] = args.not_equal_meaning
+    if ds_params == {}:
+        ds_params = None
 
-    model_param = {}
-    model_param['model'] = args.model
-    model_param['train_time'] = args.train_time
-    model_param['max_models'] = args.max_models
+    model_params = {}
+    model_params['model'] = args.model
+    model_params['train_time'] = args.train_time
+    model_params['max_models'] = args.max_models
 
     if type(args.anti_list) == list:
         anti_list = [int(anti) if anti.isnumeric() else anti for anti in args.anti_list]
@@ -465,7 +473,7 @@ def main(args):
     else:
         if args.species_list.isnumeric():
             species_list = int(args.species_list)
-    run_exp(data, model_param, ds_param, species=species_list, antibiotic=anti_list)
+    run_exp(data, model_params, ds_params, species=species_list, antibiotic=anti_list)
 
 
 if __name__ == "__main__":
@@ -475,6 +483,10 @@ if __name__ == "__main__":
 
     # dataset to load
     parser.add_argument('--data-sets', dest='data_sets', default=['PATAKI', 'VAMP', 'PA', 'PATRIC'], nargs='+')
+    parser.add_argument('--id-thresh', dest='id_thresh', type=int, nargs='?')
+    parser.add_argument('--cov-thresh', dest='cov_thresh', type=int, nargs='?')
+    parser.add_argument('--filter-genome-size', dest='filter_genome_size', type=int, nargs='?')
+    parser.add_argument('--filter-contig-num', dest='filter_contig_num', action="store_true")
 
     # pairs to generate X-y data for
     parser.add_argument('--species-list', dest='species_list', default=0, nargs='+')
@@ -483,12 +495,12 @@ if __name__ == "__main__":
     # ds parameters like range handling
     parser.add_argument('--handle-range', dest='handle_range',
                         choices=['remove', 'strip', 'move'])
+    parser.add_argument('--per-gene-features', dest='per_gene_features',
+                        default=['seq_cov', 'seq_id', 'depth', 'copy_number'], nargs='+')
     parser.add_argument('--move-range-by', dest='move_range_by', type=int, nargs='?')
     parser.add_argument('--not-equal-meaning', dest='not_equal_meaning', action="store_true")
-    parser.add_argument('--pca', dest='pca', action="store_true")
+    parser.add_argument('--pca', dest='pca', choices=['per_gene', 'all'])
     parser.add_argument('--scalar', dest='scalar', action="store_true")
-    parser.add_argument('--id-thresh', dest='id_thresh', type=int, nargs='?')
-    parser.add_argument('--cov-thresh', dest='cov_thresh', type=int, nargs='?')
 
     # pre parameters like geno thresholds
 

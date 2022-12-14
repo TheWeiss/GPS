@@ -694,25 +694,11 @@ class MICDataSet(ABC):
     def _transform_features(self, ds_param, train, test, range_X, range_y, col_names):
         features = [x.split('->') for x in col_names['features']]
         genes = list(dict.fromkeys([x[0] for x in features]))
-        if ds_param.get('id_thresh') is not None:
-            for gene in genes:
-                mask = train[gene + '->seq_id'] < ds_param.get('id_thresh')
-                train.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
-                mask = test[gene + '->seq_id'] < ds_param.get('id_thresh')
-                test.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
-                mask = range_X[gene + '->seq_id'] < ds_param.get('id_thresh')
-                range_X.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
-
-        if ds_param.get('cov_thresh') is not None:
-            for gene in genes:
-                mask = train[gene + '->seq_cov'] < ds_param.get('cov_thresh')
-                train.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
-                mask = test[gene + '->seq_cov'] < ds_param.get('cov_thresh')
-                test.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
-                mask = range_X[gene + '->seq_cov'] < ds_param.get('cov_thresh')
-                range_X.loc[mask, [gene + '->seq_id', gene + '->seq_cov']] = 0
-
-
+        if ds_param.get('per_gene_features') is not None:
+            filtered_features = []
+            for per_gene_feature in ds_param.get('per_gene_features'):
+                filtered_features = filtered_features + [gene+'->'+per_gene_feature for gene in genes]
+        train = train[filtered_features]
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
         col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
         test = test[[col_names['label']]+col_names['features']]
