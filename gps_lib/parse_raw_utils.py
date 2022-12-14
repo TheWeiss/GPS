@@ -341,10 +341,10 @@ def get_isolate_features(
         new_df = df.iloc[df[sortby].argmax()]
         new_df['Copy_number'] = len(df)
         return new_df
+    if path == '../resources/data/new.directory.all.QC.passed.combined.forAmit.20221205//SRR1049637.results'
     gene_df = gene_df.groupby(by='Gene').apply(get_max_and_copy)
-    if 'Copy_number' not in gene_df.columns:
-        print(path)
-        print(gene_df)
+    if len(gene_df) == 0:
+        gene_df['Copy_number'] = None
     gene_df = gene_df[['Contig', 'Start', 'End', 'Depth', 'SeqID', 'SeqCov', 'Match_Start', 'Match_End', 'Ref_Gene_Size', 'Copy_number']].reset_index()
     
     try:
