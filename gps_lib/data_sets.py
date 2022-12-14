@@ -696,7 +696,7 @@ class MICDataSet(ABC):
             filtered_features = []
             for per_gene_feature in ds_param.get('per_gene_features').split('|'):
                 filtered_features = filtered_features + [gene+'->'+per_gene_feature for gene in genes]
-        train = train[filtered_features+[col_names['id'], col_names['label']]]
+        train = train[[col_names['label']]+filtered_features]
         train = train.loc[:, train.apply(pd.Series.nunique) != 1]
         col_names['features'] = list(set(train.columns) - set([col_names['id'], col_names['label']]))
         test = test[[col_names['label']]+col_names['features']]
