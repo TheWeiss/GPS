@@ -121,7 +121,6 @@ class MICDataSet(ABC):
     def _remove_low_depth_non_card(self, non_card_depth_thresh=10):
         def remove_card(df):
             species = df['species_fam'].iloc[0]
-            print(species)
             if species == 'Enterobacter sp.':
                 all_species = [x for x in prevalence['Pathogen'].unique() if 'Enterobacter' in x]
                 card_species_genes = set(['_'.join(x.split(' ')) for x in
