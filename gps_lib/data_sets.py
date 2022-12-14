@@ -531,9 +531,8 @@ class MICDataSet(ABC):
             'random_seed': 42,
             'pca': None,  # None/per_gene/all
             'scalar': False,
-            'id_thresh': None,
-            'cov_thresh': None,
             'not_equal_meaning': False,
+            'per_gene_features': ['seq_cov', 'seq_id'], # a list that may contain [seq_id, seq_cov, depth, copy_number]
         }
         full_ds_param = {}
         for key, value in default_values.items():
