@@ -428,14 +428,14 @@ def run_exp(dataset: ds.MICDataSet, model_param, ds_param=None, species=None, an
 
 def main(args):
     pre_params = {}
-    if args.id_thresh:
-        pre_params['id_thresh'] = args.id_thresh
-    if args.cov_thresh:
-        pre_params['cov_thresh'] = args.cov_thresh
     if args.filter_genome_size:
         pre_params['filter_genome_size'] = args.filter_genome_size
     if args.filter_contig_num:
         pre_params['filter_contig_num'] = args.filter_contig_num
+    if args.cov_thresh:
+        pre_params['cov_thresh'] = args.cov_thresh
+    if args.id_thresh:
+        pre_params['id_thresh'] = args.id_thresh
     if pre_params == {}:
         pre_params = None
 
