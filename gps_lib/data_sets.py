@@ -548,9 +548,11 @@ class MICDataSet(ABC):
             if type(spec) == str:
                 species = spec
             else:
+                # species_list = filtered.groupby(by='biosample_id').apply(
+                #     lambda x: x['species_fam'].iloc[0]).value_counts().drop(
+                #     ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0, errors='ignore').index.values
                 species_list = filtered.groupby(by='biosample_id').apply(
-                    lambda x: x['species_fam'].iloc[0]).value_counts().drop(
-                    ['Salmonella enterica', 'Streptococcus pneumoniae'], axis=0, errors='ignore').index.values
+                    lambda x: x['species_fam'].iloc[0]).value_counts().index.values
                 try:
                     species = species_list[spec]
                 except IndexError:
