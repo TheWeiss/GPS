@@ -12,35 +12,56 @@ import argparse
 import pickle
 
 def parse_results(exp_dir_path):
-    exp_list =  []
-    for path in os.listdir(exp_dir_path):
-        if len(path.split('|')[0]) > 0:
+    exp_dir_path = '../experiments'
+    exp_list = []
+    species_list = []
+    antibiotic_list = []
+    db_name_list = []
+    pre_params_name_list = []
+    ds_params_name_list = []
+
+    for pre_params_name in os.listdir(exp_dir_path):
+        if pre_params_name == '.ipynb_checkpoints' or '.csv' in pre_params_name:
             continue
-        exp_list.append(path)
+        for db_name in os.listdir('{}/{}'.format(exp_dir_path, pre_params_name)):
+            for ds_params_name in os.listdir('{}/{}/{}'.format(exp_dir_path, pre_params_name, db_name)):
+                for species in os.listdir('{}/{}/{}/{}'.format(exp_dir_path, pre_params_name, db_name, ds_params_name)):
+                    for antibiotic in os.listdir(
+                            '{}/{}/{}/{}/{}'.format(exp_dir_path, pre_params_name, db_name, ds_params_name, species)):
+                        exp_path = '{}/{}/{}/{}/{}/{}'.format(exp_dir_path, pre_params_name, db_name, ds_params_name,
+                                                              species, antibiotic)
+                        exp_list.append(exp_path)
+                        species_list.append(species)
+                        antibiotic_list.append(antibiotic)
+                        pre_params_name_list.append(pre_params_name)
+                        ds_params_name_list.append(ds_params_name)
+                        db_name_list.append(db_name)
     results = pd.DataFrame({
         'exp_path': exp_list,
-        'species': [path.split('|')[1] for path in exp_list],
-        'antibiotic': [path.split('|')[2] for path in exp_list],
+        'species': species_list,
+        'antibiotic': antibiotic_list,
+        'dataset': db_name_list,
+        'pre_params_name': pre_params_name_list,
+        'ds_params_name': ds_params_name_list,
     })
     return results
 
 def align_model_params_files(exp_path):
-    full_path = '../experiments/{}'.format(exp_path)
-    data_path = full_path + '/data_path.txt'
+    data_path = exp_path + '/data_path.txt'
     if not os.path.exists(data_path):
         return 'missing data_path from the new format'
-    for model_path in os.listdir(full_path):
-        if os.path.isdir(full_path + '/' + model_path):
+    for model_path in os.listdir(exp_path):
+        if os.path.isdir(exp_path + '/' + model_path):
             if model_path == '.ipynb_checkpoints':
                 continue
-            if not os.path.exists('{}/{}/model_param.csv'.format(full_path, model_path)):
+            if not os.path.exists('{}/{}/model_param.csv'.format(exp_path, model_path)):
                 model_param = {
                     'model': model_path.split('|')[0].split(':')[1],
                     'train_time': model_path.split('|')[1].split(':')[1],
                     'max_models': model_path.split('|')[2].split(':')[1],
                 }
                 pd.DataFrame(model_param, index=[0]).to_csv(
-                    '{}/{}/model_param.csv'.format(full_path, model_path))
+                    '{}/{}/model_param.csv'.format(exp_path, model_path))
 
 
 def align_error_files_files(exp_path):
@@ -54,13 +75,9 @@ def align_error_files_files(exp_path):
 
 
 def fill_data_path(exp_path):
-    data_file_path = '../experiments/{}/data_path.txt'.format(exp_path)
+    data_file_path = '{}/data_path.txt'.format(exp_path)
     with open(data_file_path) as f:
         return f.readlines()[0]
-
-
-def fill_data_set(data_path):
-    return data_path.split('/')[-4]
 
 
 def fill_data_param(row):
@@ -72,6 +89,7 @@ def fill_data_param(row):
     tmp = pd.concat([row.to_frame().T, data_param], axis=1)
     tmp = tmp.iloc[0]
     return tmp
+
 
 def fill_stack_param(row):
     i = row.to_frame().T.index.values[0]
@@ -110,22 +128,22 @@ def fill_model_param(row):
     i = row.to_frame().T.index.values[0]
     exp_path = row['exp_path']
     model_params = pd.DataFrame({})
-    if os.path.exists('../experiments/{}/tb.txt'.format(exp_path)):
+    if os.path.exists('{}/tb.txt'.format(exp_path)):
         model_params = pd.DataFrame({
             'error': [True],
             'tb': [''],
         }, index=[i])
-        with open('../experiments/{}/tb.txt'.format(exp_path)) as f:
+        with open('{}/tb.txt'.format(exp_path)) as f:
             model_params.loc[i, 'tb'] = f.readlines()[0]
-    for model_path in os.listdir('../experiments/{}'.format(exp_path)):
-        if os.path.isdir('../experiments/{}/{}'.format(exp_path, model_path)):
-            if os.path.exists('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)):
-                model_param = pd.read_csv('../experiments/{}/{}/model_param.csv'.format(exp_path, model_path)).drop('Unnamed: 0',axis=1)
+    for model_path in os.listdir(exp_path):
+        if os.path.isdir('{}/{}'.format(exp_path, model_path)):
+            if os.path.exists('{}/{}/model_param.csv'.format(exp_path, model_path)):
+                model_param = pd.read_csv('{}/{}/model_param.csv'.format(exp_path, model_path)).drop('Unnamed: 0',axis=1)
                 model_param['model_path'] = model_path
                 model_param.index = [i]
-                if os.path.exists('../experiments/{}/{}/tb.txt'.format(exp_path, model_path)):
+                if os.path.exists('{}/{}/tb.txt'.format(exp_path, model_path)):
                     model_param['error'] = True
-                    with open('../experiments/{}/{}/tb.txt'.format(exp_path, model_path)) as f:
+                    with open('{}/{}/tb.txt'.format(exp_path, model_path)) as f:
                         model_param['tb'] = f.readlines()[0]
                 else:
                     model_param['error'] = False
@@ -144,7 +162,7 @@ def fill_shap_exist(row):
     exp_name = row['exp_path']
     model_path = row['model_path']
     shap_flag = pd.DataFrame({'shap_done': [False]})
-    if os.path.exists('../experiments/{}/{}/shap_summery.png'.format(exp_name, model_path)):
+    if os.path.exists('{}/{}/shap_summery.png'.format(exp_name, model_path)):
         shap_flag = pd.DataFrame({'shap_done': [True]})
     shap_flag.index = [i]
     tmp = pd.concat([row.to_frame().T, shap_flag], axis=1)
@@ -208,11 +226,10 @@ def get_exp_id_by_criterion(results, sort_metric, ascending=False, get_next=0):
     return i
 
 
-def read_exp_dirs(exp_dir_path, equal_meaning=True):
+def read_exp_dirs(exp_dir_path, equal_meaning=False):
     results = parse_results(exp_dir_path)
     results['exp_path'].apply(align_model_params_files)
     results['data_path'] = results['exp_path'].apply(fill_data_path)
-    results['dataset'] = results['data_path'].apply(fill_data_set)
     results = results.apply(fill_data_param, axis=1)
     results = results.apply(fill_stack_param, axis=1)
     results = pd.concat(results.apply(fill_model_param, axis=1).values).reset_index(drop=True)
@@ -305,8 +322,6 @@ def exact_plots(i):
         plt.show()
 
     plt.show()
-
-
 
 
 def SIR_plots(i, equal_meaning=False):
@@ -703,12 +718,12 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
                 split_y.columns = ['y_true']
                 if results.loc[i, 'model'] == 'autoxgb':
                     split_preds = pd.read_csv(
-                        '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).set_index(col_names['id'])
+                        '{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).set_index(col_names['id'])
                     split_preds.columns = ['y_pred']
                     split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
                 elif results.loc[i, 'model'] == 'h2o':
                     split_preds = pd.read_csv(
-                        '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).drop('Unnamed: 0', axis=1)
+                        '{}/{}/{}_preds.csv'.format(exp_name, model_name, split)).drop('Unnamed: 0', axis=1)
                     split_preds.columns = ['y_pred']
                     split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
                                                     how='inner').set_index(col_names['id'])
@@ -753,14 +768,14 @@ def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
             }, index=['train', 'test'])
 
             if results.loc[i, 'model'] == 'autoxgb':
-                range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name))
+                range_preds = pd.read_csv('{}/{}/range_preds.csv'.format(exp_name, model_name))
                 if len(range_preds) == 0:
                     range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
                 range_preds = range_preds.set_index(col_names['id'])
                 range_preds.columns = ['y_pred']
                 range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
             elif results.loc[i, 'model'] == 'h2o':
-                range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_name)).drop('Unnamed: 0', axis=1)
+                range_preds = pd.read_csv('{}/{}/range_preds.csv'.format(exp_name, model_name)).drop('Unnamed: 0', axis=1)
                 if len(range_preds) == 0:
                     range_preds = pd.DataFrame({'measurment': []}, index=[])
                 range_preds.columns = ['y_pred']
