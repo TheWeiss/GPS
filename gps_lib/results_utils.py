@@ -236,7 +236,7 @@ def read_exp_dirs(exp_dir_path, equal_meaning=False):
     results = add_metrices(results, equal_meaning=equal_meaning)
     results = compare_to_naive(results)
     results = fix_range_values(results)
-    results.to_csv('{}/results_summery.csv'.format(exp_dir_path), index=True)
+    results.to_csv('{}/results_summery_new.csv'.format(exp_dir_path), index=True)
     return results
 
 
