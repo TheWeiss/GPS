@@ -11,8 +11,7 @@ from parse_raw_utils import get_breakpoints
 import argparse
 import pickle
 
-def parse_results(exp_dir_path):
-    exp_dir_path = '../experiments'
+def parse_results(exp_dir_path='../experiments'):
     exp_list = []
     species_list = []
     antibiotic_list = []
