@@ -662,7 +662,7 @@ def apply_SIR(val, s, i, r):
         return 'I'
 
 
-def add_metrices(res, equal_meaning=True, range_conf=False, SIR=True):
+def add_metrices(res, equal_meaning=False, range_conf=False, SIR=True):
     results = res.copy()
     for i in results.index:
         try:
