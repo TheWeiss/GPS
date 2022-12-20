@@ -58,7 +58,8 @@ class MICDataSet(ABC):
         self._load_geno()
         print('running pheno for ' + self.name)
         self._load_pheno()
-        self._remove_low_depth_non_card()
+        if not (self.pre_params is None or self.pre_params.get('filter_contig_num') is None):
+            self._remove_low_depth_non_card()
 
     def _load_geno(self):
         try:
