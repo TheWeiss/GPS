@@ -5,6 +5,7 @@ import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
+from tqdm import tqdm
 from sklearn.metrics import confusion_matrix, mean_squared_error, ConfusionMatrixDisplay
 from experiment import Model_h2o, Model_axgb
 from parse_raw_utils import get_breakpoints
@@ -664,7 +665,7 @@ def apply_SIR(val, s, i, r):
 
 def add_metrices(res, equal_meaning=False, range_conf=False, SIR=True):
     results = res.copy()
-    for i in results.index:
+    for i in tqdm(results.index):
         try:
             exp_name = results.loc[i, 'exp_path']
             model_name = results.loc[i, 'model_path']
