@@ -76,6 +76,7 @@ def align_error_files_files(exp_path):
 
 def fill_data_path(exp_path):
     data_file_path = '{}/data_path.txt'.format(exp_path)
+    print(exp_path)
     with open(data_file_path) as f:
         return f.readlines()[0]
 
