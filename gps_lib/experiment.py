@@ -495,8 +495,7 @@ if __name__ == "__main__":
     # ds parameters like range handling
     parser.add_argument('--handle-range', dest='handle_range',
                         choices=['remove', 'strip', 'move'])
-    parser.add_argument('--per-gene-features', dest='per_gene_features',
-                        default='seq_cov-seq_id-depth-copy_number', nargs='?')
+    parser.add_argument('--per-gene-features', dest='per_gene_features', nargs='?')
     parser.add_argument('--move-range-by', dest='move_range_by', type=int, nargs='?')
     parser.add_argument('--not-equal-meaning', dest='not_equal_meaning', action="store_true")
     parser.add_argument('--pca', dest='pca', choices=['per_gene', 'all'])
