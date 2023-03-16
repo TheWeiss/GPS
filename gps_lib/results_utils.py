@@ -432,6 +432,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
             # Generate the confusion matrix
             if not add_error_tics:
                 N = n
+                tics = tics[:n]
 
             cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], labels=tics)[:N, :n]
             group_counts = ["{0:0.0f}".format(value) for value in cf_matrix.flatten()]
