@@ -241,8 +241,11 @@ def read_exp_dirs(exp_dir_path, equal_meaning=False):
     return results
 
 
-def exact_plots(i):
-    res = pd.read_csv('../experiments/results_summery.csv')
+def exact_plots(i, results=None):
+    if results is None:
+        res = pd.read_csv('../experiments/results_summery.csv')
+    else:
+        res = results
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
     model = res.loc[i, 'model']
@@ -324,8 +327,11 @@ def exact_plots(i):
     plt.show()
 
 
-def SIR_plots(i, equal_meaning=False, add_error_tics=True):
-    res = pd.read_csv('../experiments/results_summery.csv')
+def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
+    if results is None:
+        res = pd.read_csv('../experiments/results_summery.csv')
+    else:
+        res =results
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
     model = res.loc[i, 'model']
@@ -456,8 +462,11 @@ def SIR_plots(i, equal_meaning=False, add_error_tics=True):
         print('Not valid breakpoints data')
 
 
-def PA_plot(i, threshold):
-    res = pd.read_csv('../experiments/results_summery.csv')
+def PA_plot(i, results=None, threshold):
+    if results is None:
+        res = pd.read_csv('../experiments/results_summery.csv')
+    else:
+        res = results
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
     model = res.loc[i, 'model']
@@ -532,8 +541,11 @@ def PA_plot(i, threshold):
         plt.show()
 
 
-def range_plots(i, equal_meaning=False):
-    res = pd.read_csv('../experiments/results_summery.csv')
+def range_plots(i, results=None, equal_meaning=False):
+    if results is None:
+        res = pd.read_csv('../experiments/results_summery.csv')
+    else:
+        res =results
     exp_name = res.loc[i, 'exp_path']
     model = res.loc[i, 'model']
     model_path = res.loc[i, 'model_path']
@@ -1010,8 +1022,11 @@ def add_metrices(res, equal_meaning=False, range_conf=False, SIR=True):
     return results
 
 
-def shap_plots(i):
-    res = pd.read_csv('../experiments/results_summery1.csv')
+def shap_plots(i, results=None):
+    if results is None:
+        res = pd.read_csv('../experiments/results_summery.csv')
+    else:
+        res = results
     exp_name = res.loc[i, 'exp_path']
     model_type = res.loc[i, 'model']
     model_name = res.loc[i, 'model_path']
