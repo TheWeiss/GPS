@@ -324,7 +324,7 @@ def exact_plots(i):
     plt.show()
 
 
-def SIR_plots(i, equal_meaning=False):
+def SIR_plots(i, equal_meaning=False, add_error_tics=True):
     res = pd.read_csv('../experiments/results_summery.csv')
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
@@ -403,7 +403,7 @@ def SIR_plots(i, equal_meaning=False):
         range_res.loc[:, 'updated_sign'].fillna(range_res['sign'], inplace=True)
 
         range_res['SIR_true'] = range_res[['updated_y_true', 'updated_sign']].apply(
-            lambda row: apply_SIR_range(row, s, I, r), axis=1)
+            lambda row: apply_SIR_range(row, s, I, r, add_error_tics), axis=1)
         range_res['SIR_pred'] = range_res['y_pred'].apply(lambda val: apply_SIR(val, s, I, r))
 
         train_range_res = range_res.loc[set(range_res.index).intersection(set(train_indexs))]
@@ -415,6 +415,7 @@ def SIR_plots(i, equal_meaning=False):
 
         N = len(tics)
         n = 3
+
         for key, fold in split_res.items():
             title = 'SIR confusion matrix of the pair ({},{})- {}'.format(res.loc[i, 'species'],
                                                                           res.loc[i, 'antibiotic'], key)
@@ -422,11 +423,14 @@ def SIR_plots(i, equal_meaning=False):
             plt.figure(figsize=(13, 13))
 
             # Generate the confusion matrix
-            cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], labels=tics)[:, :3]
+            if not add_error_tics:
+                N = n
+
+            cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], labels=tics)[:N, :n]
             group_counts = ["{0:0.0f}".format(value) for value in cf_matrix.flatten()]
 
             cf_matrix = confusion_matrix(fold['SIR_true'], fold['SIR_pred'], normalize='true',
-                                         labels=tics)[:, :3]
+                                         labels=tics)[:N, :n]
             group_percentages = ["{0:.2%}".format(value) for value in cf_matrix.flatten()]
 
             labels = [f"{v1}\n({v2})" for v1, v2 in
@@ -609,7 +613,7 @@ def range_plots(i, equal_meaning=False):
         plt.show()
 
 
-def apply_SIR_range(row, s, i, r):
+def apply_SIR_range(row, s, i, r, add_error_tics=True):
     sign = row['updated_sign']
     val = row['updated_y_true']
     if sign == '<=':
@@ -625,7 +629,10 @@ def apply_SIR_range(row, s, i, r):
             if val <= s:
                 return 'S'
             elif val < r:
-                return 'I->S'
+                if add_error_tics:
+                    return 'I->S'
+                else:
+                    return 'S'
             else:
                 return '?'
     elif sign == '>=':
@@ -641,7 +648,10 @@ def apply_SIR_range(row, s, i, r):
             if val >= r:
                 return 'R'
             elif val > s:
-                return 'I->R'
+                if add_error_tics:
+                    return 'I->R'
+                else:
+                    return 'R'
             else:
                 return '?'
     else:
