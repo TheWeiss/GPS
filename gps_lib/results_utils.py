@@ -463,7 +463,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
         print('Not valid breakpoints data')
 
 
-def PA_plot(i, results=None, threshold):
+def PA_plot(i, threshold, results=None):
     if results is None:
         res = pd.read_csv('../experiments/results_summery.csv')
     else:
