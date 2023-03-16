@@ -358,12 +358,12 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
 
             if model == 'autoxgb':
                 split_preds = pd.read_csv(
-                    '../experiments/{}/{}/{}/{}_preds.csv'.format(pre_param, exp_name, model_path, split)).set_index(col_names['id'])
+                    '{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).set_index(col_names['id'])
                 split_preds.columns = ['y_pred']
                 split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
             elif model == 'h2o':
                 split_preds = pd.read_csv(
-                    '../experiments/{}/{}/{}/{}_preds.csv'.format(pre_param, exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
+                    '{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
                 split_preds.columns = ['y_pred']
                 split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
                                                 how='inner').set_index(col_names['id'])
