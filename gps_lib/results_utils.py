@@ -381,7 +381,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
             split_res[split] = split_res_i
 
         if model == 'autoxgb':
-            range_preds = pd.read_csv('../experiments/{}/{}/{}/range_preds.csv'.format(pre_param, exp_name, model_path))
+            range_preds = pd.read_csv('{}/{}/range_preds.csv'.format(exp_name, model_path))
             if len(range_preds) == 0:
                 range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
             range_preds = range_preds.set_index(col_names['id'])
@@ -454,7 +454,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
             ## Ticket labels - List must be in alphabetical order
             ax.xaxis.set_ticklabels(tics[:n])
             ax.yaxis.set_ticklabels(tics)
-            plt.savefig('../experiments/{}/{}/{}/SIR_conf_mat_{}'.format(pre_param, exp_name, model_path, key))
+            plt.savefig('{}/{}/SIR_conf_mat_{}'.format(exp_name, model_path, key))
             ## Display the visualization of the Confusion Matrix.
             plt.show()
 
