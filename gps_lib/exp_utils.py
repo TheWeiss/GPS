@@ -78,11 +78,11 @@ def gene_presence_in_isolate_figure(genotype, db_name, path=None):
     plt.title('{}: Gene presence in isolates sorted by count'.format(db_name))
     plt.xlabel('Genes')
     plt.ylabel('# of isolates containing this gene')
-    plt.savefig(path)
+    plt.savefig(path, dpi=300, bbox_inches='tight')
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig('{}/Gene_presence_in_isolates_per_gene'.format(path))
+        plt.savefig('{}/Gene_presence_in_isolates_per_gene'.format(path), dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -95,7 +95,7 @@ def gene_num_in_isolate_figure(genotype, db_name, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig('{}/Gene_presence_in_isolates_per_isolate'.format(path))
+        plt.savefig('{}/Gene_presence_in_isolates_per_isolate'.format(path), dpi=300, bbox_inches='tight')
     plt.show()
 
     
@@ -109,7 +109,7 @@ def anti_presence_in_isolates_figure(all_ASR, db_name, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig('{}/Amount_of_measurment_per_antibiotic'.format(path))
+        plt.savefig('{}/Amount_of_measurment_per_antibiotic'.format(path), dpi=300, bbox_inches='tight')
     plt.show()
 
 '''
@@ -135,7 +135,7 @@ def look_at_anti_dist(all_ASR, col_name, col_order=None, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig('{}/Distribution_{}_per_antibiotics'.format(path, col_name))
+        plt.savefig('{}/Distribution_{}_per_antibiotics'.format(path, col_name), dpi=300, bbox_inches='tight')
     plt.show()
 
     
@@ -169,7 +169,7 @@ def print_anti_measure(all_ASR, species, anti_index, need_log=False, path=None):
     if path is not None:
         if not os.path.exists(path):
             os.makedirs(path)
-        plt.savefig('{}/{}_MIC_values'.format(path, anti))
+        plt.savefig('{}/{}_MIC_values'.format(path, anti), dpi=300, bbox_inches='tight')
     plt.show()
 
     
