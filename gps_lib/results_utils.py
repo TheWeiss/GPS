@@ -334,6 +334,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
         res =results
     exp_name = res.loc[i, 'exp_path']
     model_path = res.loc[i, 'model_path']
+    pre_param = res.loc[i, 'pre_params_name']
     model = res.loc[i, 'model']
     data_path = res.loc[i, 'data_path']
     with open(data_path + '/col_names.json') as json_file:
@@ -357,12 +358,12 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
 
             if model == 'autoxgb':
                 split_preds = pd.read_csv(
-                    '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).set_index(col_names['id'])
+                    '../experiments/{}/{}/{}/{}_preds.csv'.format(pre_param, exp_name, model_path, split)).set_index(col_names['id'])
                 split_preds.columns = ['y_pred']
                 split_res_i = split_preds.merge(split_y, left_index=True, right_index=True, how='inner')
             elif model == 'h2o':
                 split_preds = pd.read_csv(
-                    '../experiments/{}/{}/{}_preds.csv'.format(exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
+                    '../experiments/{}/{}/{}/{}_preds.csv'.format(pre_param, exp_name, model_path, split)).drop('Unnamed: 0', axis=1)
                 split_preds.columns = ['y_pred']
                 split_res_i = split_preds.merge(split_y.reset_index(), left_index=True, right_index=True,
                                                 how='inner').set_index(col_names['id'])
@@ -380,14 +381,14 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
             split_res[split] = split_res_i
 
         if model == 'autoxgb':
-            range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path))
+            range_preds = pd.read_csv('../experiments/{}/{}/{}/range_preds.csv'.format(pre_param, exp_name, model_path))
             if len(range_preds) == 0:
                 range_preds = pd.DataFrame({col_names['id']: [], 'measurment': []}, index=[])
             range_preds = range_preds.set_index(col_names['id'])
             range_preds.columns = ['y_pred']
             range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
         elif model == 'h2o':
-            range_preds = pd.read_csv('../experiments/{}/{}/range_preds.csv'.format(exp_name, model_path)).drop(
+            range_preds = pd.read_csv('../experiments/{}/{}/{}/range_preds.csv'.format(pre_paramexp_name, model_path)).drop(
                 'Unnamed: 0', axis=1)
             if len(range_preds) == 0:
                 range_preds = pd.DataFrame({'measurment': []}, index=[])
@@ -453,7 +454,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
             ## Ticket labels - List must be in alphabetical order
             ax.xaxis.set_ticklabels(tics[:n])
             ax.yaxis.set_ticklabels(tics)
-            plt.savefig('../experiments/{}/{}/SIR_conf_mat_{}'.format(exp_name, model_path, key))
+            plt.savefig('../experiments/{}/{}/{}/SIR_conf_mat_{}'.format(pre_param, exp_name, model_path, key))
             ## Display the visualization of the Confusion Matrix.
             plt.show()
 
