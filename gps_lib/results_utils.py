@@ -388,7 +388,7 @@ def SIR_plots(i, results=None, equal_meaning=False, add_error_tics=True):
             range_preds.columns = ['y_pred']
             range_res = range_preds.merge(range_y, left_index=True, right_index=True, how='inner')
         elif model == 'h2o':
-            range_preds = pd.read_csv('../experiments/{}/{}/{}/range_preds.csv'.format(pre_paramexp_name, model_path)).drop(
+            range_preds = pd.read_csv('{}/{}/range_preds.csv'.format(exp_name, model_path)).drop(
                 'Unnamed: 0', axis=1)
             if len(range_preds) == 0:
                 range_preds = pd.DataFrame({'measurment': []}, index=[])
